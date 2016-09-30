@@ -1,4 +1,4 @@
-﻿-->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/01.types-domains-tables-and-constraints/tables-and-constraints.sql --<--<--
+﻿-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/01.types-domains-tables-and-constraints/tables-and-constraints.sql --<--<--
 DROP SCHEMA IF EXISTS finance CASCADE;
 CREATE SCHEMA finance;
 
@@ -443,7 +443,7 @@ CREATE TYPE finance.period AS
     date_to                         date
 );
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.date_functions.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.date_functions.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_date(_office_id integer);
 
 CREATE FUNCTION finance.get_date(_office_id integer)
@@ -633,7 +633,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_id_by_account_name.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_id_by_account_name.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_account_id_by_account_name(text);
 
 CREATE FUNCTION finance.get_account_id_by_account_name(text)
@@ -651,7 +651,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_id_by_account_number.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_id_by_account_number.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_account_id_by_account_number(text);
 
 CREATE FUNCTION finance.get_account_id_by_account_number(text)
@@ -669,7 +669,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_ids.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_ids.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_account_ids(root_account_id bigint);
 
 CREATE FUNCTION finance.get_account_ids(root_account_id bigint)
@@ -697,7 +697,7 @@ $$LANGUAGE plpgsql;
 
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_master_id_by_account_id.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_master_id_by_account_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_account_master_id_by_account_id(bigint) CASCADE;
 
 CREATE FUNCTION finance.get_account_master_id_by_account_id(bigint)
@@ -720,7 +720,7 @@ CHECK
     finance.get_account_master_id_by_account_id(account_id) = '10102'
 );
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_master_id_by_account_master_code.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_master_id_by_account_master_code.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_account_master_id_by_account_master_code(text);
 
 CREATE FUNCTION finance.get_account_master_id_by_account_master_code(_account_master_code text)
@@ -738,7 +738,7 @@ LANGUAGE plpgsql;
 
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_name.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_name.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_account_name_by_account_id(bigint);
 
 CREATE FUNCTION finance.get_account_name_by_account_id(_account_id bigint)
@@ -755,7 +755,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_flow_heading_id_by_cash_flow_heading_code.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_flow_heading_id_by_cash_flow_heading_code.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_cash_flow_heading_id_by_cash_flow_heading_code(_cash_flow_heading_code national character varying(12));
 
 CREATE FUNCTION finance.get_cash_flow_heading_id_by_cash_flow_heading_code(_cash_flow_heading_code national character varying(12))
@@ -775,7 +775,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_repository_balance.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_repository_balance.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_cash_repository_balance(_cash_repository_id integer, _currency_code national character varying(12));
 CREATE FUNCTION finance.get_cash_repository_balance(_cash_repository_id integer, _currency_code national character varying(12))
 RETURNS public.money_strict2
@@ -829,7 +829,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_repository_id_by_cash_repository_code.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_repository_id_by_cash_repository_code.sql --<--<--
 CREATE FUNCTION finance.get_cash_repository_id_by_cash_repository_code(text)
 RETURNS integer
 AS
@@ -846,7 +846,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_repository_id_by_cash_repository_name.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_repository_id_by_cash_repository_name.sql --<--<--
 CREATE FUNCTION finance.get_cash_repository_id_by_cash_repository_name(text)
 RETURNS integer
 AS
@@ -863,7 +863,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cost_center_id_by_cost_center_code.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cost_center_id_by_cost_center_code.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_cost_center_id_by_cost_center_code(text);
 
 CREATE FUNCTION finance.get_cost_center_id_by_cost_center_code(text)
@@ -879,7 +879,7 @@ END
 $$
 LANGUAGE plpgsql;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_default_currency_code.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_default_currency_code.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_default_currency_code(cash_repository_id integer);
 
 CREATE FUNCTION finance.get_default_currency_code(cash_repository_id integer)
@@ -900,7 +900,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_default_currency_code_by_office_id.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_default_currency_code_by_office_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_default_currency_code_by_office_id(office_id integer);
 
 CREATE FUNCTION finance.get_default_currency_code_by_office_id(office_id integer)
@@ -919,7 +919,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_setup_code_by_frequency_setup_id.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_setup_code_by_frequency_setup_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_frequency_setup_code_by_frequency_setup_id(_frequency_setup_id integer);
 
 CREATE FUNCTION finance.get_frequency_setup_code_by_frequency_setup_id(_frequency_setup_id integer)
@@ -936,7 +936,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_setup_end_date_by_frequency_setup_id.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_setup_end_date_by_frequency_setup_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_frequency_setup_end_date_by_frequency_setup_id(_frequency_setup_id integer);
 CREATE FUNCTION finance.get_frequency_setup_end_date_by_frequency_setup_id(_frequency_setup_id integer)
 RETURNS date
@@ -954,7 +954,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_setup_start_date_by_frequency_setup_id.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_setup_start_date_by_frequency_setup_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_frequency_setup_start_date_by_frequency_setup_id(_frequency_setup_id integer);
 CREATE FUNCTION finance.get_frequency_setup_start_date_by_frequency_setup_id(_frequency_setup_id integer)
 RETURNS date
@@ -983,7 +983,7 @@ END
 $$
 LANGUAGE plpgsql;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_setup_start_date_frequency_setup_id.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_setup_start_date_frequency_setup_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_frequency_setup_start_date_frequency_setup_id(_frequency_setup_id integer);
 CREATE FUNCTION finance.get_frequency_setup_start_date_frequency_setup_id(_frequency_setup_id integer)
 RETURNS date
@@ -1012,7 +1012,7 @@ END
 $$
 LANGUAGE plpgsql;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_office_id_by_cash_repository_id.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_office_id_by_cash_repository_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_office_id_by_cash_repository_id(integer);
 
 CREATE FUNCTION finance.get_office_id_by_cash_repository_id(integer)
@@ -1028,7 +1028,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_periods.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_periods.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_periods
 (
     _date_from                      date,
@@ -1072,7 +1072,7 @@ END
 $$
 LANGUAGE plpgsql;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_root_account_id.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_root_account_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_root_account_id(bigint, bigint);
 
 CREATE FUNCTION finance.get_root_account_id(_account_id bigint, _parent bigint default 0)
@@ -1099,7 +1099,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_value_date.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_value_date.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_value_date(_office_id integer);
 
 CREATE FUNCTION finance.get_value_date(_office_id integer)
@@ -1131,7 +1131,7 @@ END
 $$
 LANGUAGE plpgsql;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.has_child_accounts.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.has_child_accounts.sql --<--<--
 DROP FUNCTION IF EXISTS finance.has_child_accounts(bigint);
 
 CREATE FUNCTION finance.has_child_accounts(bigint)
@@ -1149,7 +1149,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_normally_debit.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_normally_debit.sql --<--<--
 DROP FUNCTION IF EXISTS finance.is_normally_debit(_account_id bigint);
 
 CREATE FUNCTION finance.is_normally_debit(_account_id bigint)
@@ -1167,7 +1167,7 @@ END
 $$
 LANGUAGE plpgsql;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_periodic_inventory.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_periodic_inventory.sql --<--<--
 DROP FUNCTION IF EXISTS finance.is_periodic_inventory(_office_id integer);
 
 CREATE FUNCTION finance.is_periodic_inventory(_office_id integer)
@@ -1183,7 +1183,7 @@ LANGUAGE plpgsql;
 
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.create_payment_card.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.create_payment_card.sql --<--<--
 DROP FUNCTION IF EXISTS finance.create_payment_card
 (
     _payment_card_code      national character varying(12),
@@ -1222,7 +1222,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_balance_sheet.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_balance_sheet.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_balance_sheet
 (
     _previous_period                date,
@@ -1468,7 +1468,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_cash_flow_statement.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_cash_flow_statement.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_cash_flow_statement
 (
     _date_from                      date,
@@ -1745,7 +1745,7 @@ END
 $$
 LANGUAGE plpgsql;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_net_profit.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_net_profit.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_net_profit
 (
     _date_from                      date,
@@ -1809,7 +1809,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_profit_and_loss_statement.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_profit_and_loss_statement.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_profit_and_loss_statement
 (
     _date_from                      date,
@@ -2139,7 +2139,7 @@ END
 $$
 LANGUAGE plpgsql;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_retained_earnings.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_retained_earnings.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_retained_earnings
 (
     _date_to                        date,
@@ -2181,7 +2181,7 @@ $$
 LANGUAGE plpgsql;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_trial_balance.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.get_trial_balance.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_trial_balance
 (
     _date_from                      date,
@@ -2410,7 +2410,7 @@ END
 $$
 LANGUAGE plpgsql;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.account_scrud_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.account_scrud_view.sql --<--<--
 DROP VIEW IF EXISTS finance.account_scrud_view CASCADE;
 
 CREATE VIEW finance.account_scrud_view
@@ -2438,7 +2438,7 @@ ON parent_account.account_id=finance.accounts.parent_account_id
 WHERE NOT finance.accounts.deleted;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.bank_accounts_scrud_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.bank_accounts_scrud_view.sql --<--<--
 DROP VIEW IF EXISTS finance.bank_accounts_scrud_view;
 
 CREATE VIEW finance.bank_accounts_scrud_view
@@ -2461,7 +2461,7 @@ INNER JOIN core.offices
 ON finance.bank_accounts.office_id = core.offices.office_id
 WHERE NOT finance.bank_accounts.deleted;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.cash_flow_heading_scrud_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.cash_flow_heading_scrud_view.sql --<--<--
 DROP VIEW IF EXISTS finance.cash_flow_heading_scrud_view;
 
 CREATE VIEW finance.cash_flow_heading_scrud_view
@@ -2477,7 +2477,7 @@ SELECT
 FROM finance.cash_flow_headings
 WHERE NOT finance.cash_flow_headings.deleted;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.cash_flow_setup_scrud_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.cash_flow_setup_scrud_view.sql --<--<--
 DROP VIEW IF EXISTS finance.cash_flow_setup_scrud_view;
 
 CREATE VIEW finance.cash_flow_setup_scrud_view
@@ -2494,7 +2494,7 @@ ON finance.cash_flow_setup.account_master_id = finance.account_masters.account_m
 WHERE NOT finance.cash_flow_setup.deleted;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.cash_repository_scrud_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.cash_repository_scrud_view.sql --<--<--
 DROP VIEW IF EXISTS finance.cash_repository_scrud_view;
 
 CREATE VIEW finance.cash_repository_scrud_view
@@ -2514,7 +2514,7 @@ ON finance.cash_repositories.parent_cash_repository_id = parent_cash_repository.
 WHERE NOT finance.cash_repositories.deleted;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.cost_center_scrud_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.cost_center_scrud_view.sql --<--<--
 DROP VIEW IF EXISTS finance.cost_center_scrud_view;
 
 CREATE VIEW finance.cost_center_scrud_view
@@ -2526,7 +2526,7 @@ SELECT
 FROM finance.cost_centers
 WHERE NOT finance.cost_centers.deleted;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.merchant_fee_setup_scrud_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.merchant_fee_setup_scrud_view.sql --<--<--
 DROP VIEW IF EXISTS finance.merchant_fee_setup_scrud_view CASCADE;
 
 CREATE VIEW finance.merchant_fee_setup_scrud_view
@@ -2551,7 +2551,7 @@ ON finance.merchant_fee_setup.account_id = finance.accounts.account_id
 WHERE NOT finance.merchant_fee_setup.deleted;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.payment_card_scrud_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.payment_card_scrud_view.sql --<--<--
 DROP VIEW IF EXISTS finance.payment_card_scrud_view;
 
 CREATE VIEW finance.payment_card_scrud_view
@@ -2567,7 +2567,7 @@ ON finance.payment_cards.card_type_id = finance.card_types.card_type_id
 WHERE NOT finance.payment_cards.deleted;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/0. finance.transaction_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/0. finance.transaction_view.sql --<--<--
 DROP VIEW IF EXISTS finance.transaction_view;
 CREATE VIEW finance.transaction_view
 AS
@@ -2615,7 +2615,7 @@ ON finance.accounts.account_master_id = finance.account_masters.account_master_i
 WHERE NOT finance.transaction_master.deleted;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/1. finance.verified_transaction_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/1. finance.verified_transaction_view.sql --<--<--
 DROP VIEW IF EXISTS finance.verified_transaction_view CASCADE;
 
 CREATE VIEW finance.verified_transaction_view
@@ -2624,7 +2624,7 @@ SELECT * FROM finance.transaction_view
 WHERE verification_status_id > 0;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.account_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.account_view.sql --<--<--
 DROP VIEW IF EXISTS finance.account_view;
 
 CREATE VIEW finance.account_view
@@ -2656,7 +2656,7 @@ LEFT OUTER JOIN finance.accounts AS parent_accounts
 ON finance.accounts.parent_account_id = parent_accounts.account_id
 WHERE NOT finance.account_masters.deleted;
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.trial_balance_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.trial_balance_view.sql --<--<--
 DROP MATERIALIZED VIEW IF EXISTS finance.trial_balance_view;
 CREATE MATERIALIZED VIEW finance.trial_balance_view
 AS
@@ -2670,7 +2670,7 @@ ALTER MATERIALIZED VIEW finance.trial_balance_view
 OWNER TO frapid_db_user;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.verified_transaction_mat_view.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.verified_transaction_mat_view.sql --<--<--
 DROP MATERIALIZED VIEW IF EXISTS finance.verified_transaction_mat_view CASCADE;
 
 CREATE MATERIALIZED VIEW finance.verified_transaction_mat_view
@@ -2681,7 +2681,7 @@ ALTER MATERIALIZED VIEW finance.verified_transaction_mat_view
 OWNER TO frapid_db_user;
 
 
--->-->-- C:/Users/nirvan/Desktop/mixerp/frapid/src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/99.ownership.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/99.ownership.sql --<--<--
 DO
 $$
     DECLARE this record;
