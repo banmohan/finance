@@ -1,15 +1,15 @@
-﻿DROP VIEW IF EXISTS finance.bank_accounts_scrud_view;
+﻿DROP VIEW IF EXISTS finance.bank_account_scrud_view;
 
-CREATE VIEW finance.bank_accounts_scrud_view
+CREATE VIEW finance.bank_account_scrud_view
 AS
 SELECT 
+    finance.bank_accounts.bank_account_id,
     finance.bank_accounts.account_id,
     account.users.name AS maintained_by,
     core.offices.office_code || '(' || core.offices.office_name||')' AS office_name,
 	finance.bank_accounts.bank_name,
 	finance.bank_accounts.bank_branch,
 	finance.bank_accounts.bank_contact_number,
-	finance.bank_accounts.bank_address,
 	finance.bank_accounts.bank_account_number,
 	finance.bank_accounts.bank_account_type,
 	finance.bank_accounts.relationship_officer_name

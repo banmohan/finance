@@ -1,5 +1,4 @@
-﻿-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/99.sample-data/00.default-values.sample.sql --<--<--
-/*
+﻿/*
 IMPORTANT:
 The table account_masters must only be translated, but not changed.        
 */

@@ -51,11 +51,12 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.currencies
 (
+	currency_id								SERIAL,
     currency_code                           national character varying(12) PRIMARY KEY,
     currency_symbol                         national character varying(12) NOT NULL,
     currency_name                           national character varying(48) NOT NULL UNIQUE,
     hundredth_name                          national character varying(48) NOT NULL,
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -63,12 +64,12 @@ CREATE TABLE finance.currencies
 CREATE TABLE finance.cash_repositories
 (
     cash_repository_id                      SERIAL PRIMARY KEY,
-    office_id                               integer NOT NULL REFERENCES core.offices(office_id),
+    office_id                               integer NOT NULL REFERENCES core.offices,
     cash_repository_code                    national character varying(12) NOT NULL,
     cash_repository_name                    national character varying(50) NOT NULL,
-    parent_cash_repository_id               integer NULL REFERENCES finance.cash_repositories(cash_repository_id),
+    parent_cash_repository_id               integer NULL REFERENCES finance.cash_repositories,
     description                             national character varying(100) NULL,
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -89,7 +90,7 @@ CREATE TABLE finance.fiscal_year
     fiscal_year_name                        national character varying(50) NOT NULL,
     starts_from                             date NOT NULL,
     ends_on                                 date NOT NULL,
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -114,7 +115,7 @@ CREATE TABLE finance.account_masters
     account_master_code                     national character varying(3) NOT NULL,
     account_master_name                     national character varying(40) NOT NULL,
     normally_debit                          boolean NOT NULL CONSTRAINT account_masters_normally_debit_df DEFAULT(false),
-    parent_account_master_id                smallint NULL REFERENCES finance.account_masters(account_master_id),
+    parent_account_master_id                smallint NULL REFERENCES finance.account_masters,
     audit_user_id                           integer REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
@@ -139,7 +140,7 @@ CREATE TABLE finance.cost_centers
     cost_center_id                          SERIAL PRIMARY KEY,
     cost_center_code                        national character varying(24) NOT NULL,
     cost_center_name                        national character varying(50) NOT NULL,
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -159,8 +160,8 @@ CREATE TABLE finance.frequency_setups
     fiscal_year_code                        national character varying(12) NOT NULL REFERENCES finance.fiscal_year(fiscal_year_code),
     frequency_setup_code                    national character varying(12) NOT NULL,
     value_date                              date NOT NULL UNIQUE,
-    frequency_id                            integer NOT NULL REFERENCES finance.frequencies(frequency_id),
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    frequency_id                            integer NOT NULL REFERENCES finance.frequencies,
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -174,18 +175,18 @@ WHERE NOT deleted;
 CREATE TABLE finance.accounts
 (
     account_id                              BIGSERIAL PRIMARY KEY,
-    account_master_id                       smallint NOT NULL REFERENCES finance.account_masters(account_master_id),
+    account_master_id                       smallint NOT NULL REFERENCES finance.account_masters,
     account_number                          national character varying(12) NOT NULL,
     external_code                           national character varying(12) NULL CONSTRAINT accounts_external_code_df DEFAULT(''),
-    currency_code                           national character varying(12) NOT NULL REFERENCES finance.currencies(currency_code),
+    currency_code                           national character varying(12) NOT NULL REFERENCES finance.currencies,
     account_name                            national character varying(100) NOT NULL,
     description                             national character varying(200) NULL,
     confidential                            boolean NOT NULL CONSTRAINT accounts_confidential_df DEFAULT(false),
     is_transaction_node                     boolean NOT NULL --Non transaction nodes cannot be used in transaction.
                                             CONSTRAINT accounts_is_transaction_node_df DEFAULT(true),
     sys_type                                boolean NOT NULL CONSTRAINT accounts_sys_type_df DEFAULT(false),
-    parent_account_id                       bigint NULL REFERENCES finance.accounts(account_id),
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    parent_account_id                       bigint NULL REFERENCES finance.accounts,
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -213,7 +214,7 @@ CREATE TABLE finance.cash_flow_headings
                                             DEFAULT(false),
     is_purchase                             boolean NOT NULL CONSTRAINT cash_flow_headings_is_purchase_df
                                             DEFAULT(false),
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -230,18 +231,26 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.bank_accounts
 (
-    account_id                              bigint PRIMARY KEY REFERENCES finance.accounts(account_id),                                            
-    maintained_by_user_id                   integer NOT NULL REFERENCES account.users(user_id),
+	bank_account_id							SERIAL PRIMARY KEY,
+    account_id                              bigint REFERENCES finance.accounts,                                            
+    maintained_by_user_id                   integer NOT NULL REFERENCES account.users,
 	is_merchant_account 					boolean NOT NULL DEFAULT(false),
-    office_id                               integer NOT NULL REFERENCES core.offices(office_id),
+    office_id                               integer NOT NULL REFERENCES core.offices,
     bank_name                               national character varying(128) NOT NULL,
     bank_branch                             national character varying(128) NOT NULL,
     bank_contact_number                     national character varying(128) NULL,
-    bank_address                            text NULL,
     bank_account_number                     national character varying(128) NULL,
     bank_account_type                       national character varying(128) NULL,
+    street                                  national character varying(50) NULL,
+    city                                    national character varying(50) NULL,
+    state                                   national character varying(50) NULL,
+    country                                 national character varying(50) NULL,
+    phone                                   national character varying(50) NULL,
+    fax                                     national character varying(50) NULL,
+    cell                                    national character varying(50) NULL,
     relationship_officer_name               national character varying(128) NULL,
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    relationship_officer_contact_number     national character varying(128) NULL,
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -274,9 +283,9 @@ SELECT 3, 'Cr', 'Credit';
 CREATE TABLE finance.cash_flow_setup
 (
     cash_flow_setup_id                      SERIAL PRIMARY KEY,
-    cash_flow_heading_id                    integer NOT NULL REFERENCES finance.cash_flow_headings(cash_flow_heading_id),
-    account_master_id                       smallint NOT NULL REFERENCES finance.account_masters(account_master_id),
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    cash_flow_heading_id                    integer NOT NULL REFERENCES finance.cash_flow_headings,
+    account_master_id                       smallint NOT NULL REFERENCES finance.account_masters,
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -300,21 +309,21 @@ CREATE TABLE finance.transaction_master
     value_date                              date NOT NULL,
     transaction_ts                          TIMESTAMP WITH TIME ZONE NOT NULL   
                                             DEFAULT(NOW()),
-    login_id                                bigint NOT NULL REFERENCES account.logins(login_id),
-    user_id                                 integer NOT NULL REFERENCES account.users(user_id),
-    sys_user_id                             integer NULL REFERENCES account.users(user_id),
-    office_id                               integer NOT NULL REFERENCES core.offices(office_id),
-    cost_center_id                          integer NULL REFERENCES finance.cost_centers(cost_center_id),
+    login_id                                bigint NOT NULL REFERENCES account.logins,
+    user_id                                 integer NOT NULL REFERENCES account.users,
+    sys_user_id                             integer NULL REFERENCES account.users,
+    office_id                               integer NOT NULL REFERENCES core.offices,
+    cost_center_id                          integer NULL REFERENCES finance.cost_centers,
     reference_number                        national character varying(24) NULL,
     statement_reference                     text NULL,
     last_verified_on                        TIMESTAMP WITH TIME ZONE NULL, 
-    verified_by_user_id                     integer NULL REFERENCES account.users(user_id),
-    verification_status_id                  smallint NOT NULL REFERENCES finance.verification_statuses(verification_status_id)   
+    verified_by_user_id                     integer NULL REFERENCES account.users,
+    verification_status_id                  smallint NOT NULL REFERENCES finance.verification_statuses   
                                             DEFAULT(0/*Awaiting verification*/),
     verification_reason                     national character varying(128) NOT NULL   
                                             CONSTRAINT transaction_master_verification_reason_df   
                                             DEFAULT(''),
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false),
                                             CONSTRAINT transaction_master_login_id_sys_user_id_chk
@@ -341,18 +350,18 @@ WHERE NOT deleted;
 CREATE TABLE finance.transaction_details
 (
     transaction_detail_id                   BIGSERIAL PRIMARY KEY,
-    transaction_master_id                   bigint NOT NULL REFERENCES finance.transaction_master(transaction_master_id),
+    transaction_master_id                   bigint NOT NULL REFERENCES finance.transaction_master,
     value_date                              date NOT NULL,
     tran_type                               national character varying(4) NOT NULL CHECK(tran_type IN ('Dr', 'Cr')),
-    account_id                              bigint NOT NULL REFERENCES finance.accounts(account_id),
+    account_id                              bigint NOT NULL REFERENCES finance.accounts,
     statement_reference                     text NULL,
-    cash_repository_id                      integer NULL REFERENCES finance.cash_repositories(cash_repository_id),
-    currency_code                           national character varying(12) NULL REFERENCES finance.currencies(currency_code),
+    cash_repository_id                      integer NULL REFERENCES finance.cash_repositories,
+    currency_code                           national character varying(12) NULL REFERENCES finance.currencies,
     amount_in_currency                      money_strict NOT NULL,
-    local_currency_code                     national character varying(12) NULL REFERENCES finance.currencies(currency_code),
+    local_currency_code                     national character varying(12) NULL REFERENCES finance.currencies,
     er                                      decimal_strict NOT NULL,
     amount_in_local_currency                money_strict NOT NULL,  
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW())
 );
 
@@ -360,12 +369,12 @@ CREATE TABLE finance.transaction_details
 CREATE TABLE finance.day_operation
 (
     day_id                                  BIGSERIAL NOT NULL PRIMARY KEY,
-    office_id                               integer NOT NULL REFERENCES core.offices(office_id),
+    office_id                               integer NOT NULL REFERENCES core.offices,
     value_date                              date NOT NULL,
     started_on                              TIMESTAMP WITH TIME ZONE NOT NULL,
-    started_by                              integer NOT NULL REFERENCES account.users(user_id),    
+    started_by                              integer NOT NULL REFERENCES account.users,    
     completed_on                            TIMESTAMP WITH TIME ZONE NULL,
-    completed_by                            integer NULL REFERENCES account.users(user_id),
+    completed_by                            integer NULL REFERENCES account.users,
     completed                               boolean NOT NULL 
                                             CONSTRAINT day_operation_completed_df DEFAULT(false)
                                             CONSTRAINT day_operation_completed_chk 
@@ -400,8 +409,8 @@ CREATE TABLE finance.payment_cards
 	payment_card_id                     	SERIAL NOT NULL PRIMARY KEY,
 	payment_card_code                   	national character varying(12) NOT NULL,
 	payment_card_name                   	national character varying(100) NOT NULL,
-	card_type_id                        	integer NOT NULL REFERENCES finance.card_types(card_type_id),            
-	audit_user_id                       	integer NULL REFERENCES account.users(user_id),            
+	card_type_id                        	integer NOT NULL REFERENCES finance.card_types,            
+	audit_user_id                       	integer NULL REFERENCES account.users,            
 	audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)            
 );
@@ -417,21 +426,44 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.merchant_fee_setup
 (
-	merchant_fee_setup_id               SERIAL NOT NULL PRIMARY KEY,
-	merchant_account_id                 bigint NOT NULL REFERENCES finance.bank_accounts(account_id),
-	payment_card_id                     integer NOT NULL REFERENCES finance.payment_cards(payment_card_id),
-	rate                                public.decimal_strict NOT NULL,
-	customer_pays_fee                   boolean NOT NULL DEFAULT(false),
-	account_id                          bigint NOT NULL REFERENCES finance.accounts(account_id),
-	statement_reference                 national character varying(128) NOT NULL DEFAULT(''),
-	audit_user_id                       integer NULL REFERENCES account.users(user_id),            
-	audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	merchant_fee_setup_id               	SERIAL NOT NULL PRIMARY KEY,
+	merchant_account_id                 	bigint NOT NULL REFERENCES finance.bank_accounts,
+	payment_card_id                     	integer NOT NULL REFERENCES finance.payment_cards,
+	rate                                	public.decimal_strict NOT NULL,
+	customer_pays_fee                   	boolean NOT NULL DEFAULT(false),
+	account_id                          	bigint NOT NULL REFERENCES finance.accounts,
+	statement_reference                 	national character varying(128) NOT NULL DEFAULT(''),
+	audit_user_id                       	integer NULL REFERENCES account.users,            
+	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)            
 );
 
 CREATE UNIQUE INDEX merchant_fee_setup_merchant_account_id_payment_card_id_uix
 ON finance.merchant_fee_setup(merchant_account_id, payment_card_id)
 WHERE NOT deleted;
+
+
+CREATE TABLE finance.exchange_rates
+(
+    exchange_rate_id                        BIGSERIAL PRIMARY KEY,
+    updated_on                              TIMESTAMP WITH TIME ZONE NOT NULL   
+                                            CONSTRAINT exchange_rates_updated_on_df 
+                                            DEFAULT(NOW()),
+    office_id                               integer NOT NULL REFERENCES core.offices,
+    status                                  BOOLEAN NOT NULL   
+                                            CONSTRAINT exchange_rates_status_df 
+                                            DEFAULT(true)
+);
+
+CREATE TABLE finance.exchange_rate_details
+(
+    exchange_rate_detail_id                 BIGSERIAL PRIMARY KEY,
+    exchange_rate_id                        bigint NOT NULL REFERENCES finance.exchange_rates,
+    local_currency_code                     national character varying(12) NOT NULL REFERENCES finance.currencies,
+    foreign_currency_code                   national character varying(12) NOT NULL REFERENCES finance.currencies,
+    unit                                    integer_strict NOT NULL,
+    exchange_rate                           decimal_strict NOT NULL
+);
 
 
 DROP TYPE IF EXISTS finance.period CASCADE;
@@ -442,6 +474,8 @@ CREATE TYPE finance.period AS
     date_from                       date,
     date_to                         date
 );
+
+
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.date_functions.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_date(_office_id integer);
@@ -919,6 +953,70 @@ $$
 LANGUAGE plpgsql;
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_exchange_rate.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_exchange_rate(office_id integer, currency_code national character varying(12));
+
+CREATE FUNCTION finance.get_exchange_rate(office_id integer, currency_code national character varying(12))
+RETURNS decimal_strict2
+AS
+$$
+    DECLARE _local_currency_code national character varying(12)= '';
+    DECLARE _unit integer_strict2 = 0;
+    DECLARE _exchange_rate decimal_strict2=0;
+BEGIN
+    SELECT core.offices.currency_code
+    INTO _local_currency_code
+    FROM core.offices
+    WHERE core.offices.office_id=$1;
+
+    IF(_local_currency_code = $2) THEN
+        RETURN 1;
+    END IF;
+
+    SELECT unit, exchange_rate
+    INTO _unit, _exchange_rate
+    FROM finance.exchange_rate_details
+    INNER JOIN finance.exchange_rates
+    ON finance.exchange_rate_details.exchange_rate_id = finance.exchange_rates.exchange_rate_id
+    WHERE finance.exchange_rates.office_id=$1
+    AND foreign_currency_code=$2;
+
+    IF(_unit = 0) THEN
+        RETURN 0;
+    END IF;
+    
+    RETURN _exchange_rate/_unit;    
+END
+$$
+LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS finance.get_exchange_rate(office_id integer, source_currency_code national character varying(12), destination_currency_code national character varying(12));
+
+CREATE FUNCTION finance.get_exchange_rate(office_id integer, source_currency_code national character varying(12), destination_currency_code national character varying(12))
+RETURNS decimal_strict2
+AS
+$$
+    DECLARE _unit integer_strict2 = 0;
+    DECLARE _exchange_rate decimal_strict2=0;
+    DECLARE _from_source_currency decimal_strict2=0;
+    DECLARE _from_destination_currency decimal_strict2=0;
+BEGIN
+    IF($2 = $3) THEN
+        RETURN 1;
+    END IF;
+
+
+    _from_source_currency := finance.get_exchange_rate($1, $2);
+    _from_destination_currency := finance.get_exchange_rate($1, $3);
+        
+    RETURN _from_source_currency / _from_destination_currency ; 
+END
+$$
+LANGUAGE plpgsql;
+
+--SELECT * FROM  finance.get_exchange_rate(1, 'USD')
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_setup_code_by_frequency_setup_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_frequency_setup_code_by_frequency_setup_id(_frequency_setup_id integer);
 
@@ -1011,6 +1109,114 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_journal_view.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_journal_view
+(
+    _user_id                        integer,
+    _office_id                      integer,
+    _from                           date,
+    _to                             date,
+    _tran_id                        bigint,
+    _tran_code                      national character varying(50),
+    _book                           national character varying(50),
+    _reference_number               national character varying(50),
+    _statement_reference            national character varying(50),
+    _posted_by                      national character varying(50),
+    _office                         national character varying(50),
+    _status                         national character varying(12),
+    _verified_by                    national character varying(50),
+    _reason                         national character varying(128)
+);
+
+CREATE FUNCTION finance.get_journal_view
+(
+    _user_id                        integer,
+    _office_id                      integer,
+    _from                           date,
+    _to                             date,
+    _tran_id                        bigint,
+    _tran_code                      national character varying(50),
+    _book                           national character varying(50),
+    _reference_number               national character varying(50),
+    _statement_reference            national character varying(50),
+    _posted_by                      national character varying(50),
+    _office                         national character varying(50),
+    _status                         national character varying(12),
+    _verified_by                    national character varying(50),
+    _reason                         national character varying(128)
+)
+RETURNS TABLE
+(
+    transaction_master_id           bigint,
+    transaction_code                national character varying(50),
+    book                            national character varying(50),
+    value_date                      date,
+    reference_number                national character varying(24),
+    statement_reference             text,
+    posted_by                       text,
+    office                          text,
+    status                          text,
+    verified_by                     text,
+    verified_on                     TIMESTAMP WITH TIME ZONE,
+    reason                          national character varying(128),
+    transaction_ts                  TIMESTAMP WITH TIME ZONE
+)
+AS
+$$
+BEGIN
+    RETURN QUERY
+    WITH RECURSIVE office_cte(office_id) AS 
+    (
+        SELECT _office_id
+        UNION ALL
+        SELECT
+            c.office_id
+        FROM 
+        office_cte AS p, 
+        core.offices AS c 
+        WHERE 
+        parent_office_id = p.office_id
+    )
+
+    SELECT 
+        finance.transaction_master.transaction_master_id, 
+        finance.transaction_master.transaction_code,
+        finance.transaction_master.book,
+        finance.transaction_master.value_date,
+        finance.transaction_master.reference_number,
+        finance.transaction_master.statement_reference,
+        account.get_name_by_user_id(finance.transaction_master.user_id) as posted_by,
+        core.get_office_name_by_office_id(finance.transaction_master.office_id) as office,
+        finance.get_verification_status_name_by_verification_status_id(finance.transaction_master.verification_status_id) as status,
+        account.get_name_by_user_id(finance.transaction_master.verified_by_user_id) as verified_by,
+        finance.transaction_master.last_verified_on AS verified_on,
+        finance.transaction_master.verification_reason AS reason,    
+        finance.transaction_master.transaction_ts
+    FROM finance.transaction_master
+    WHERE 1 = 1
+    AND finance.transaction_master.value_date BETWEEN _from AND _to
+    AND office_id IN (SELECT office_id FROM office_cte)
+    AND (_tran_id = 0 OR _tran_id  = finance.transaction_master.transaction_master_id)
+    AND lower(finance.transaction_master.transaction_code) LIKE '%' || lower(_tran_code) || '%' 
+    AND lower(finance.transaction_master.book) LIKE '%' || lower(_book) || '%' 
+    AND COALESCE(lower(finance.transaction_master.reference_number), '') LIKE '%' || lower(_reference_number) || '%' 
+    AND COALESCE(lower(finance.transaction_master.statement_reference), '') LIKE '%' || lower(_statement_reference) || '%' 
+    AND COALESCE(lower(finance.transaction_master.verification_reason), '') LIKE '%' || lower(_reason) || '%' 
+    AND lower(account.get_name_by_user_id(finance.transaction_master.user_id)) LIKE '%' || lower(_posted_by) || '%' 
+    AND lower(core.get_office_name_by_office_id(finance.transaction_master.office_id)) LIKE '%' || lower(_office) || '%' 
+    AND COALESCE(lower(finance.get_verification_status_name_by_verification_status_id(finance.transaction_master.verification_status_id)), '') LIKE '%' || lower(_status) || '%' 
+    AND COALESCE(lower(account.get_name_by_user_id(finance.transaction_master.verified_by_user_id)), '') LIKE '%' || lower(_verified_by) || '%'    
+    ORDER BY value_date ASC, verification_status_id DESC;
+END
+$$
+LANGUAGE plpgsql;
+
+
+--SELECT * FROM finance.get_journal_view(2,1,'1-1-2000','1-1-2020',0,'', 'Jou', '', '','', '','','', '');
+
+
+
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_office_id_by_cash_repository_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_office_id_by_cash_repository_id(integer);
@@ -1130,6 +1336,23 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_verification_status_name_by_verification_status_id.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_verification_status_name_by_verification_status_id(_verification_status_id integer);
+
+CREATE FUNCTION finance.get_verification_status_name_by_verification_status_id(_verification_status_id integer)
+RETURNS text
+AS
+$$
+BEGIN
+    RETURN
+        verification_status_name
+    FROM finance.verification_statuses
+    WHERE verification_status_id = _verification_status_id;
+END
+$$
+LANGUAGE plpgsql;
+
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.has_child_accounts.sql --<--<--
 DROP FUNCTION IF EXISTS finance.has_child_accounts(bigint);
@@ -2410,6 +2633,44 @@ END
 $$
 LANGUAGE plpgsql;
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/03.menus/menus.sql --<--<--
+SELECT * FROM core.create_app('Finance', 'Finance', '1.0', 'MixERP Inc.', 'December 1, 2015', 'book red', '/dashboard/finance/home', NULL::text[]);
+
+SELECT * FROM core.create_menu('Finance', 'Tasks', '', 'lightning', '');
+SELECT * FROM core.create_menu('Finance', 'Home', '/dashboard/finance/home', 'user', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'Journal Entry', '/dashboard/finance/tasks/journal/entry', 'user', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'Exchange Rates', '/dashboard/finance/tasks/exchange-rates', 'ticket', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'Journal Verification', '/dashboard/finance/tasks/journal/verification', 'food', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'EOD Processing', '/dashboard/finance/tasks/eod', 'keyboard', 'Tasks');
+
+SELECT * FROM core.create_menu('Finance', 'Setup', 'square outline', 'configure', '');
+SELECT * FROM core.create_menu('Finance', 'Chart of Account', '/dashboard/finance/setup/chart-of-accounts', 'users', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Currencies', '/dashboard/finance/setup/currencies', 'users', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Bank Accounts', '/dashboard/finance/setup/bank-accounts', 'users', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Cash Flow Headings', '/dashboard/finance/setup/cash-flow/headings', 'desktop', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Cash Flow Setup', '/dashboard/finance/setup/cash-flow/setup', 'film', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Cost Centers', '/dashboard/finance/setup/cost-centers', 'square outline', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Cash Repositories', '/dashboard/finance/setup/cash-repositories', 'money', 'Setup');
+
+SELECT * FROM core.create_menu('Finance', 'Reports', '', 'configure', '');
+SELECT * FROM core.create_menu('Finance', 'Account Statement', '/dashboard/finance/reports/account-statement', 'money', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Trial Balance', '/dashboard/finance/reports/trial-balance', 'money', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Profit & Loss Account', '/dashboard/finance/reports/profit-and-loss-account', 'money', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Retained Earnings Statement', '/dashboard/finance/reports/retained-earnings', 'money', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Balance Sheet', '/dashboard/finance/reports/balance-sheet', 'money', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Cash Flow', '/dashboard/finance/reports/cash-flow', 'money', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Exchange Rates', '/dashboard/finance/reports/exchange-rates', 'money', 'Reports');
+
+SELECT * FROM auth.create_app_menu_policy
+ (
+    'Admin', 
+    core.get_office_id_by_office_name('PCP'), 
+    'Finance',
+    '{*}'::text[]
+);
+
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.account_scrud_view.sql --<--<--
 DROP VIEW IF EXISTS finance.account_scrud_view CASCADE;
 
@@ -2438,19 +2699,19 @@ ON parent_account.account_id=finance.accounts.parent_account_id
 WHERE NOT finance.accounts.deleted;
 
 
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.bank_accounts_scrud_view.sql --<--<--
-DROP VIEW IF EXISTS finance.bank_accounts_scrud_view;
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.bank_account_scrud_view.sql --<--<--
+DROP VIEW IF EXISTS finance.bank_account_scrud_view;
 
-CREATE VIEW finance.bank_accounts_scrud_view
+CREATE VIEW finance.bank_account_scrud_view
 AS
 SELECT 
+    finance.bank_accounts.bank_account_id,
     finance.bank_accounts.account_id,
     account.users.name AS maintained_by,
     core.offices.office_code || '(' || core.offices.office_name||')' AS office_name,
 	finance.bank_accounts.bank_name,
 	finance.bank_accounts.bank_branch,
 	finance.bank_accounts.bank_contact_number,
-	finance.bank_accounts.bank_address,
 	finance.bank_accounts.bank_account_number,
 	finance.bank_accounts.bank_account_type,
 	finance.bank_accounts.relationship_officer_name
@@ -2565,6 +2826,19 @@ FROM finance.payment_cards
 INNER JOIN finance.card_types
 ON finance.payment_cards.card_type_id = finance.card_types.card_type_id
 WHERE NOT finance.payment_cards.deleted;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.bank_account_selector_vie.sql --<--<--
+DROP VIEW IF EXISTS finance.bank_account_selector_view;
+
+CREATE VIEW finance.bank_account_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS bank_account_id,
+    finance.account_scrud_view.account_name AS bank_account_name
+FROM finance.account_scrud_view
+WHERE account_master_id = 10102
+ORDER BY account_id;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/0. finance.transaction_view.sql --<--<--

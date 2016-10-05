@@ -43,6 +43,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Frapid.ApplicationState, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Bin\Frapid.ApplicationState.dll</HintPath>
+    </Reference>
     <Reference Include="Frapid.Areas, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\bin\Frapid.Areas.dll</HintPath>
@@ -101,6 +105,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AreaRegistration.cs" />
+    <Compile Include="Controllers\Backend\HomeController.cs" />
+    <Compile Include="Controllers\Backend\Services\AccountController.cs" />
+    <Compile Include="Controllers\Backend\Setup\ChartOfAccountController.cs" />
+    <Compile Include="Controllers\Backend\Tasks\JournalEntryController.cs" />
+    <Compile Include="Controllers\FinanceDashboardController.cs" />
+    <Compile Include="DAL\Accounts.cs" />
+    <Compile Include="DTO\Account.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -111,6 +122,16 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="web.config" />
+    <Content Include="Views\Setup\ChartOfAccounts.cshtml" />
+    <Content Include="Views\Setup\BankAccounts.cshtml" />
+    <Content Include="Views\Setup\Currencies.cshtml" />
+    <Content Include="Views\Setup\CostCenters.cshtml" />
+    <Content Include="Views\Setup\CashFlowHeadings.cshtml" />
+    <Content Include="Views\Setup\CashFlowSetups.cshtml" />
+    <Content Include="Views\Home.cshtml" />
+    <Content Include="Views\Tasks\JournalEntry\Index.cshtml" />
+    <Content Include="Views\Tasks\JournalEntry\New.cshtml" />
+    <Content Include="Views\Setup\CashRepositories.cshtml" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -119,11 +140,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="DAL\" />
-    <Folder Include="DTO\" />
+    <Folder Include="Controllers\Backend\Reports\" />
     <Folder Include="Models\" />
     <Folder Include="ViewModels\" />
+    <Folder Include="Views\Reports\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -1,0 +1,72 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "Cash Repositories";
+    Layout = ViewBag.Layout;
+}
+
+<script>
+    var scrudFactory = new Object();
+
+    scrudFactory.title = "Cash Repositories";
+
+    scrudFactory.viewAPI = "/api/views/finance/cash-repository-scrud-view";
+    scrudFactory.viewTableName = "finance.cash_repository_scrud_view";
+
+    scrudFactory.formAPI = "/api/forms/finance/cash-repositories";
+    scrudFactory.formTableName = "finance.cash_repositories";
+
+    scrudFactory.excludedColumns = ["audit_user_id", "audit_ts"];
+
+    scrudFactory.allowDelete = true;
+    scrudFactory.allowEdit = true;
+
+    scrudFactory.live = "CashRepositoryName";
+
+    //scrudFactory.card = {
+    //    header: "",
+    //    description: "",
+    //    image: ""
+    //};
+
+    scrudFactory.layout = [
+        {
+            tab: "",
+            fields: [
+                ["CashRepositoryId", ""],
+                ["", ""],
+            ]
+        }
+    ];
+
+    scrudFactory.keys = [
+        {
+            property: "OfficeId",
+            url: '/api/forms/core/offices/display-fields',
+            data: null,
+            valueField: "Key",
+            textField: "Value"
+        },
+        {
+            property: "ParentCashRepositoryId",
+            url: '/api/forms/finance/cash-repositories/display-fields',
+            data: null,
+            valueField: "Key",
+            textField: "Value"
+        }
+    ];
+
+
+
+    $.get('/ScrudFactory/View.html', function (view) {
+        $.get('/ScrudFactory/Form.html', function (form) {
+            $("#ScrudFactoryView").html(view);
+            $("#ScrudFactoryForm").html(form);
+            $.cachedScript("/assets/js/scrudfactory-view.js");
+            $.cachedScript("/assets/js/scrudfactory-form.js");
+        });
+    });
+</script>
+
+<div id="ScrudFactoryForm"></div>
+<div id="ScrudFactoryView"></div>

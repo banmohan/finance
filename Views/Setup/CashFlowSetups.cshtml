@@ -1,0 +1,65 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "Cash Flow Setups";
+    Layout = ViewBag.Layout;
+}
+
+<script>
+    var scrudFactory = new Object();
+
+    scrudFactory.title = "Cash Flow Setups";
+
+    scrudFactory.viewAPI = "/api/views/finance/cash-flow-setup-scrud-view";
+    scrudFactory.viewTableName = "finance.cash_flow_setup_scrud_view";
+
+    scrudFactory.formAPI = "/api/forms/finance/cash-flow-setups";
+    scrudFactory.formTableName = "finance.cash_flow_setups";
+
+    scrudFactory.excludedColumns = ["audit_user_id", "audit_ts"];
+
+    scrudFactory.allowDelete = true;
+    scrudFactory.allowEdit = true;
+
+    scrudFactory.live = "Name";
+
+    //scrudFactory.card = {
+    //    header: "",
+    //    description: "",
+    //    image: ""
+    //};
+
+    //scrudFactory.layout = [
+    //    {
+    //        tab: "",
+    //        fields: [
+    //            ["", ""],
+    //            ["", ""],
+    //        ]
+    //    }
+    //];
+
+    //scrudFactory.keys = [
+    //    {
+    //        property: "CamelCase",
+    //        url: '/api/forms/finance//display-fields',
+    //        data: null,
+    //        valueField: "Key",
+    //        textField: "Value"
+    //    }
+    //];
+
+
+
+    $.get('/ScrudFactory/View.html', function (view) {
+        $.get('/ScrudFactory/Form.html', function (form) {
+            $("#ScrudFactoryView").html(view);
+            $("#ScrudFactoryForm").html(form);
+            $.cachedScript("/assets/js/scrudfactory-view.js");
+            $.cachedScript("/assets/js/scrudfactory-form.js");
+        });
+    });
+</script>
+
+<div id="ScrudFactoryForm"></div>
+<div id="ScrudFactoryView"></div>

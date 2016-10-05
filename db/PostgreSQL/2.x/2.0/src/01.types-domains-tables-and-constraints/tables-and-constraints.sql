@@ -50,11 +50,12 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.currencies
 (
+	currency_id								SERIAL,
     currency_code                           national character varying(12) PRIMARY KEY,
     currency_symbol                         national character varying(12) NOT NULL,
     currency_name                           national character varying(48) NOT NULL UNIQUE,
     hundredth_name                          national character varying(48) NOT NULL,
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -62,12 +63,12 @@ CREATE TABLE finance.currencies
 CREATE TABLE finance.cash_repositories
 (
     cash_repository_id                      SERIAL PRIMARY KEY,
-    office_id                               integer NOT NULL REFERENCES core.offices(office_id),
+    office_id                               integer NOT NULL REFERENCES core.offices,
     cash_repository_code                    national character varying(12) NOT NULL,
     cash_repository_name                    national character varying(50) NOT NULL,
-    parent_cash_repository_id               integer NULL REFERENCES finance.cash_repositories(cash_repository_id),
+    parent_cash_repository_id               integer NULL REFERENCES finance.cash_repositories,
     description                             national character varying(100) NULL,
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -88,7 +89,7 @@ CREATE TABLE finance.fiscal_year
     fiscal_year_name                        national character varying(50) NOT NULL,
     starts_from                             date NOT NULL,
     ends_on                                 date NOT NULL,
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -113,7 +114,7 @@ CREATE TABLE finance.account_masters
     account_master_code                     national character varying(3) NOT NULL,
     account_master_name                     national character varying(40) NOT NULL,
     normally_debit                          boolean NOT NULL CONSTRAINT account_masters_normally_debit_df DEFAULT(false),
-    parent_account_master_id                smallint NULL REFERENCES finance.account_masters(account_master_id),
+    parent_account_master_id                smallint NULL REFERENCES finance.account_masters,
     audit_user_id                           integer REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
@@ -138,7 +139,7 @@ CREATE TABLE finance.cost_centers
     cost_center_id                          SERIAL PRIMARY KEY,
     cost_center_code                        national character varying(24) NOT NULL,
     cost_center_name                        national character varying(50) NOT NULL,
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -158,8 +159,8 @@ CREATE TABLE finance.frequency_setups
     fiscal_year_code                        national character varying(12) NOT NULL REFERENCES finance.fiscal_year(fiscal_year_code),
     frequency_setup_code                    national character varying(12) NOT NULL,
     value_date                              date NOT NULL UNIQUE,
-    frequency_id                            integer NOT NULL REFERENCES finance.frequencies(frequency_id),
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    frequency_id                            integer NOT NULL REFERENCES finance.frequencies,
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -173,18 +174,18 @@ WHERE NOT deleted;
 CREATE TABLE finance.accounts
 (
     account_id                              BIGSERIAL PRIMARY KEY,
-    account_master_id                       smallint NOT NULL REFERENCES finance.account_masters(account_master_id),
+    account_master_id                       smallint NOT NULL REFERENCES finance.account_masters,
     account_number                          national character varying(12) NOT NULL,
     external_code                           national character varying(12) NULL CONSTRAINT accounts_external_code_df DEFAULT(''),
-    currency_code                           national character varying(12) NOT NULL REFERENCES finance.currencies(currency_code),
+    currency_code                           national character varying(12) NOT NULL REFERENCES finance.currencies,
     account_name                            national character varying(100) NOT NULL,
     description                             national character varying(200) NULL,
     confidential                            boolean NOT NULL CONSTRAINT accounts_confidential_df DEFAULT(false),
     is_transaction_node                     boolean NOT NULL --Non transaction nodes cannot be used in transaction.
                                             CONSTRAINT accounts_is_transaction_node_df DEFAULT(true),
     sys_type                                boolean NOT NULL CONSTRAINT accounts_sys_type_df DEFAULT(false),
-    parent_account_id                       bigint NULL REFERENCES finance.accounts(account_id),
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    parent_account_id                       bigint NULL REFERENCES finance.accounts,
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -212,7 +213,7 @@ CREATE TABLE finance.cash_flow_headings
                                             DEFAULT(false),
     is_purchase                             boolean NOT NULL CONSTRAINT cash_flow_headings_is_purchase_df
                                             DEFAULT(false),
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -229,18 +230,26 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.bank_accounts
 (
-    account_id                              bigint PRIMARY KEY REFERENCES finance.accounts(account_id),                                            
-    maintained_by_user_id                   integer NOT NULL REFERENCES account.users(user_id),
+	bank_account_id							SERIAL PRIMARY KEY,
+    account_id                              bigint REFERENCES finance.accounts,                                            
+    maintained_by_user_id                   integer NOT NULL REFERENCES account.users,
 	is_merchant_account 					boolean NOT NULL DEFAULT(false),
-    office_id                               integer NOT NULL REFERENCES core.offices(office_id),
+    office_id                               integer NOT NULL REFERENCES core.offices,
     bank_name                               national character varying(128) NOT NULL,
     bank_branch                             national character varying(128) NOT NULL,
     bank_contact_number                     national character varying(128) NULL,
-    bank_address                            text NULL,
     bank_account_number                     national character varying(128) NULL,
     bank_account_type                       national character varying(128) NULL,
+    street                                  national character varying(50) NULL,
+    city                                    national character varying(50) NULL,
+    state                                   national character varying(50) NULL,
+    country                                 national character varying(50) NULL,
+    phone                                   national character varying(50) NULL,
+    fax                                     national character varying(50) NULL,
+    cell                                    national character varying(50) NULL,
     relationship_officer_name               national character varying(128) NULL,
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    relationship_officer_contact_number     national character varying(128) NULL,
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -273,9 +282,9 @@ SELECT 3, 'Cr', 'Credit';
 CREATE TABLE finance.cash_flow_setup
 (
     cash_flow_setup_id                      SERIAL PRIMARY KEY,
-    cash_flow_heading_id                    integer NOT NULL REFERENCES finance.cash_flow_headings(cash_flow_heading_id),
-    account_master_id                       smallint NOT NULL REFERENCES finance.account_masters(account_master_id),
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    cash_flow_heading_id                    integer NOT NULL REFERENCES finance.cash_flow_headings,
+    account_master_id                       smallint NOT NULL REFERENCES finance.account_masters,
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
@@ -299,21 +308,21 @@ CREATE TABLE finance.transaction_master
     value_date                              date NOT NULL,
     transaction_ts                          TIMESTAMP WITH TIME ZONE NOT NULL   
                                             DEFAULT(NOW()),
-    login_id                                bigint NOT NULL REFERENCES account.logins(login_id),
-    user_id                                 integer NOT NULL REFERENCES account.users(user_id),
-    sys_user_id                             integer NULL REFERENCES account.users(user_id),
-    office_id                               integer NOT NULL REFERENCES core.offices(office_id),
-    cost_center_id                          integer NULL REFERENCES finance.cost_centers(cost_center_id),
+    login_id                                bigint NOT NULL REFERENCES account.logins,
+    user_id                                 integer NOT NULL REFERENCES account.users,
+    sys_user_id                             integer NULL REFERENCES account.users,
+    office_id                               integer NOT NULL REFERENCES core.offices,
+    cost_center_id                          integer NULL REFERENCES finance.cost_centers,
     reference_number                        national character varying(24) NULL,
     statement_reference                     text NULL,
     last_verified_on                        TIMESTAMP WITH TIME ZONE NULL, 
-    verified_by_user_id                     integer NULL REFERENCES account.users(user_id),
-    verification_status_id                  smallint NOT NULL REFERENCES finance.verification_statuses(verification_status_id)   
+    verified_by_user_id                     integer NULL REFERENCES account.users,
+    verification_status_id                  smallint NOT NULL REFERENCES finance.verification_statuses   
                                             DEFAULT(0/*Awaiting verification*/),
     verification_reason                     national character varying(128) NOT NULL   
                                             CONSTRAINT transaction_master_verification_reason_df   
                                             DEFAULT(''),
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false),
                                             CONSTRAINT transaction_master_login_id_sys_user_id_chk
@@ -340,18 +349,18 @@ WHERE NOT deleted;
 CREATE TABLE finance.transaction_details
 (
     transaction_detail_id                   BIGSERIAL PRIMARY KEY,
-    transaction_master_id                   bigint NOT NULL REFERENCES finance.transaction_master(transaction_master_id),
+    transaction_master_id                   bigint NOT NULL REFERENCES finance.transaction_master,
     value_date                              date NOT NULL,
     tran_type                               national character varying(4) NOT NULL CHECK(tran_type IN ('Dr', 'Cr')),
-    account_id                              bigint NOT NULL REFERENCES finance.accounts(account_id),
+    account_id                              bigint NOT NULL REFERENCES finance.accounts,
     statement_reference                     text NULL,
-    cash_repository_id                      integer NULL REFERENCES finance.cash_repositories(cash_repository_id),
-    currency_code                           national character varying(12) NULL REFERENCES finance.currencies(currency_code),
+    cash_repository_id                      integer NULL REFERENCES finance.cash_repositories,
+    currency_code                           national character varying(12) NULL REFERENCES finance.currencies,
     amount_in_currency                      money_strict NOT NULL,
-    local_currency_code                     national character varying(12) NULL REFERENCES finance.currencies(currency_code),
+    local_currency_code                     national character varying(12) NULL REFERENCES finance.currencies,
     er                                      decimal_strict NOT NULL,
     amount_in_local_currency                money_strict NOT NULL,  
-    audit_user_id                           integer NULL REFERENCES account.users(user_id),
+    audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW())
 );
 
@@ -359,12 +368,12 @@ CREATE TABLE finance.transaction_details
 CREATE TABLE finance.day_operation
 (
     day_id                                  BIGSERIAL NOT NULL PRIMARY KEY,
-    office_id                               integer NOT NULL REFERENCES core.offices(office_id),
+    office_id                               integer NOT NULL REFERENCES core.offices,
     value_date                              date NOT NULL,
     started_on                              TIMESTAMP WITH TIME ZONE NOT NULL,
-    started_by                              integer NOT NULL REFERENCES account.users(user_id),    
+    started_by                              integer NOT NULL REFERENCES account.users,    
     completed_on                            TIMESTAMP WITH TIME ZONE NULL,
-    completed_by                            integer NULL REFERENCES account.users(user_id),
+    completed_by                            integer NULL REFERENCES account.users,
     completed                               boolean NOT NULL 
                                             CONSTRAINT day_operation_completed_df DEFAULT(false)
                                             CONSTRAINT day_operation_completed_chk 
@@ -399,8 +408,8 @@ CREATE TABLE finance.payment_cards
 	payment_card_id                     	SERIAL NOT NULL PRIMARY KEY,
 	payment_card_code                   	national character varying(12) NOT NULL,
 	payment_card_name                   	national character varying(100) NOT NULL,
-	card_type_id                        	integer NOT NULL REFERENCES finance.card_types(card_type_id),            
-	audit_user_id                       	integer NULL REFERENCES account.users(user_id),            
+	card_type_id                        	integer NOT NULL REFERENCES finance.card_types,            
+	audit_user_id                       	integer NULL REFERENCES account.users,            
 	audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)            
 );
@@ -416,21 +425,44 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.merchant_fee_setup
 (
-	merchant_fee_setup_id               SERIAL NOT NULL PRIMARY KEY,
-	merchant_account_id                 bigint NOT NULL REFERENCES finance.bank_accounts(account_id),
-	payment_card_id                     integer NOT NULL REFERENCES finance.payment_cards(payment_card_id),
-	rate                                public.decimal_strict NOT NULL,
-	customer_pays_fee                   boolean NOT NULL DEFAULT(false),
-	account_id                          bigint NOT NULL REFERENCES finance.accounts(account_id),
-	statement_reference                 national character varying(128) NOT NULL DEFAULT(''),
-	audit_user_id                       integer NULL REFERENCES account.users(user_id),            
-	audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	merchant_fee_setup_id               	SERIAL NOT NULL PRIMARY KEY,
+	merchant_account_id                 	bigint NOT NULL REFERENCES finance.bank_accounts,
+	payment_card_id                     	integer NOT NULL REFERENCES finance.payment_cards,
+	rate                                	public.decimal_strict NOT NULL,
+	customer_pays_fee                   	boolean NOT NULL DEFAULT(false),
+	account_id                          	bigint NOT NULL REFERENCES finance.accounts,
+	statement_reference                 	national character varying(128) NOT NULL DEFAULT(''),
+	audit_user_id                       	integer NULL REFERENCES account.users,            
+	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)            
 );
 
 CREATE UNIQUE INDEX merchant_fee_setup_merchant_account_id_payment_card_id_uix
 ON finance.merchant_fee_setup(merchant_account_id, payment_card_id)
 WHERE NOT deleted;
+
+
+CREATE TABLE finance.exchange_rates
+(
+    exchange_rate_id                        BIGSERIAL PRIMARY KEY,
+    updated_on                              TIMESTAMP WITH TIME ZONE NOT NULL   
+                                            CONSTRAINT exchange_rates_updated_on_df 
+                                            DEFAULT(NOW()),
+    office_id                               integer NOT NULL REFERENCES core.offices,
+    status                                  BOOLEAN NOT NULL   
+                                            CONSTRAINT exchange_rates_status_df 
+                                            DEFAULT(true)
+);
+
+CREATE TABLE finance.exchange_rate_details
+(
+    exchange_rate_detail_id                 BIGSERIAL PRIMARY KEY,
+    exchange_rate_id                        bigint NOT NULL REFERENCES finance.exchange_rates,
+    local_currency_code                     national character varying(12) NOT NULL REFERENCES finance.currencies,
+    foreign_currency_code                   national character varying(12) NOT NULL REFERENCES finance.currencies,
+    unit                                    integer_strict NOT NULL,
+    exchange_rate                           decimal_strict NOT NULL
+);
 
 
 DROP TYPE IF EXISTS finance.period CASCADE;
@@ -441,3 +473,4 @@ CREATE TYPE finance.period AS
     date_from                       date,
     date_to                         date
 );
+

@@ -1,0 +1,72 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "Chart of Accounts";
+    Layout = ViewBag.Layout;
+}
+
+<script>
+    var scrudFactory = new Object();
+
+    scrudFactory.title = "Chart of Accounts";
+
+    scrudFactory.viewAPI = "/api/views/finance/account-scrud-view";
+    scrudFactory.viewTableName = "finance.account_scrud_view";
+
+    scrudFactory.formAPI = "/api/forms/finance/accounts";
+    scrudFactory.formTableName = "finance.accounts";
+
+    scrudFactory.excludedColumns = ["audit_user_id", "audit_ts"];
+
+    scrudFactory.allowDelete = true;
+    scrudFactory.allowEdit = true;
+
+    scrudFactory.live = "AccountName";
+
+    //scrudFactory.card = {
+    //    header: "",
+    //    description: "",
+    //    image: ""
+    //};
+
+    scrudFactory.layout = [
+        {
+            tab: "",
+            fields: [
+                ["AccountId", ""],
+                ["", ""],
+            ]
+        }
+    ];
+
+    scrudFactory.keys = [
+        {
+            property: "AccountMasterId",
+            url: '/api/forms/finance/account-masters/display-fields',
+            data: null,
+            valueField: "Key",
+            textField: "Value"
+        },
+        {
+            property: "ParentAccountId",
+            url: '/api/forms/finance/accounts/display-fields',
+            data: null,
+            valueField: "Key",
+            textField: "Value"
+        }
+    ];
+
+
+
+    $.get('/ScrudFactory/View.html', function (view) {
+        $.get('/ScrudFactory/Form.html', function (form) {
+            $("#ScrudFactoryView").html(view);
+            $("#ScrudFactoryForm").html(form);
+            $.cachedScript("/assets/js/scrudfactory-view.js");
+            $.cachedScript("/assets/js/scrudfactory-form.js");
+        });
+    });
+</script>
+
+<div id="ScrudFactoryForm"></div>
+<div id="ScrudFactoryView"></div>
