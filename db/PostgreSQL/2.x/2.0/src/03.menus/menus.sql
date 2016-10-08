@@ -26,9 +26,9 @@ SELECT * FROM core.create_menu('Finance', 'Cash Flow', '/dashboard/finance/repor
 SELECT * FROM core.create_menu('Finance', 'Exchange Rates', '/dashboard/finance/reports/exchange-rates', 'money', 'Reports');
 
 SELECT * FROM auth.create_app_menu_policy
- (
+(
     'Admin', 
-    core.get_office_id_by_office_name('PCP'), 
+    core.get_office_id_by_office_name('Default'), 
     'Finance',
     '{*}'::text[]
 );
