@@ -45,7 +45,7 @@
   <ItemGroup>
     <Reference Include="Frapid.ApplicationState, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>Bin\Frapid.ApplicationState.dll</HintPath>
+      <HintPath>..\..\bin\Frapid.ApplicationState.dll</HintPath>
     </Reference>
     <Reference Include="Frapid.Areas, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -107,10 +107,20 @@
     <Compile Include="AreaRegistration.cs" />
     <Compile Include="Controllers\Backend\HomeController.cs" />
     <Compile Include="Controllers\Backend\Services\AccountController.cs" />
+    <Compile Include="Controllers\Backend\Services\CashRepositoryController.cs" />
+    <Compile Include="Controllers\Backend\Services\CurrencyController.cs" />
+    <Compile Include="Controllers\Backend\Setup\BankAccountController.cs" />
+    <Compile Include="Controllers\Backend\Setup\CashFlowHeadingController.cs" />
+    <Compile Include="Controllers\Backend\Setup\CashFlowSetupController.cs" />
+    <Compile Include="Controllers\Backend\Setup\CashRepositoryController.cs" />
     <Compile Include="Controllers\Backend\Setup\ChartOfAccountController.cs" />
+    <Compile Include="Controllers\Backend\Setup\CostCenterController.cs" />
+    <Compile Include="Controllers\Backend\Setup\CurrencyController.cs" />
     <Compile Include="Controllers\Backend\Tasks\JournalEntryController.cs" />
     <Compile Include="Controllers\FinanceDashboardController.cs" />
     <Compile Include="DAL\Accounts.cs" />
+    <Compile Include="DAL\CashRepositories.cs" />
+    <Compile Include="DAL\Currencies.cs" />
     <Compile Include="DTO\Account.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
