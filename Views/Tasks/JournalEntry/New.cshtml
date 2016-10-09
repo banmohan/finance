@@ -2,7 +2,7 @@
 
 @{
     ViewBag.Title = "Bank Accounts";
-    Layout = ViewBag.Layout;
+    Layout = ViewBag.FinanceLayoutPath;
 }
 <div class="ui attached page segment" style="min-height: 100%;padding:3em;">
     <div class="ui huge header">Add a New Journal Entry</div>
@@ -132,7 +132,7 @@
         </table>
     </div>
 
-    <div class="ui tiny form segment">
+    <div class="ui form segment" style="width: 700px;">
         <div class="field">
             <label for="CostCenterSelect">
                 Cost Center
@@ -151,18 +151,17 @@
             </label>
             <input id="CreditTotalTextBox" readonly="readonly" class="text-right currency" type="text">
         </div>
-        <button id="PostButton" type="button" class="ui small positive button">
-            Post Transaction
-        </button>
+        <div class="ui buttons">
+            <button id="PostButton" type="button"  class="ui small positive button">
+                Post Transaction
+            </button>
+            <a href="/dashboard/finance/tasks/journal/entry" onclick="return (confirm('Are you sure?'))" class="ui small blue button">Return Back</a>            
+        </div>
     </div>
     <span id="ErrorLabelBottom" class="big error"></span>
 </div>
 
 <script>
-    /*jshint -W032 */
-    /*global addDanger, ajaxDataBind, appendItem, appendParameter, Resources, getAjax, getAjaxErrorMessage, getColumnText, getData, Resources, Resources, isDate, isNullOrWhiteSpace, logError, makeDirty, removeDirty, repaint, sumOfColumn, tableToJSON, uploadedFilesHidden, shortcut, parseFloat2 */
-
-    //Controls
     var addInputButton = $("#AddInputButton");
     var accountNumberInputText = $("#AccountNumberInputText");
     var accountSelect = $("#AccountSelect");
@@ -341,18 +340,18 @@
     };
 
     function loadCashRepositories() {
-        var url = "/api/forms/finance/cash-repositories/display-fields";
-        ajaxDataBind(url, cashRepositorySelect, null, null, null, null, "Key", "Value");
+        var url = "/api/forms/finance/cash-repositories/lookup-fields";
+        window.ajaxDataBind(url, cashRepositorySelect, null, null, null, null, "Key", "Value");
     };
 
     function loadCostCenters() {
         url = "/api/forms/finance/cost-centers/display-fields";
-        ajaxDataBind(url, costCenterSelect, null, null, null, null, "Key", "Value");
+        window.ajaxDataBind(url, costCenterSelect, null, null, null, null, "Key", "Value");
     };
 
     function loadCurrencies() {
         url = "/api/forms/finance/currencies/lookup-fields";
-        ajaxDataBind(url, currencySelect, null, null, null, null, "Key", "Key");
+        window.ajaxDataBind(url, currencySelect, null, null, null, null, "Key", "Key");
     };
 
     //Control Events
@@ -409,64 +408,64 @@
         lcDebit = parseFloat(lcDebitInputText.val() || 0);
         lcCredit = parseFloat(lcCreditInputText.val() || 0);
 
-        if (isNullOrWhiteSpace(statementReference)) {
-            makeDirty(statementReferenceInputText);
+        if (window.isNullOrWhiteSpace(statementReference)) {
+            window.makeDirty(statementReferenceInputText);
             return;
         };
 
-        removeDirty(statementReferenceInputText);
+        window.removeDirty(statementReferenceInputText);
 
-        if (isNullOrWhiteSpace(accountNumberInputText.val())) {
-            makeDirty(accountNumberInputText);
+        if (window.isNullOrWhiteSpace(accountNumberInputText.val())) {
+            window.makeDirty(accountNumberInputText);
             return;
         };
 
-        removeDirty(accountNumberInputText);
+        window.removeDirty(accountNumberInputText);
 
-        if (isNullOrWhiteSpace(accountSelect.getSelectedText())) {
-            makeDirty(accountSelect);
+        if (window.isNullOrWhiteSpace(accountSelect.getSelectedText())) {
+            window.makeDirty(accountSelect);
             return;
         };
 
-        removeDirty(accountSelect);
+        window.removeDirty(accountSelect);
 
 
         if (er <= 0) {
-            makeDirty(erInputText);
+            window.makeDirty(erInputText);
             return;
         };
 
-        removeDirty(erInputText);
+        window.removeDirty(erInputText);
 
         if ((debit > 0 && credit > 0) || (debit === 0 && credit === 0)) {
-            makeDirty(debitInputText);
-            makeDirty(creditInputText);
+            window.makeDirty(debitInputText);
+            window.makeDirty(creditInputText);
             return;
         };
 
         if ((lcDebit > 0 && lcCredit > 0) || (lcDebit === 0 && lcCredit === 0)) {
-            makeDirty(lcDebitInputText);
-            makeDirty(lcCreditInputText);
+            window.makeDirty(lcDebitInputText);
+            window.makeDirty(lcCreditInputText);
             return;
         };
 
         if (lcDebit < 0) {
-            makeDirty(lcDebitInputText);
+            window.makeDirty(lcDebitInputText);
             return;
         };
 
         if (lcCredit < 0) {
-            makeDirty(lcCreditInputText);
+            window.makeDirty(lcCreditInputText);
             return;
         };
 
-        removeDirty(debitInputText);
-        removeDirty(creditInputText);
-        removeDirty(lcDebitInputText);
-        removeDirty(lcCreditInputText);
-        removeDirty(cashRepositorySelect);
+        window.removeDirty(debitInputText);
+        window.removeDirty(creditInputText);
+        window.removeDirty(lcDebitInputText);
+        window.removeDirty(lcCreditInputText);
+        window.removeDirty(cashRepositorySelect);
 
-        if (cashRepositorySelect.find("option").size() > 1 && isNullOrWhiteSpace(cashRepositorySelect.getSelectedValue())) {
+        if (cashRepositorySelect.find("option").size() > 1 && window.isNullOrWhiteSpace(cashRepositorySelect.getSelectedValue())) {
             $.notify("Invalid cash repository specified.");
             return;
         };
@@ -474,15 +473,15 @@
         var isCash = isCashAccount();
 
         if (isCash) {
-            if (isNullOrWhiteSpace(cashRepositoryCode)) {
-                makeDirty(cashRepositorySelect);
+            if (window.isNullOrWhiteSpace(cashRepositoryCode)) {
+                window.makeDirty(cashRepositorySelect);
                 $.notify("Invalid cash repository specified.", "error");
                 return;
             };
         } else {
-            if (!isNullOrWhiteSpace(cashRepositoryCode)) {
+            if (!window.isNullOrWhiteSpace(cashRepositoryCode)) {
                 $.notify("Invalid cash repository specified.");
-                makeDirty(cashRepositorySelect);
+                window.makeDirty(cashRepositorySelect);
                 return;
             };
 
@@ -513,7 +512,7 @@
                     if (!hasBalance) {
                         $.notify("Not enough balance in the cash repository " + cashRepositoryCode, "error");
                         removeLoader(transactionGridView);
-                        makeDirty(cashRepositorySelect);
+                        window.makeDirty(cashRepositorySelect);
                         return;
                     };
 
@@ -529,20 +528,20 @@
         var duplicateEntry = false;
 
         if (!currencyCode) {
-            makeDirty(currencySelect);
+            window.makeDirty(currencySelect);
             removeLoader(transactionGridView);
             return;
         };
 
-        removeDirty(currencySelect);
+        window.removeDirty(currencySelect);
 
         rows.each(function () {
             var row = $(this);
 
             if (!isCash) {
-                if (getColumnText(row, 1) === accountNumber) {
-                    $.notify(Resources.Warnings.DuplicateEntry());
-                    makeDirty(accountNumberInputText);
+                if (window.getColumnText(row, 1) === accountNumber) {
+                    $.notify("Duplicate entry.");
+                    window.makeDirty(accountNumberInputText);
                     duplicateEntry = true;
 
                     removeLoader(transactionGridView);
@@ -551,9 +550,9 @@
             };
 
             if (isCash) {
-                if (getColumnText(row, 3) === cashRepository) {
-                    $.notify(Resources.Warnings.DuplicateEntry());
-                    makeDirty(accountNumberInputText);
+                if (window.getColumnText(row, 3) === cashRepository) {
+                    $.notify("Duplicate entry");
+                    window.makeDirty(accountNumberInputText);
                     duplicateEntry = true;
                 };
             };
@@ -564,8 +563,8 @@
             return;
         };
 
-        var html = "<tr class='grid2-row'><td>" + statementReference + "</td><td>" + accountNumber + "</td><td>" + account + "</td><td>" + cashRepository + "</td><td>" + currencyCode + "</td><td class='text-right'>" + getFormattedNumber(debit) + "</td><td class='text-right'>" + getFormattedNumber(credit) + "</td>"
-            + "<td class='text-right'>" + getFormattedNumber(er) + "</td><td class='text-right'>" + getFormattedNumber(lcDebit) + "</td><td class='text-right'>" + getFormattedNumber(lcCredit) + "</td>"
+        var html = "<tr class='grid2-row'><td>" + statementReference + "</td><td>" + accountNumber + "</td><td>" + account + "</td><td>" + cashRepository + "</td><td>" + currencyCode + "</td><td class='text-right'>" + window.getFormattedNumber(debit) + "</td><td class='text-right'>" + window.getFormattedNumber(credit) + "</td>"
+            + "<td class='text-right'>" + window.getFormattedNumber(er) + "</td><td class='text-right'>" + window.getFormattedNumber(lcDebit) + "</td><td class='text-right'>" + window.getFormattedNumber(lcCredit) + "</td>"
             + "<td><a class='pointer' onclick='removeRow($(this));'><i class='ui delete icon'></i></a><a class='pointer' onclick='toggleDanger($(this));'><i class='ui pointer check mark icon'></a></i><a class='pointer' onclick='toggleSuccess($(this));'><i class='ui pointer thumbs up icon'></i></a></td></tr>";
         grid.find("tr:last").before(html);
 
@@ -579,12 +578,11 @@
         creditInputText.prop("disabled", false);
 
         removeLoader(transactionGridView);
-        repaint();
+        window.repaint();
         statementReferenceInputText.focus();
     };
 
     attachmentLabel.on("click", function () {
-        "use strict";
         attachmentDiv.toggle(500);
     });
 
@@ -596,7 +594,7 @@
         });
 
         ajaxGetExchangeRate.fail(function (xhr) {
-            logAjaxErrorMessage(xhr);
+            window.logAjaxErrorMessage(xhr);
         });
     });
 
@@ -634,72 +632,113 @@
     };
 
     postButton.click(function () {
+        valueDate = window.parseLocalizedDate(valueDateTextBox.val());
+        bookDate = window.parseLocalizedDate(bookDateTextBox.val());
+        referenceNumber = referenceNumberInputText.getSelectedValue();
+        costCenterId = parseInt(costCenterSelect.getSelectedValue() || 0);
+
         if (validate()) {
             post();
         };
     });
 
     var post = function () {
-        var ajaxPostJournalTransaction = postpostJournalTransaction(valueDate, bookDate, referenceNumber, data, costCenterId, attachments);
+        function request(model) {
+            var url = "/dashboard/finance/tasks/journal/entry/new";
+            var data = JSON.stringify(model);
 
-        ajaxPostJournalTransaction.success(function (msg) {
-            var id = msg.d;
+            return window.getAjaxRequest(url, "POST", data);
+        };
+
+        var model = getModel();
+
+        var ajax = request(model);
+
+        ajax.success(function (response) {
+            var id = response;
             window.location = "/Modules/Finance/Confirmation/JournalVoucher.mix?TranId=" + id;
         });
 
-        ajaxPostJournalTransaction.fail(function (xhr) {
-            logAjaxErrorMessage(xhr);
+        ajax.fail(function (xhr) {
+            window.logAjaxErrorMessage(xhr);
 
-            var errorMessage = getAjaxErrorMessage(xhr);
+            var errorMessage = window.getAjaxErrorMessage(xhr);
             errorLabelBottom.html(errorMessage);
         });
     };
 
-    var postpostJournalTransaction = function (valueDate, bookDate, referenceNumber, data, costCenterId, attachments) {
-        var d = "";
-        d = appendParameter(d, "valueDate", valueDate);
-        d = appendParameter(d, "bookDate", bookDate);
-        d = appendParameter(d, "referenceNumber", referenceNumber);
-        d = appendParameter(d, "data", data);
-        d = appendParameter(d, "costCenterId", costCenterId);
-        d = appendParameter(d, "attachmentsJSON", attachments);
-        d = getData(d);
+    function getModel() {
+        var details = [];
 
-        url = "/Modules/Finance/Services/Entry/JournalVoucher.asmx/Save";
-        return getAjax(url, d);
+        transactionGridView.find("tbody tr:not(:last-child)")
+            .each(function () {
+                var row = $(this);
+                var statementReference = row.find("td:nth-child(1)").text();
+                var accountNumber = row.find("td:nth-child(2)").text();
+                var account = row.find("td:nth-child(3)").text();
+                var cashRepositoryCode = (row.find("td:nth-child(4)").text() || null);
+                var currencyCode = row.find("td:nth-child(5)").text();
+                var debit = window.parseFloat2(row.find("td:nth-child(6)").text());
+                var credit = window.parseFloat2(row.find("td:nth-child(7)").text());
+                var er = window.parseFloat2(row.find("td:nth-child(8)").text());
+                var lcDebit = window.parseFloat2(row.find("td:nth-child(9)").text());
+                var lcCredit = window.parseFloat2(row.find("td:nth-child(10)").text());
+
+
+                details.push({
+                    Account: account,
+                    AccountNumber: accountNumber,
+                    CashRepositoryCode: cashRepositoryCode,
+                    Credit: credit,
+                    CurrencyCode: currencyCode,
+                    Debit: debit,
+                    ExchangeRate: er,
+                    LocalCurrencyCredit: lcCredit,
+                    LocalCurrencyDebit: lcDebit,
+                    StatementReference: statementReference
+                });
+            });
+
+        var model = {
+            ValueDate: valueDate,
+            BookDate: bookDate,
+            ReferenceNumber: referenceNumber,
+            CostCenterId: costCenterId,
+            Details: details,
+            Attachemnts: []
+        };
+
+        return model;
     };
 
     var validate = function () {
-        valueDate = window.parseLocalizedDate(valueDateTextBox.val());
-        bookDate = window.parseLocalizedDate(bookDateTextBox.val());
-
         errorLabelBottom.html("");
 
-        removeDirty(valueDateTextBox);
-        removeDirty(referenceNumberInputText);
-        removeDirty(statementReferenceInputText);
-        removeDirty(accountNumberInputText);
-        removeDirty(accountSelect);
-        removeDirty(cashRepositorySelect);
-        removeDirty(lcDebitInputText);
-        removeDirty(lcCreditInputText);
-        removeDirty(costCenterSelect);
+        window.removeDirty(valueDateTextBox);
+        window.removeDirty(referenceNumberInputText);
+        window.removeDirty(statementReferenceInputText);
+        window.removeDirty(accountNumberInputText);
+        window.removeDirty(accountSelect);
+        window.removeDirty(cashRepositorySelect);
+        window.removeDirty(lcDebitInputText);
+        window.removeDirty(lcCreditInputText);
+        window.removeDirty(costCenterSelect);
 
-        if (!isDate(valueDate)) {
-            makeDirty(valueDateTextBox);
-            errorLabelBottom.html(Resources.Warnings.InvalidDate());
+        if (!window.isDate(valueDate)) {
+            window.makeDirty(valueDateTextBox);
+            errorLabelBottom.html("Invalid Date");
             return false;
         };
 
         if (parseInt(costCenterSelect.getSelectedValue() || 0) <= 0) {
-            makeDirty(costCenterSelect);
-            errorLabelBottom.html(Resources.Warnings.InvalidCostCenter());
+            window.makeDirty(costCenterSelect);
+            errorLabelBottom.html("Invalid cost center.");
             return false;
         };
 
 
         if (transactionGridView.find("tr").length === 2) {
-            errorLabelBottom.html(Resources.Warnings.GridViewEmpty());
+            errorLabelBottom.html("Gridview is empty.");
             return false;
         };
 
@@ -708,21 +747,21 @@
         if (rows.each(function () {
             var row = $(this);
 
-            debit = parseFloat2(getColumnText(row, 8));
-            credit = parseFloat2(getColumnText(row, 9));
+            debit = window.parseFloat2(window.getColumnText(row, 8));
+            credit = window.parseFloat2(window.getColumnText(row, 9));
 
             if (debit > 0 && credit > 0) {
-                addDanger(row);
+                window.addDanger(row);
                 return false;
         };
 
             if (debit < 0 || credit < 0) {
-                addDanger(row);
+                window.addDanger(row);
                 return false;
         };
 
             if (debit === 0 && credit === 0) {
-                addDanger(row);
+                window.addDanger(row);
                 return false;
         };
 
@@ -737,13 +776,6 @@
             $.notify("Referencing sides are not equal.", "error");
             return false;
         };
-
-        referenceNumber = referenceNumberInputText.getSelectedValue();
-        transactionGridViewHidden.val(tableToJSON(transactionGridView));
-        costCenterId = parseInt(costCenterSelect.getSelectedValue() || 0);
-
-        data = transactionGridViewHidden.val();
-        attachments = uploadedFilesHidden.val();
 
         return true;
     };
@@ -776,8 +808,8 @@
 
     //Logic & Validation
     var summate = function () {
-        var debitTotal = parseFloat(sumOfColumn("#" + transactionGridView.attr("id"), 8) || 0);
-        var creditTotal = parseFloat(sumOfColumn("#" + transactionGridView.attr("id"), 9) || 0);
+        var debitTotal = parseFloat(window.sumOfColumn("#" + transactionGridView.attr("id"), 8) || 0);
+        var creditTotal = parseFloat(window.sumOfColumn("#" + transactionGridView.attr("id"), 9) || 0);
 
         debitTotalTextBox.val(debitTotal);
         creditTotalTextBox.val(creditTotal);
@@ -804,4 +836,6 @@
             addRow(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], v[9]);
         });
     });
+
+    window.overridePath = "/dashboard/finance/tasks/journal/entry";
 </script>

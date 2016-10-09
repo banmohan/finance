@@ -2,18 +2,17 @@
 
 @{
     ViewBag.Title = "Bank Accounts";
-    Layout = ViewBag.Layout;
+    Layout = ViewBag.FinanceLayoutPath;
 }
-<div class="ui attached page segment" style="min-height: 100%;padding:3em;">
+<script src="/Scripts/frapid/utilities/form.js"></script>
+<div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
     <div class="ui huge header">Journal Entries</div>
     <div class="ui divider"></div>
     <div class="ui basic buttons">
         <a id="AddNewButton" class="ui basic button" style="" href="/dashboard/finance/tasks/journal/entry/new">
             Add New
         </a>
-        <a class="ui basic button" id="Import" href="ImportTransaction.mix">Import</a><a id="FlagButton" class="ui basic button">
-            Flag
-        </a>
+        @*<a class="ui basic button" id="Import" href="ImportTransaction.mix">Import</a>*@
         <div class="ui icon top left pointing dropdown basic button" id="ExportDropDown" tabindex="0">
             <span>
                 Export
@@ -41,10 +40,10 @@
     <div class="ui stackable form segment" id="Annotation" style="">
         <div class="eight fields">
             <div class="field">
-                <input class="date" placeholder="From" id="FromInputDate" title="From" type="date">
+                <input class="date" placeholder="From" id="FromInputDate" title="From" type="date" value="1/1/2000">
             </div>
             <div class="field">
-                <input class="date" placeholder="To" id="ToInputDate" title="To" type="text">
+                <input class="date" placeholder="To" id="ToInputDate" title="To" type="date" value="1/1/2050">
             </div>
             <div class="field">
                 <input placeholder="TranId" id="TranIdInputText" title="TranId" type="text">
@@ -88,5 +87,101 @@
                 <div class="ui green button" id="ShowButton">Show</div>
             </div>
         </div>
+
+
     </div>
+
+    <table id="JournalView" class="ui table">
+        <thead>
+        <tr>
+            <th>TranId</th>
+            <th>TranCode</th>
+            <th>Book</th>
+            <th>Value Date</th>
+            <th>Book Date</th>
+            <th>Ref#</th>
+            <th>Statement Reference</th>
+            <th>Posted By</th>
+            <th>Office</th>
+            <th>Status</th>
+            <th>Verified By</th>
+            <th>Verified On</th>
+            <th>Reason</th>
+        </tr>
+        </thead>
+        <tbody>
+        
+        </tbody>
+    </table>
 </div>
+
+<script>
+    function displayTable(target, model) {
+        target.find("tbody").html("");
+        function getCell(text) {
+            var cell = $("<td />");
+
+            cell.text(text || "");
+
+            return cell;
+        };
+
+        $.each(model, function () {
+            var item = this;
+
+            var row = $("<tr />");
+
+            row.append(getCell(item.TransactionMasterId));
+            row.append(getCell(item.TransactionCode));
+            row.append(getCell(item.Book));
+            row.append(getCell(item.ValueDate));
+            row.append(getCell(item.BookDate));
+            row.append(getCell(item.ReferenceNumber));
+            row.append(getCell(item.StatementReference));
+            row.append(getCell(item.PostedBy));
+            row.append(getCell(item.Office));
+            row.append(getCell(item.Status));
+            row.append(getCell(item.VerifiedBy));
+            row.append(getCell(item.VerifiedOn));
+            row.append(getCell(item.Reason));
+
+            target.find("tbody").append(row);
+        });
+    };
+    function processQuery() {
+        function getModel() {
+            return window.serializeForm($("#Annotation"));
+        };
+
+        function displayGrid(target) {
+            function request(model) {
+                var url = "/dashboard/finance/tasks/journal/view";
+                var data = JSON.stringify(model);
+                return window.getAjaxRequest(url, "POST", data);
+            };
+
+            var model = getModel();
+
+            var ajax = request(model);
+
+            ajax.success(function (response) {
+                displayTable(target, response);
+                target.removeClass("loading");
+            });
+
+            ajax.fail(function (xhr) {
+                alert(JSON.stringify(xhr));
+            });
+        };
+
+        var view = $("#JournalView").addClass("loading");
+
+        displayGrid(view);
+    };
+
+    $("#ShowButton").unbind("click").bind("click", function () {
+        processQuery();
+    });
+
+    processQuery();
+</script>

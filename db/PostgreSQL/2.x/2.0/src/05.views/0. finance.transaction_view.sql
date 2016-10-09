@@ -10,7 +10,6 @@ SELECT
     finance.transaction_master.transaction_ts,
     finance.transaction_master.login_id,
     finance.transaction_master.user_id,
-    finance.transaction_master.sys_user_id,
     finance.transaction_master.office_id,
     finance.transaction_master.cost_center_id,
     finance.transaction_master.reference_number,

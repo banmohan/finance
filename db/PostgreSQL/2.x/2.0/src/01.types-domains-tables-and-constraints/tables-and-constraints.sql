@@ -306,17 +306,17 @@ CREATE TABLE finance.transaction_master
     transaction_code                        national character varying(50) NOT NULL,
     book                                    national character varying(50) NOT NULL, --Transaction book. Ex. Sales, Purchase, Journal
     value_date                              date NOT NULL,
+    book_date                              	date NOT NULL,
     transaction_ts                          TIMESTAMP WITH TIME ZONE NOT NULL   
                                             DEFAULT(NOW()),
     login_id                                bigint NOT NULL REFERENCES account.logins,
     user_id                                 integer NOT NULL REFERENCES account.users,
-    sys_user_id                             integer NULL REFERENCES account.users,
     office_id                               integer NOT NULL REFERENCES core.offices,
-    cost_center_id                          integer NULL REFERENCES finance.cost_centers,
-    reference_number                        national character varying(24) NULL,
-    statement_reference                     text NULL,
-    last_verified_on                        TIMESTAMP WITH TIME ZONE NULL, 
-    verified_by_user_id                     integer NULL REFERENCES account.users,
+    cost_center_id                          integer REFERENCES finance.cost_centers,
+    reference_number                        national character varying(24),
+    statement_reference                     text,
+    last_verified_on                        TIMESTAMP WITH TIME ZONE, 
+    verified_by_user_id                     integer REFERENCES account.users,
     verification_status_id                  smallint NOT NULL REFERENCES finance.verification_statuses   
                                             DEFAULT(0/*Awaiting verification*/),
     verification_reason                     national character varying(128) NOT NULL   
@@ -324,26 +324,25 @@ CREATE TABLE finance.transaction_master
                                             DEFAULT(''),
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
-	deleted									boolean DEFAULT(false),
-                                            CONSTRAINT transaction_master_login_id_sys_user_id_chk
-                                                CHECK
-                                                (
-                                                    (
-                                                        login_id IS NULL AND sys_user_id IS NOT NULL
-                                                    )
-
-                                                    OR
-
-                                                    (
-                                                        login_id IS NOT NULL AND sys_user_id IS NULL
-                                                    )
-                                                )
+	deleted									boolean DEFAULT(false)
 );
 
 CREATE UNIQUE INDEX transaction_master_transaction_code_uix
 ON finance.transaction_master(UPPER(transaction_code))
 WHERE NOT deleted;
 
+CREATE TABLE finance.transaction_documents
+(
+	document_id								BIGSERIAL PRIMARY KEY,
+	transaction_master_id					bigint NOT NULL REFERENCES finance.transaction_master,
+	original_file_name						national character varying(500) NOT NULL,
+	file_extension							national character varying(50),
+	file_path								national character varying(2000) NOT NULL,
+	memo									national character varying(2000),
+    audit_user_id                           integer NULL REFERENCES account.users,
+    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	deleted									boolean DEFAULT(false)
+);
 
 
 CREATE TABLE finance.transaction_details
@@ -351,15 +350,17 @@ CREATE TABLE finance.transaction_details
     transaction_detail_id                   BIGSERIAL PRIMARY KEY,
     transaction_master_id                   bigint NOT NULL REFERENCES finance.transaction_master,
     value_date                              date NOT NULL,
+    book_date                              	date NOT NULL,
     tran_type                               national character varying(4) NOT NULL CHECK(tran_type IN ('Dr', 'Cr')),
     account_id                              bigint NOT NULL REFERENCES finance.accounts,
-    statement_reference                     text NULL,
-    cash_repository_id                      integer NULL REFERENCES finance.cash_repositories,
-    currency_code                           national character varying(12) NULL REFERENCES finance.currencies,
+    statement_reference                     text,
+    cash_repository_id                      integer REFERENCES finance.cash_repositories,
+    currency_code                           national character varying(12) NOT NULL REFERENCES finance.currencies,
     amount_in_currency                      money_strict NOT NULL,
-    local_currency_code                     national character varying(12) NULL REFERENCES finance.currencies,
+    local_currency_code                     national character varying(12) NOT NULL REFERENCES finance.currencies,
     er                                      decimal_strict NOT NULL,
     amount_in_local_currency                money_strict NOT NULL,  
+    office_id                               integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW())
 );
