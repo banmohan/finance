@@ -656,7 +656,7 @@
 
         ajax.success(function (response) {
             var id = response;
-            window.location = "/Modules/Finance/Confirmation/JournalVoucher.mix?TranId=" + id;
+            window.location = "/dashboard/finance/tasks/journal/checklist/" + id;
         });
 
         ajax.fail(function (xhr) {

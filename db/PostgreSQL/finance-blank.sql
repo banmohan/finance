@@ -320,9 +320,8 @@ CREATE TABLE finance.transaction_master
     verified_by_user_id                     integer REFERENCES account.users,
     verification_status_id                  smallint NOT NULL REFERENCES finance.verification_statuses   
                                             DEFAULT(0/*Awaiting verification*/),
-    verification_reason                     national character varying(128) NOT NULL   
-                                            CONSTRAINT transaction_master_verification_reason_df   
-                                            DEFAULT(''),
+    verification_reason                     national character varying(128) NOT NULL DEFAULT(''),
+	cascading_tran_id 						bigint REFERENCES finance.transaction_master,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
@@ -330,6 +329,10 @@ CREATE TABLE finance.transaction_master
 
 CREATE UNIQUE INDEX transaction_master_transaction_code_uix
 ON finance.transaction_master(UPPER(transaction_code))
+WHERE NOT deleted;
+
+CREATE INDEX transaction_master_cascading_tran_id_inx
+ON finance.transaction_master(cascading_tran_id)
 WHERE NOT deleted;
 
 CREATE TABLE finance.transaction_documents
@@ -476,7 +479,134 @@ CREATE TYPE finance.period AS
     date_to                         date
 );
 
+CREATE TABLE finance.journal_verification_policy
+(
+    journal_verification_policy_id          SERIAL NOT NULL PRIMARY KEY,
+    user_id                                 integer NOT NULL REFERENCES account.users,
+    office_id                               integer NOT NULL REFERENCES core.offices,
+    can_verify                              boolean NOT NULL DEFAULT(false),
+    verification_limit                      public.money_strict2 NOT NULL DEFAULT(0),
+    can_self_verify                         boolean NOT NULL DEFAULT(false),
+    self_verification_limit                 money_strict2 NOT NULL DEFAULT(0),
+    effective_from                          date NOT NULL,
+    ends_on                                 date NOT NULL,
+    is_active                               boolean NOT NULL,
+	audit_user_id                       	integer NULL REFERENCES account.users,            
+	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	deleted									boolean DEFAULT(false)            
+);
 
+
+CREATE TABLE finance.auto_verification_policy
+(
+    auto_verification_policy_id             SERIAL NOT NULL PRIMARY KEY,
+    user_id                                 integer NOT NULL REFERENCES account.users,
+    office_id                               integer NOT NULL REFERENCES core.offices,
+    verification_limit                      public.money_strict2 NOT NULL DEFAULT(0),
+    effective_from                          date NOT NULL,
+    ends_on                                 date NOT NULL,
+    is_active                               boolean NOT NULL,
+	audit_user_id                       	integer NULL REFERENCES account.users,            
+	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	deleted									boolean DEFAULT(false)                                            
+);
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.auto_verify.sql --<--<--
+DROP FUNCTION IF EXISTS finance.auto_verify
+(
+    _tran_id        bigint,
+    _office_id      integer
+) CASCADE;
+
+CREATE FUNCTION finance.auto_verify
+(
+    _tran_id        bigint,
+    _office_id      integer
+)
+RETURNS VOID
+VOLATILE
+AS
+$$
+    DECLARE _transaction_master_id          bigint;
+    DECLARE _transaction_posted_by          integer;
+    DECLARE _verifier                       integer;
+    DECLARE _status                         integer = 1;
+    DECLARE _reason                         national character varying(128) = 'Automatically verified';
+    DECLARE _rejected                       smallint=-3;
+    DECLARE _closed                         smallint=-2;
+    DECLARE _withdrawn                      smallint=-1;
+    DECLARE _unapproved                     smallint = 0;
+    DECLARE _auto_approved                  smallint = 1;
+    DECLARE _approved                       smallint=2;
+    DECLARE _book                           text;
+    DECLARE _verification_limit             public.money_strict2;
+    DECLARE _posted_amount                  public.money_strict2;
+    DECLARE _has_policy                     boolean=false;
+    DECLARE _voucher_date                   date;
+BEGIN
+    _transaction_master_id := $1;
+
+    SELECT
+        finance.transaction_master.book,
+        finance.transaction_master.value_date,
+        finance.transaction_master.user_id
+    INTO
+        _book,
+        _voucher_date,
+        _transaction_posted_by  
+    FROM finance.transaction_master
+    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id;
+    
+    SELECT
+        SUM(amount_in_local_currency)
+    INTO
+        _posted_amount
+    FROM
+        finance.transaction_details
+    WHERE finance.transaction_details.transaction_master_id = _transaction_master_id
+    AND finance.transaction_details.tran_type='Cr';
+
+
+    SELECT
+        true,
+        verification_limit
+    INTO
+        _has_policy,
+        _verification_limit
+    FROM finance.auto_verification_policy
+    WHERE user_id=_transaction_posted_by
+    AND office_id = _office_id
+    AND is_active=true
+    AND now() >= effective_from
+    AND now() <= ends_on;
+
+    IF(_has_policy=true) THEN
+        UPDATE finance.transaction_master
+        SET 
+            last_verified_on = now(),
+            verified_by_user_id=_verifier,
+            verification_status_id=_status,
+            verification_reason=_reason
+        WHERE
+            finance.transaction_master.transaction_master_id=_transaction_master_id
+        OR
+            finance.transaction_master.cascading_tran_id=_transaction_master_id
+        OR
+        finance.transaction_master.transaction_master_id = 
+        (
+            SELECT cascading_tran_id
+            FROM finance.transaction_master
+            WHERE finance.transaction_master.transaction_master_id=_transaction_master_id 
+        );
+    ELSE
+        RAISE NOTICE 'No auto verification policy found for this user.';
+    END IF;
+    RETURN;
+END
+$$
+LANGUAGE plpgsql;
+
+--SELECT * FROM finance.auto_verify(1, 1);
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.date_functions.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_date(_office_id integer);
@@ -788,6 +918,201 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_statement.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_account_statement
+(
+    _value_date_from        date,
+    _value_date_to          date,
+    _user_id                integer,
+    _account_id             bigint,
+    _office_id              integer
+);
+
+CREATE FUNCTION finance.get_account_statement
+(
+    _value_date_from        date,
+    _value_date_to          date,
+    _user_id                integer,
+    _account_id             bigint,
+    _office_id              integer
+)
+RETURNS TABLE
+(
+    id                      integer,
+    value_date              date,
+    book_date               date,
+    tran_code               text,
+    reference_number        text,
+    statement_reference     text,
+    debit                   decimal(24, 4),
+    credit                  decimal(24, 4),
+    balance                 decimal(24, 4),
+    office                  text,
+    book                    text,
+    account_id              integer,
+    account_number          text,
+    account                 text,
+    posted_on               TIMESTAMP WITH TIME ZONE,
+    posted_by               text,
+    approved_by             text,
+    verification_status     integer,
+    flag_bg                 text,
+    flag_fg                 text
+)
+AS
+$$
+    DECLARE _normally_debit boolean;
+BEGIN
+
+    _normally_debit             := finance.is_normally_debit(_account_id);
+
+    DROP TABLE IF EXISTS temp_account_statement;
+    CREATE TEMPORARY TABLE temp_account_statement
+    (
+        id                      SERIAL,
+        value_date              date,
+        book_date               date,
+        tran_code               text,
+        reference_number        text,
+        statement_reference     text,
+        debit                   decimal(24, 4),
+        credit                  decimal(24, 4),
+        balance                 decimal(24, 4),
+        office                  text,
+        book                    text,
+        account_id              integer,
+        account_number          text,
+        account                 text,
+        posted_on               TIMESTAMP WITH TIME ZONE,
+        posted_by               text,
+        approved_by             text,
+        verification_status     integer,
+        flag_bg                 text,
+        flag_fg                 text
+    ) ON COMMIT DROP;
+
+
+    INSERT INTO temp_account_statement(value_date, book_date, tran_code, reference_number, statement_reference, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
+    SELECT
+        _value_date_from,
+        _value_date_from,
+        NULL,
+        NULL,
+        'Opening Balance',
+        NULL,
+        SUM
+        (
+            CASE finance.transaction_details.tran_type
+            WHEN 'Cr' THEN amount_in_local_currency
+            ELSE amount_in_local_currency * -1 
+            END            
+        ) as credit,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL
+    FROM finance.transaction_master
+    INNER JOIN finance.transaction_details
+    ON finance.transaction_master.transaction_master_id = finance.transaction_details.transaction_master_id
+    WHERE finance.transaction_master.verification_status_id > 0
+    AND finance.transaction_master.value_date < _value_date_from
+    AND finance.transaction_master.office_id IN (SELECT * FROM core.get_office_ids(_office_id)) 
+    AND finance.transaction_details.account_id IN (SELECT * FROM finance.get_account_ids(_account_id))
+    AND NOT finance.transaction_master.deleted;
+
+    DELETE FROM temp_account_statement
+    WHERE COALESCE(temp_account_statement.debit, 0) = 0
+    AND COALESCE(temp_account_statement.credit, 0) = 0;
+    
+
+    UPDATE temp_account_statement SET 
+    debit = temp_account_statement.credit * -1,
+    credit = 0
+    WHERE temp_account_statement.credit < 0;
+    
+
+    INSERT INTO temp_account_statement(value_date, book_date, tran_code, reference_number, statement_reference, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
+    SELECT
+        finance.transaction_master.value_date,
+        finance.transaction_master.book_date,
+        finance.transaction_master. transaction_code,
+        finance.transaction_master.reference_number::text,
+        finance.transaction_details.statement_reference,
+        CASE finance.transaction_details.tran_type
+        WHEN 'Dr' THEN amount_in_local_currency
+        ELSE NULL END,
+        CASE finance.transaction_details.tran_type
+        WHEN 'Cr' THEN amount_in_local_currency
+        ELSE NULL END,
+        core.get_office_name_by_office_id(finance.transaction_master.office_id),
+        finance.transaction_master.book,
+        finance.transaction_details.account_id,
+        finance.transaction_master.transaction_ts,
+        account.get_name_by_user_id(finance.transaction_master.user_id),
+        account.get_name_by_user_id(finance.transaction_master.verified_by_user_id),
+        finance.transaction_master.verification_status_id
+    FROM finance.transaction_master
+    INNER JOIN finance.transaction_details
+    ON finance.transaction_master.transaction_master_id = finance.transaction_details.transaction_master_id
+    WHERE finance.transaction_master.verification_status_id > 0
+    AND finance.transaction_master.value_date >= _value_date_from
+    AND finance.transaction_master.value_date <= _value_date_to
+    AND finance.transaction_master.office_id IN (SELECT * FROM core.get_office_ids(_office_id)) 
+    AND finance.transaction_details.account_id IN (SELECT * FROM finance.get_account_ids(_account_id))
+    AND NOT finance.transaction_master.deleted
+    ORDER BY 
+        finance.transaction_master.book_date,
+        finance.transaction_master.value_date,
+        finance.transaction_master.last_verified_on;
+
+
+
+    UPDATE temp_account_statement
+    SET balance = c.balance
+    FROM
+    (
+        SELECT
+            temp_account_statement.id, 
+            SUM(COALESCE(c.credit, 0)) 
+            - 
+            SUM(COALESCE(c.debit,0)) As balance
+        FROM temp_account_statement
+        LEFT JOIN temp_account_statement AS c 
+            ON (c.id <= temp_account_statement.id)
+        GROUP BY temp_account_statement.id
+        ORDER BY temp_account_statement.id
+    ) AS c
+    WHERE temp_account_statement.id = c.id;
+
+
+    UPDATE temp_account_statement SET 
+        account_number = finance.accounts.account_number,
+        account = finance.accounts.account_name
+    FROM finance.accounts
+    WHERE temp_account_statement.account_id = finance.accounts.account_id;
+
+
+--     UPDATE temp_account_statement SET
+--         flag_bg = core.get_flag_background_color(core.get_flag_type_id(_user_id, 'account_statement', 'transaction_code', temp_account_statement.tran_code::text)),
+--         flag_fg = core.get_flag_foreground_color(core.get_flag_type_id(_user_id, 'account_statement', 'transaction_code', temp_account_statement.tran_code::text));
+
+
+    IF(_normally_debit) THEN
+        UPDATE temp_account_statement SET balance = temp_account_statement.balance * -1;
+    END IF;
+
+    RETURN QUERY
+    SELECT * FROM temp_account_statement;
+END;
+$$
+LANGUAGE plpgsql;
+
+--SELECT * FROM finance.get_account_statement('1-1-2010','1-1-2020',1,1,1);
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_flow_heading_id_by_cash_flow_heading_code.sql --<--<--
@@ -1153,6 +1478,7 @@ RETURNS TABLE
     transaction_code                national character varying(50),
     book                            national character varying(50),
     value_date                      date,
+    book_date                      	date,
     reference_number                national character varying(24),
     statement_reference             text,
     posted_by                       text,
@@ -1185,6 +1511,7 @@ BEGIN
         finance.transaction_master.transaction_code,
         finance.transaction_master.book,
         finance.transaction_master.value_date,
+        finance.transaction_master.book_date,
         finance.transaction_master.reference_number,
         finance.transaction_master.statement_reference,
         account.get_name_by_user_id(finance.transaction_master.user_id) as posted_by,
@@ -1217,6 +1544,30 @@ LANGUAGE plpgsql;
 --SELECT * FROM finance.get_journal_view(2,1,'1-1-2000','1-1-2020',0,'', 'Jou', '', '','', '','','', '');
 
 
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_new_transaction_counter.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_new_transaction_counter(date);
+
+CREATE FUNCTION finance.get_new_transaction_counter(date)
+RETURNS integer
+AS
+$$
+    DECLARE _ret_val integer;
+BEGIN
+    SELECT INTO _ret_val
+        COALESCE(MAX(transaction_counter),0)
+    FROM finance.transaction_master
+    WHERE value_date=$1;
+
+    IF _ret_val IS NULL THEN
+        RETURN 1::integer;
+    ELSE
+        RETURN (_ret_val + 1)::integer;
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_office_id_by_cash_repository_id.sql --<--<--
@@ -1304,6 +1655,26 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_transaction_code.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_transaction_code(value_date date, office_id integer, user_id integer, login_id bigint);
+
+CREATE FUNCTION finance.get_transaction_code(value_date date, office_id integer, user_id integer, login_id bigint)
+RETURNS text
+AS
+$$
+    DECLARE _office_id bigint:=$2;
+    DECLARE _user_id integer:=$3;
+    DECLARE _login_id bigint:=$4;
+    DECLARE _ret_val text;  
+BEGIN
+    _ret_val:= finance.get_new_transaction_counter($1)::text || '-' || TO_CHAR($1, 'YYYY-MM-DD') || '-' || CAST(_office_id as text) || '-' || CAST(_user_id as text) || '-' || CAST(_login_id as text)   || '-' ||  TO_CHAR(now(), 'HH24-MI-SS');
+    RETURN _ret_val;
+END
+$$
+LANGUAGE plpgsql;
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_value_date.sql --<--<--
@@ -1406,6 +1777,143 @@ $$
 LANGUAGE plpgsql;
 
 
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--
+DROP FUNCTION IF EXISTS finance.verify_transaction
+(
+    _transaction_master_id                  bigint,
+    _office_id                              integer,
+    _user_id                                integer,
+    _login_id                               bigint,
+    _verification_status_id                 smallint,
+    _reason                                 national character varying
+) 
+CASCADE;
+
+CREATE FUNCTION finance.verify_transaction
+(
+    _transaction_master_id                  bigint,
+    _office_id                              integer,
+    _user_id                                integer,
+    _login_id                               bigint,
+    _verification_status_id                 smallint,
+    _reason                                 national character varying
+)
+RETURNS bigint
+VOLATILE
+AS
+$$
+    DECLARE _transaction_posted_by          integer;
+    DECLARE _book                           text;
+    DECLARE _can_verify                     boolean;
+    DECLARE _verification_limit             public.money_strict2;
+    DECLARE _can_self_verify                boolean;
+    DECLARE _self_verification_limit        public.money_strict2;
+    DECLARE _posted_amount                  public.money_strict2;
+    DECLARE _has_policy                     boolean=false;
+    DECLARE _journal_date                   date;
+    DECLARE _journal_office_id              integer;
+    DECLARE _cascading_tran_id              bigint;
+BEGIN
+
+    SELECT
+        finance.transaction_master.book,
+        finance.transaction_master.value_date,
+        finance.transaction_master.office_id,
+        finance.transaction_master.user_id
+    INTO
+        _book,
+        _journal_date,
+        _journal_office_id,
+        _transaction_posted_by  
+    FROM
+    finance.transaction_master
+    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id;
+
+
+    IF(_journal_office_id <> _office_id) THEN
+        RAISE EXCEPTION 'Access is denied. You cannot verify a transaction of another office.'
+        USING ERRCODE='P9014';
+    END IF;
+        
+    SELECT
+        SUM(amount_in_local_currency)
+    INTO
+        _posted_amount
+    FROM finance.transaction_details
+    WHERE finance.transaction_details.transaction_master_id = _transaction_master_id
+    AND finance.transaction_details.tran_type='Cr';
+
+
+    SELECT
+        true,
+        can_verify,
+        verification_limit,
+        can_self_verify,
+        self_verification_limit
+    INTO
+        _has_policy,
+        _can_verify,
+        _verification_limit,
+        _can_self_verify,
+        _self_verification_limit
+    FROM finance.journal_verification_policy
+    WHERE user_id=_user_id
+    AND office_id = _office_id
+    AND is_active=true
+    AND now() >= effective_from
+    AND now() <= ends_on;
+
+    IF(NOT _can_self_verify AND _user_id = _transaction_posted_by) THEN
+        _can_verify := false;
+    END IF;
+
+    IF(_has_policy) THEN
+        IF(_can_verify) THEN
+        
+            SELECT cascading_tran_id
+            INTO _cascading_tran_id
+            FROM finance.transaction_master
+            WHERE finance.transaction_master.transaction_master_id=_transaction_master_id;
+            
+            UPDATE finance.transaction_master
+            SET 
+                last_verified_on = now(),
+                verified_by_user_id=_user_id,
+                verification_status_id=_verification_status_id,
+                verification_reason=_reason
+            WHERE
+                finance.transaction_master.transaction_master_id=_transaction_master_id
+            OR 
+                finance.transaction_master.cascading_tran_id =_transaction_master_id
+            OR
+            finance.transaction_master.transaction_master_id = _cascading_tran_id;
+
+            RAISE NOTICE 'Done.';
+
+            IF(COALESCE(_cascading_tran_id, 0) = 0) THEN
+                SELECT transaction_master_id
+                INTO _cascading_tran_id
+                FROM finance.transaction_master
+                WHERE finance.transaction_master.cascading_tran_id=_transaction_master_id;
+            END IF;
+            
+            RETURN COALESCE(_cascading_tran_id, 0);
+        ELSE
+            RAISE EXCEPTION 'Please ask someone else to verify your transaction.'
+            USING ERRCODE='P4031';
+        END IF;
+    ELSE
+        RAISE EXCEPTION 'No verification policy found for this user.'
+        USING ERRCODE='P4030';
+    END IF;
+
+    RETURN 0;
+END
+$$
+LANGUAGE plpgsql;
+
+--SELECT * FROM finance.verify_transaction(1::bigint, 1, 1, 6::bigint, 2::smallint, 'OK');
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/logic/finance.create_payment_card.sql --<--<--
 DROP FUNCTION IF EXISTS finance.create_payment_card
@@ -2634,6 +3142,52 @@ END
 $$
 LANGUAGE plpgsql;
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.triggers/finance.update_transaction_meta.sql --<--<--
+DROP FUNCTION IF EXISTS finance.update_transaction_meta() CASCADE;
+
+CREATE FUNCTION finance.update_transaction_meta()
+RETURNS TRIGGER
+AS
+$$
+    DECLARE _transaction_master_id          bigint;
+    DECLARE _current_transaction_counter    integer;
+    DECLARE _current_transaction_code       national character varying(50);
+    DECLARE _value_date                     date;
+    DECLARE _office_id                      integer;
+    DECLARE _user_id                        integer;
+    DECLARE _login_id                       bigint;
+BEGIN
+    _transaction_master_id                  := NEW.transaction_master_id;
+    _current_transaction_counter            := NEW.transaction_counter;
+    _current_transaction_code               := NEW.transaction_code;
+    _value_date                             := NEW.value_date;
+    _office_id                              := NEW.office_id;
+    _user_id                                := NEW.user_id;
+    _login_id                               := NEW.login_id;
+
+    IF(COALESCE(_current_transaction_code, '') = '') THEN
+        UPDATE finance.transaction_master
+        SET transaction_code = finance.get_transaction_code(_value_date, _office_id, _user_id, _login_id)
+        WHERE transaction_master_id = _transaction_master_id;
+    END IF;
+
+    IF(COALESCE(_current_transaction_counter, 0) = 0) THEN
+        UPDATE finance.transaction_master
+        SET transaction_counter = finance.get_new_transaction_counter(_value_date)
+        WHERE transaction_master_id = _transaction_master_id;
+    END IF;
+
+    RETURN NEW;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER update_transaction_meta
+AFTER INSERT
+ON finance.transaction_master
+FOR EACH ROW EXECUTE PROCEDURE finance.update_transaction_meta();
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/03.menus/menus.sql --<--<--
 SELECT * FROM core.create_app('Finance', 'Finance', '1.0', 'MixERP Inc.', 'December 1, 2015', 'book red', '/dashboard/finance/home', NULL::text[]);
 
@@ -2642,7 +3196,8 @@ SELECT * FROM core.create_menu('Finance', 'Home', '/dashboard/finance/home', 'us
 SELECT * FROM core.create_menu('Finance', 'Journal Entry', '/dashboard/finance/tasks/journal/entry', 'user', 'Tasks');
 SELECT * FROM core.create_menu('Finance', 'Exchange Rates', '/dashboard/finance/tasks/exchange-rates', 'ticket', 'Tasks');
 SELECT * FROM core.create_menu('Finance', 'Journal Verification', '/dashboard/finance/tasks/journal/verification', 'food', 'Tasks');
-SELECT * FROM core.create_menu('Finance', 'EOD Processing', '/dashboard/finance/tasks/eod', 'keyboard', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'Verification Policy', '/dashboard/finance/tasks/verification-policy', 'keyboard', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'Auto Verification Policy', '/dashboard/finance/tasks/verification-policy/auto', 'keyboard', 'Tasks');
 
 SELECT * FROM core.create_menu('Finance', 'Setup', 'square outline', 'configure', '');
 SELECT * FROM core.create_menu('Finance', 'Chart of Account', '/dashboard/finance/setup/chart-of-accounts', 'users', 'Setup');
@@ -2698,6 +3253,26 @@ ON finance.accounts.currency_code = finance.currencies.currency_code
 LEFT JOIN finance.accounts parent_account
 ON parent_account.account_id=finance.accounts.parent_account_id
 WHERE NOT finance.accounts.deleted;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.auto_verification_policy_scrud_view.sql --<--<--
+DROP VIEW IF EXISTS finance.auto_verification_policy_scrud_view;
+
+
+CREATE VIEW finance.auto_verification_policy_scrud_view
+AS
+SELECT
+    finance.auto_verification_policy.auto_verification_policy_id,
+    finance.auto_verification_policy.user_id,
+    account.get_name_by_user_id(finance.auto_verification_policy.user_id),
+    finance.auto_verification_policy.office_id,
+    core.get_office_name_by_office_id(finance.auto_verification_policy.office_id),
+    finance.auto_verification_policy.verification_limit,
+    finance.auto_verification_policy.effective_from,
+    finance.auto_verification_policy.ends_on,
+    finance.auto_verification_policy.is_active
+FROM finance.auto_verification_policy
+WHERE NOT deleted;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.bank_account_scrud_view.sql --<--<--
@@ -2788,6 +3363,29 @@ SELECT
 FROM finance.cost_centers
 WHERE NOT finance.cost_centers.deleted;
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.journal_verification_policy_scrud_view.sql --<--<--
+DROP VIEW IF EXISTS finance.journal_verification_policy_scrud_view;
+
+
+CREATE VIEW finance.journal_verification_policy_scrud_view
+AS
+SELECT
+    finance.journal_verification_policy.journal_verification_policy_id,
+    finance.journal_verification_policy.user_id,
+    account.get_name_by_user_id(finance.journal_verification_policy.user_id),
+    finance.journal_verification_policy.office_id,
+    core.get_office_name_by_office_id(finance.journal_verification_policy.office_id),
+    finance.journal_verification_policy.can_verify,
+    finance.journal_verification_policy.verification_limit,
+    finance.journal_verification_policy.can_self_verify,
+    finance.journal_verification_policy.self_verification_limit,
+    finance.journal_verification_policy.effective_from,
+    finance.journal_verification_policy.ends_on,
+    finance.journal_verification_policy.is_active
+FROM finance.journal_verification_policy
+WHERE NOT deleted;
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.merchant_fee_setup_scrud_view.sql --<--<--
 DROP VIEW IF EXISTS finance.merchant_fee_setup_scrud_view CASCADE;
 
@@ -2829,7 +3427,20 @@ ON finance.payment_cards.card_type_id = finance.card_types.card_type_id
 WHERE NOT finance.payment_cards.deleted;
 
 
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.bank_account_selector_vie.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.account_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.account_selector_view;
+
+CREATE VIEW finance.account_selector_view
+AS
+SELECT
+    finance.accounts.account_id,
+    finance.accounts.account_number AS account_code,
+    finance.accounts.account_name
+FROM finance.accounts
+WHERE NOT finance.accounts.deleted;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.bank_account_selector_view.sql --<--<--
 DROP VIEW IF EXISTS finance.bank_account_selector_view;
 
 CREATE VIEW finance.bank_account_selector_view

@@ -319,9 +319,8 @@ CREATE TABLE finance.transaction_master
     verified_by_user_id                     integer REFERENCES account.users,
     verification_status_id                  smallint NOT NULL REFERENCES finance.verification_statuses   
                                             DEFAULT(0/*Awaiting verification*/),
-    verification_reason                     national character varying(128) NOT NULL   
-                                            CONSTRAINT transaction_master_verification_reason_df   
-                                            DEFAULT(''),
+    verification_reason                     national character varying(128) NOT NULL DEFAULT(''),
+	cascading_tran_id 						bigint REFERENCES finance.transaction_master,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
@@ -329,6 +328,10 @@ CREATE TABLE finance.transaction_master
 
 CREATE UNIQUE INDEX transaction_master_transaction_code_uix
 ON finance.transaction_master(UPPER(transaction_code))
+WHERE NOT deleted;
+
+CREATE INDEX transaction_master_cascading_tran_id_inx
+ON finance.transaction_master(cascading_tran_id)
 WHERE NOT deleted;
 
 CREATE TABLE finance.transaction_documents
@@ -475,3 +478,34 @@ CREATE TYPE finance.period AS
     date_to                         date
 );
 
+CREATE TABLE finance.journal_verification_policy
+(
+    journal_verification_policy_id          SERIAL NOT NULL PRIMARY KEY,
+    user_id                                 integer NOT NULL REFERENCES account.users,
+    office_id                               integer NOT NULL REFERENCES core.offices,
+    can_verify                              boolean NOT NULL DEFAULT(false),
+    verification_limit                      public.money_strict2 NOT NULL DEFAULT(0),
+    can_self_verify                         boolean NOT NULL DEFAULT(false),
+    self_verification_limit                 money_strict2 NOT NULL DEFAULT(0),
+    effective_from                          date NOT NULL,
+    ends_on                                 date NOT NULL,
+    is_active                               boolean NOT NULL,
+	audit_user_id                       	integer NULL REFERENCES account.users,            
+	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	deleted									boolean DEFAULT(false)            
+);
+
+
+CREATE TABLE finance.auto_verification_policy
+(
+    auto_verification_policy_id             SERIAL NOT NULL PRIMARY KEY,
+    user_id                                 integer NOT NULL REFERENCES account.users,
+    office_id                               integer NOT NULL REFERENCES core.offices,
+    verification_limit                      public.money_strict2 NOT NULL DEFAULT(0),
+    effective_from                          date NOT NULL,
+    ends_on                                 date NOT NULL,
+    is_active                               boolean NOT NULL,
+	audit_user_id                       	integer NULL REFERENCES account.users,            
+	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	deleted									boolean DEFAULT(false)                                            
+);

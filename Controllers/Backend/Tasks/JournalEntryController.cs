@@ -6,6 +6,7 @@ using Frapid.ApplicationState.Cache;
 using Frapid.Dashboard;
 using Frapid.i18n;
 using MixERP.Finance.DAL;
+using MixERP.Finance.QueryModels;
 using MixERP.Finance.ViewModels;
 
 namespace MixERP.Finance.Controllers.Backend.Tasks
@@ -17,6 +18,13 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
         public ActionResult Index()
         {
             return this.FrapidView(this.GetRazorView<AreaRegistration>("Tasks/JournalEntry/Index.cshtml", this.Tenant));
+        }
+
+        [Route("dashboard/finance/tasks/journal/checklist/{tranId}")]
+        [MenuPolicy(OverridePath = "/dashboard/finance/tasks/journal/entry")]
+        public ActionResult CheckList(long tranId)
+        {
+            return this.FrapidView(this.GetRazorView<AreaRegistration>("Tasks/JournalEntry/CheckList.cshtml", this.Tenant));
         }
 
         [Route("dashboard/finance/tasks/journal/view")]
@@ -91,12 +99,12 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
             int decimalPlaces = CultureManager.GetCurrencyDecimalPlaces();
 
             if ((from detail in model.Details
-                where
-                    decimal.Round(detail.Credit*detail.ExchangeRate, decimalPlaces) !=
-                    decimal.Round(detail.LocalCurrencyCredit, decimalPlaces) ||
-                    decimal.Round(detail.Debit*detail.ExchangeRate, decimalPlaces) !=
-                    decimal.Round(detail.LocalCurrencyDebit, decimalPlaces)
-                select detail).Any())
+                 where
+                     decimal.Round(detail.Credit * detail.ExchangeRate, decimalPlaces) !=
+                     decimal.Round(detail.LocalCurrencyCredit, decimalPlaces) ||
+                     decimal.Round(detail.Debit * detail.ExchangeRate, decimalPlaces) !=
+                     decimal.Round(detail.LocalCurrencyDebit, decimalPlaces)
+                 select detail).Any())
             {
                 throw new InvalidOperationException("Referencing sides are not equal.");
             }

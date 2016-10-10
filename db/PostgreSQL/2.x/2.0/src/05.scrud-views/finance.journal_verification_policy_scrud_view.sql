@@ -1,0 +1,20 @@
+﻿DROP VIEW IF EXISTS finance.journal_verification_policy_scrud_view;
+
+
+CREATE VIEW finance.journal_verification_policy_scrud_view
+AS
+SELECT
+    finance.journal_verification_policy.journal_verification_policy_id,
+    finance.journal_verification_policy.user_id,
+    account.get_name_by_user_id(finance.journal_verification_policy.user_id),
+    finance.journal_verification_policy.office_id,
+    core.get_office_name_by_office_id(finance.journal_verification_policy.office_id),
+    finance.journal_verification_policy.can_verify,
+    finance.journal_verification_policy.verification_limit,
+    finance.journal_verification_policy.can_self_verify,
+    finance.journal_verification_policy.self_verification_limit,
+    finance.journal_verification_policy.effective_from,
+    finance.journal_verification_policy.ends_on,
+    finance.journal_verification_policy.is_active
+FROM finance.journal_verification_policy
+WHERE NOT deleted;

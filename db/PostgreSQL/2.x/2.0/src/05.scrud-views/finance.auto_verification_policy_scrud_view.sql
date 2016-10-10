@@ -1,0 +1,17 @@
+﻿DROP VIEW IF EXISTS finance.auto_verification_policy_scrud_view;
+
+
+CREATE VIEW finance.auto_verification_policy_scrud_view
+AS
+SELECT
+    finance.auto_verification_policy.auto_verification_policy_id,
+    finance.auto_verification_policy.user_id,
+    account.get_name_by_user_id(finance.auto_verification_policy.user_id),
+    finance.auto_verification_policy.office_id,
+    core.get_office_name_by_office_id(finance.auto_verification_policy.office_id),
+    finance.auto_verification_policy.verification_limit,
+    finance.auto_verification_policy.effective_from,
+    finance.auto_verification_policy.ends_on,
+    finance.auto_verification_policy.is_active
+FROM finance.auto_verification_policy
+WHERE NOT deleted;

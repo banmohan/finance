@@ -91,9 +91,10 @@
 
     </div>
 
-    <table id="JournalView" class="ui table">
+    <table id="JournalView" class="ui table segment">
         <thead>
         <tr>
+            <th>Actions</th>
             <th>TranId</th>
             <th>TranCode</th>
             <th>Book</th>
@@ -126,11 +127,27 @@
             return cell;
         };
 
+        function getActionCell(tranId) {
+            var cell = $("<td />");
+
+            var checklistAnchor = $("<a title='Checklist Window'><i class='list icon'></i></a>");
+            checklistAnchor.attr("href", "/dashboard/finance/tasks/journal/checklist/" + tranId);
+
+            var printAnchor = $("<a title='Print'><i class='print icon'></i></a>");
+            printAnchor.attr("href", "javascript:void(0);");
+            printAnchor.attr("onclick", "showWindow('/dashboard/finance/reports/gl-advice.mix/'" + tranId + ");");
+
+            cell.append(checklistAnchor);
+            cell.append(printAnchor);
+            return cell;
+        };
+
         $.each(model, function () {
             var item = this;
 
             var row = $("<tr />");
 
+            row.append(getActionCell(item.TransactionMasterId));
             row.append(getCell(item.TransactionMasterId));
             row.append(getCell(item.TransactionCode));
             row.append(getCell(item.Book));

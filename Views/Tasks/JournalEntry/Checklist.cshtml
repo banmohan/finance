@@ -1,0 +1,24 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "Bank Accounts";
+    Layout = ViewBag.FinanceLayoutPath;
+}
+<script src="/Scripts/frapid/utilities/form.js"></script>
+<div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
+    <div class="ui huge header">Journal Entry</div>
+    <div class="ui divider"></div>
+
+    <div class="ui positive message">The transaction was posted successfully.</div>
+
+    <a href="/dashboard/finance/tasks/journal/entry" class="ui green button">
+        View Transactions
+    </a>
+    <a href="/dashboard/finance/tasks/journal/entry/new" class="ui red button">
+        Add a New Transaction
+    </a>
+</div>
+
+<script>
+    window.overridePath = "/dashboard/finance/tasks/journal/entry";
+</script>

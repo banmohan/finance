@@ -3,6 +3,22 @@
 IMPORTANT:
 The table account_masters must only be translated, but not changed.        
 */
+INSERT INTO finance.verification_statuses
+SELECT -3,  'Rejected'                              UNION ALL
+SELECT -2,  'Closed'                                UNION ALL
+SELECT -1,  'Withdrawn'                             UNION ALL
+SELECT 0,   'Unverified'                            UNION ALL
+SELECT 1,   'Automatically Approved by Workflow'    UNION ALL
+SELECT 2,   'Approved';
+
+INSERT INTO finance.frequencies(frequency_id, frequency_code, frequency_name)
+SELECT 2, 'EOM', 'End of Month'                 UNION ALL
+SELECT 3, 'EOQ', 'End of Quarter'               UNION ALL
+SELECT 4, 'EOH', 'End of Half'                  UNION ALL
+SELECT 5, 'EOY', 'End of Year';
+
+
+
 INSERT INTO finance.account_masters(account_master_id, account_master_code, account_master_name)
 SELECT 1, 'BSA', 'Balance Sheet A/C' UNION ALL
 SELECT 2, 'PLA', 'Profit & Loss A/C' UNION ALL
@@ -543,5 +559,8 @@ SELECT 'MKT', 'Marketing & Promotion'               UNION ALL
 SELECT 'SAL', 'Sales & Billing'                     UNION ALL
 SELECT 'FIN', 'Finance & Accounting';
 
+INSERT INTO finance.cash_repositories(office_id, cash_repository_code, cash_repository_name)
+SELECT core.get_office_id_by_office_name('Default'), 'CAC', 'Cash in Counter' UNION ALL
+SELECT core.get_office_id_by_office_name('Default'), 'CAV', 'Cash in Vault';
 
 --ROLLBACK TRANSACTION;

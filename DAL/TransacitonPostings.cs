@@ -4,6 +4,7 @@ using Frapid.ApplicationState.Models;
 using Frapid.Configuration;
 using Frapid.Configuration.Db;
 using Frapid.Framework.Extensions;
+using Frapid.NPoco;
 using MixERP.Finance.DTO;
 using MixERP.Finance.ViewModels;
 
@@ -110,6 +111,9 @@ namespace MixERP.Finance.DAL
                             await db.InsertAsync("finance.transaction_documents", "document_id", true, document);
                         }
                     }
+
+                    var sql = new Sql("SELECT * FROM finance.auto_verify(@0::bigint, @1::integer)", transactionMasterId, userInfo.UserId);
+                    await db.ExecuteAsync(sql);
 
                     db.CompleteTransaction();
                 }

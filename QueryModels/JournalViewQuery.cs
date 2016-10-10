@@ -1,6 +1,6 @@
 using System;
 
-namespace MixERP.Finance.ViewModels
+namespace MixERP.Finance.QueryModels
 {
     public sealed class JournalViewQuery
     {
