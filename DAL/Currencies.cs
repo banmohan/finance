@@ -1,5 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Frapid.Configuration;
+using Frapid.Configuration.Db;
 using Frapid.DataAccess;
+using MixERP.Finance.DTO;
 
 namespace MixERP.Finance.DAL
 {
@@ -9,6 +13,19 @@ namespace MixERP.Finance.DAL
         {
             const string sql = "SELECT finance.get_exchange_rate(@0, @1);";
             return await Factory.ScalarAsync<decimal>(tenant, sql, officeId, currencyCode).ConfigureAwait(false);
+        }
+
+        public static async Task<List<Currency>> GetCurrenciesAsync(string tenant)
+        {
+            using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
+            {
+                var awaiter =
+                    await
+                        db.Query<Currency>()
+                            .Where(x => !x.Deleted).ToListAsync().ConfigureAwait(false);
+
+                return awaiter;
+            }
         }
     }
 }

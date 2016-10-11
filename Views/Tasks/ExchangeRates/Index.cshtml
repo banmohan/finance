@@ -1,0 +1,181 @@
+﻿@using Frapid.ApplicationState.Cache
+@model dynamic
+
+@{
+    ViewBag.Title = "Exchange Rates";
+    Layout = ViewBag.FinanceLayoutPath;
+    var meta = AppUsers.GetCurrent();
+}
+
+<div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
+    <div class="ui huge header">
+        Exchange Rates
+    </div>
+    <div class="ui divider"></div>
+
+    <div class="ui form">
+        <div class="fields">
+            <div class="field">
+                <label for="OfficeInputText">
+                    Office
+                </label>
+                <input type="text" id="OfficeInputText" readonly="readonly" value="@meta.OfficeName" runat="server" />
+            </div>
+            <div class="field">
+                <label for="CurrencyInputText">
+                    Base Currency
+                </label>
+                <input type="text" id="CurrencyInputText" readonly="readonly" value="@meta.CurrencyCode" runat="server" />
+            </div>
+
+            <div class="field">
+                <label for="ApiSelect">
+                    Select API
+                </label>
+                <select id="ApiSelect" class="ui dropdown"></select>
+            </div>
+            <div class="field">
+                <label for="RequestButton">
+                    &nbsp;
+                </label>
+                <input type="button" id="RequestButton" value="Request" class="ui pink button" />
+            </div>
+        </div>
+    </div>
+
+    <table class="ui very compact small striped collapsing table" id="ExchangeRatesGridView">
+        <thead>
+            <tr>
+                <th>Currency Code</th>
+                <th>Symbol</th>
+                <th>Currency Name</th>
+                <th>Hundredth Name</th>
+                <th>Exchange Rate</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <input type="button" id="SaveButton" value="Save" class="ui green button" />
+
+    <script>
+        var exchangeRatesGridView = $("#ExchangeRatesGridView");
+        var currencyInputText = $("#CurrencyInputText");
+        var url;
+        var data;
+        var moduleSelect = $("#ModuleSelect");
+        var requestButton = $("#RequestButton");
+        var saveButton = $("#SaveButton");
+
+        $(document).ready(function () {
+            loadCurrencies();
+        });
+
+        function bindCurrencies(currencies) {
+            $(currencies).each(function () {
+                addRow(this.CurrencyCode, this.CurrencySymbol, this.CurrencyName, this.HundredthName);
+            });
+        };
+
+        function addRow(currencyCode, currencySymbol, currencyName, hundredthName) {
+            exchangeRatesGridView.find("tbody").append(window.stringFormat("<tr class='ui form'><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td><input type='text' id='{0}ExchangRateInputText' class='text-right currency' onblur='displayDescription(this);' /></td><td></td></tr>", currencyCode, currencySymbol, currencyName, hundredthName));
+        };
+
+        function loadCurrencies() {
+            function request() {
+                url = "/dashboard/finance/tasks/exchange-rates/currency-list";
+
+                return window.getAjaxRequest(url);
+            };
+
+
+            var ajax = request();
+
+            ajax.success(function (response) {
+                bindCurrencies(response);
+            });
+
+            ajax.fail(function (xhr) {
+                alert(xhr.responseText);
+            });
+
+        };
+
+        function displayDescription(element) {
+            var exchangeRate = window.parseFloat2($(element).val());
+
+            if (!exchangeRate) {
+                return;
+            };
+
+            var descriptionCell = $(element).parent().parent().find("td:nth-child(6)");
+            var currencyCode = $(element).parent().parent().find("td:nth-child(1)").html();
+            var exchangeRateReverse = (1.00 / exchangeRate).toFixed(4);
+
+            var description = exchangeRate + " " + currencyCode + " = 1 " + currencyInputText.val() + " (" + exchangeRateReverse + " " + currencyInputText.val() + " = 1 " + currencyCode + ")";
+
+            descriptionCell.html(description);
+        };
+
+        requestButton.click(function () {
+            window.displayMessage("Not implemented");
+        });
+
+        function updateExchangeRates(result) {
+
+            for (i = 0; i < result.length; i++) {
+                exchangeRatesGridView.find("tbody tr").each(function () {
+                    var currency = $(this).find("td:first-child").html();
+
+                    if (result[i].CurrencyCode === currency) {
+                        var input = $(this).find("input");
+                        input.val(result[i].ExchangeRate);
+                        input.trigger("blur");
+                        return false;
+                    };
+                });
+            };
+        };
+
+        saveButton.click(function () {
+            function request(model) {
+                url = "/dashboard/finance/tasks/exchange-rates";
+
+                var data = JSON.stringify(model);
+
+                return window.getAjaxRequest(url, "POST", data);
+            };
+
+            var exchangeRates = [];
+
+            exchangeRatesGridView.find("tbody tr").each(function () {
+                var currencyCode = $(this).find("td:first-child").html();
+                var rate = parseFloat($(this).find("input").val());
+
+                if (rate) {
+                    var exchangeRate = new Object();
+                    exchangeRate.CurrencyCode = currencyCode;
+                    exchangeRate.Rate = rate;
+
+                    exchangeRates.push(exchangeRate);
+                };
+            });
+
+            var ajax = request(exchangeRates);
+
+            ajax.success(function (response) {
+                if (response) {
+                    window.displaySuccess();
+                };
+            });
+
+            ajax.fail(function (xhr) {
+                window.logAjaxErrorMessage(xhr);
+            });
+
+
+        });
+
+    </script>
+</div>

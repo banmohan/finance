@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<FrapidReport>
+  <Header />
+  <Title>Account Statement</Title>
+  <TopSection>
+	<h1>{DataSource[0].account_number} ({DataSource[0].account_name})</h1>
+    <table class="table horizontal">
+      <tr>
+        <td>{Resources.Titles.AccountNumber}</td>
+        <td>
+          {DataSource[0].account_number} <br />
+        </td>
+      </tr>
+      <tr>
+        <td>{Resources.Titles.AccountName}</td>
+        <td>
+          {DataSource[0].account_name} <br />
+        </td>
+      </tr>
+      <tr>
+        <td>{Resources.Titles.OfficeName}</td>
+        <td>{DataSource[0].office_name}</td>
+      </tr>
+      <tr>
+        <td>{Resources.Titles.BaseCurrency}</td>
+        <td>{DataSource[0].currency_code}</td>
+      </tr>
+    </table>
+
+	</TopSection>
+  <Body>
+    <Content>
+      <div class='center aligned'>As of {Query.From} and {Query.To}</div>
+    </Content>
+    <GridViews>
+      <GridView>
+        <GridViewDataSource Index="1" Style="white-space:nowrap;">
+        </GridViewDataSource>
+      </GridView>
+    </GridViews>
+  </Body>
+  <BottomSection>
+  </BottomSection>
+  <DataSources>
+    <DataSource>
+      <Query>
+        SELECT
+        account_number,
+        core.get_office_name_by_office_id(@OfficeId) as office_name,
+        account_name,
+        currency_code
+        FROM finance.accounts
+        WHERE account_number= @AccountNumber;
+      </Query>
+      <Parameters>
+        <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="Number"  DefaultValue="{Meta.OfficeId}" />
+        <Parameter Name="@AccountNumber" FieldLabel="Account Number" Type="Text" PopulateFrom="/api/views/finance/account-selector-view/lookup-fields" KeyField="Key" ValueField="Value" />
+      </Parameters>
+    </DataSource>
+    <DataSource>
+      <Query>
+        SELECT
+        statement_reference,
+        reference_number,
+        book_date,
+        value_date,
+        debit,
+        credit,
+        balance,
+        office,
+        book,
+        account_number,
+        account,
+        tran_code
+        FROM finance.get_account_statement
+        (@From::date, @To::date, @UserId::integer, finance.get_account_id_by_account_number(@AccountNumber)::bigint, @OfficeId::integer)
+        ORDER BY id;
+      </Query>
+      <Parameters>
+        <Parameter Name="@From" FieldLabel="From Date" Type="Date" />
+        <Parameter Name="@To" FieldLabel="To Date" Type="Date" />
+        <Parameter Name="@UserId" FieldLabel="User Id" Type="Number" DefaultValue="{Meta.UserId}" />
+        <Parameter Name="@AccountNumber" FieldLabel="Account Number" Type="Text" PopulateFrom="/api/views/finance/account-selector-view/lookup-fields" KeyField="Key" ValueField="Value" />
+        <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="Number"  DefaultValue="{Meta.OfficeId}" />
+      </Parameters>
+      <RunningTotalTextColumnIndex>3</RunningTotalTextColumnIndex>
+      <RunningTotalFieldIndices>4, 5</RunningTotalFieldIndices>
+    </DataSource>
+  </DataSources>
+</FrapidReport>

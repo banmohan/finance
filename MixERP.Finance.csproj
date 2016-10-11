@@ -118,16 +118,22 @@
     <Compile Include="Controllers\Backend\Setup\ChartOfAccountController.cs" />
     <Compile Include="Controllers\Backend\Setup\CostCenterController.cs" />
     <Compile Include="Controllers\Backend\Setup\CurrencyController.cs" />
-    <Compile Include="Controllers\Backend\Tasks\BankAccountController.cs" />
+    <Compile Include="Controllers\Backend\Tasks\AutoVerificationPolicyController.cs" />
+    <Compile Include="Controllers\Backend\Tasks\ExchangeRateController.cs" />
     <Compile Include="Controllers\Backend\Tasks\JournalEntryController.cs" />
     <Compile Include="Controllers\Backend\Tasks\JournalVerificationController.cs" />
+    <Compile Include="Controllers\Backend\Tasks\VerificationPolicyController.cs" />
     <Compile Include="Controllers\FinanceDashboardController.cs" />
     <Compile Include="DAL\Accounts.cs" />
     <Compile Include="DAL\CashRepositories.cs" />
     <Compile Include="DAL\Currencies.cs" />
+    <Compile Include="DAL\ExchangeRates.cs" />
     <Compile Include="DAL\Journals.cs" />
     <Compile Include="DAL\TransacitonPostings.cs" />
     <Compile Include="DTO\Account.cs" />
+    <Compile Include="DTO\Currency.cs" />
+    <Compile Include="DTO\ExchangeRateDetails.cs" />
+    <Compile Include="DTO\ExchangeRate.cs" />
     <Compile Include="DTO\JournalView.cs" />
     <Compile Include="DTO\TransactionDocument.cs" />
     <Compile Include="DTO\TransactionMaster.cs" />
@@ -135,6 +141,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryModels\JournalViewQuery.cs" />
     <Compile Include="ViewModels\Document.cs" />
+    <Compile Include="ViewModels\ExchangeRate.cs" />
     <Compile Include="ViewModels\JournalDetail.cs" />
     <Compile Include="ViewModels\TransactionPosting.cs" />
     <Compile Include="ViewModels\Verification.cs" />
@@ -162,6 +169,7 @@
     <Content Include="Views\Tasks\VerificationPolicy\Index.cshtml" />
     <Content Include="Views\Tasks\VerificationPolicy\Auto.cshtml" />
     <Content Include="Views\Tasks\JournalEntry\Checklist.cshtml" />
+    <Content Include="Views\Tasks\ExchangeRates\Index.cshtml" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

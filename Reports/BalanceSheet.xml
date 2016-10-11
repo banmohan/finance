@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<FrapidReport>
+  <Header />
+  <Title>Balance Sheet</Title>
+  <TopSection>
+
+  </TopSection>
+  <Body>
+    <Content>
+    </Content>
+    <GridViews>
+      <GridView>
+        <GridViewDataSource Index="0">
+        </GridViewDataSource>
+      </GridView>
+    </GridViews>
+  </Body>
+  <BottomSection>
+  </BottomSection>
+  <DataSources>
+    <DataSource>
+      <Query>
+        SELECT
+        item,
+        previous_period,
+        current_period
+        FROM finance.get_balance_sheet(@PreviousPeriod::date, @CurrentPeriod::date, @UserId::integer, @OfficeId::integer, @Factor);
+      </Query>
+      <Parameters>
+        <Parameter Name="@PreviousPeriod" Type="Date" />
+        <Parameter Name="@CurrentPeriod" Type="Date" />
+        <Parameter Name="@UserId" FieldLabel="User Id" Type="Number"  DefaultValue="{Meta.UserId}" />
+        <Parameter Name="@Factor" Type="Number" DefaultValue="100" />
+        <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="Number"  DefaultValue="{Meta.OfficeId}" />
+       
+      </Parameters>
+      <RunningTotalTextColumnIndex>0</RunningTotalTextColumnIndex>
+      <RunningTotalFieldIndices>1,2</RunningTotalFieldIndices>
+    </DataSource>
+  </DataSources>
+</FrapidReport>

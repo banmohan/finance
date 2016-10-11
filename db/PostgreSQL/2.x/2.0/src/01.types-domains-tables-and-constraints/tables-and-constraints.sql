@@ -371,7 +371,7 @@ CREATE TABLE finance.transaction_details
 
 CREATE TABLE finance.day_operation
 (
-    day_id                                  BIGSERIAL NOT NULL PRIMARY KEY,
+    day_id                                  BIGSERIAL PRIMARY KEY,
     office_id                               integer NOT NULL REFERENCES core.offices,
     value_date                              date NOT NULL,
     started_on                              TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -409,7 +409,7 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.payment_cards
 (
-	payment_card_id                     	SERIAL NOT NULL PRIMARY KEY,
+	payment_card_id                     	SERIAL PRIMARY KEY,
 	payment_card_code                   	national character varying(12) NOT NULL,
 	payment_card_name                   	national character varying(100) NOT NULL,
 	card_type_id                        	integer NOT NULL REFERENCES finance.card_types,            
@@ -429,7 +429,7 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.merchant_fee_setup
 (
-	merchant_fee_setup_id               	SERIAL NOT NULL PRIMARY KEY,
+	merchant_fee_setup_id               	SERIAL PRIMARY KEY,
 	merchant_account_id                 	bigint NOT NULL REFERENCES finance.bank_accounts,
 	payment_card_id                     	integer NOT NULL REFERENCES finance.payment_cards,
 	rate                                	public.decimal_strict NOT NULL,
@@ -480,7 +480,7 @@ CREATE TYPE finance.period AS
 
 CREATE TABLE finance.journal_verification_policy
 (
-    journal_verification_policy_id          SERIAL NOT NULL PRIMARY KEY,
+    journal_verification_policy_id          SERIAL PRIMARY KEY,
     user_id                                 integer NOT NULL REFERENCES account.users,
     office_id                               integer NOT NULL REFERENCES core.offices,
     can_verify                              boolean NOT NULL DEFAULT(false),
@@ -498,7 +498,7 @@ CREATE TABLE finance.journal_verification_policy
 
 CREATE TABLE finance.auto_verification_policy
 (
-    auto_verification_policy_id             SERIAL NOT NULL PRIMARY KEY,
+    auto_verification_policy_id             SERIAL PRIMARY KEY,
     user_id                                 integer NOT NULL REFERENCES account.users,
     office_id                               integer NOT NULL REFERENCES core.offices,
     verification_limit                      public.money_strict2 NOT NULL DEFAULT(0),
@@ -509,3 +509,17 @@ CREATE TABLE finance.auto_verification_policy
 	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)                                            
 );
+
+CREATE TABLE finance.tax_setups
+(
+	tax_setup_id							SERIAL PRIMARY KEY,
+	office_id								integer NOT NULL REFERENCES core.offices,
+	income_tax_rate							public.decimal_strict NOT NULL,
+	audit_user_id                       	integer NULL REFERENCES account.users,            
+	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	deleted									boolean DEFAULT(false)                                            
+);
+
+CREATE UNIQUE INDEX tax_setup_office_id_uix
+ON finance.tax_setups(office_id)
+WHERE NOT finance.tax_setups.deleted;
