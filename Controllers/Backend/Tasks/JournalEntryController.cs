@@ -24,7 +24,7 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
         [MenuPolicy(OverridePath = "/dashboard/finance/tasks/journal/entry")]
         public ActionResult CheckList(long tranId)
         {
-            return this.FrapidView(this.GetRazorView<AreaRegistration>("Tasks/JournalEntry/CheckList.cshtml", this.Tenant));
+            return this.FrapidView(this.GetRazorView<AreaRegistration>("Tasks/JournalEntry/CheckList.cshtml", this.Tenant), tranId);
         }
 
         [Route("dashboard/finance/tasks/journal/view")]

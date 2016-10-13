@@ -1,9 +1,18 @@
-﻿@model dynamic
+﻿@model long
 
 @{
-    ViewBag.Title = "Bank Accounts";
+    ViewBag.Title = "Checklist";
     Layout = ViewBag.FinanceLayoutPath;
 }
+<style>
+iframe{
+	display: block;
+	margin-top:1em;
+	width: 800px;
+	height: 800px;
+	border:1px solid #ccc;
+}    
+</style>
 <script src="/Scripts/frapid/utilities/form.js"></script>
 <div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
     <div class="ui huge header">Journal Entry</div>
@@ -17,7 +26,9 @@
     <a href="/dashboard/finance/tasks/journal/entry/new" class="ui red button">
         Add a New Transaction
     </a>
+    <iframe src="/dashboard/reports/source/Areas/MixERP.Finance/Reports/JournalEntry.xml?transaction_master_id=@Model"></iframe>
 </div>
+
 
 <script>
     window.overridePath = "/dashboard/finance/tasks/journal/entry";
