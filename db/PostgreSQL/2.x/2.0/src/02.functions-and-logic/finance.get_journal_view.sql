@@ -102,6 +102,6 @@ $$
 LANGUAGE plpgsql;
 
 
---SELECT * FROM finance.get_journal_view(2,1,'1-1-2000','1-1-2020',0,'', 'Jou', '', '','', '','','', '');
+--SELECT * FROM finance.get_journal_view(2,1,'1-1-2000','1-1-2020',0,'', 'Inventory Transfer', '', '','', '','','', '');
 
 

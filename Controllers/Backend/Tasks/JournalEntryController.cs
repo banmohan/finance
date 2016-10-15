@@ -36,7 +36,7 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
             query.OfficeId = appUser.OfficeId;
             query.UserId = appUser.UserId;
 
-            var model = await Journals.GetJournalView(this.Tenant, query).ConfigureAwait(true);
+            var model = await Journals.GetJournalViewAsync(this.Tenant, query).ConfigureAwait(true);
             return this.Ok(model);
         }
 

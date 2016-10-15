@@ -1,4 +1,22 @@
-﻿SELECT * FROM core.create_app('Finance', 'Finance', '1.0', 'MixERP Inc.', 'December 1, 2015', 'book red', '/dashboard/finance/tasks/journal/entry', NULL::text[]);
+﻿DELETE FROM auth.menu_access_policy
+WHERE menu_id IN
+(
+    SELECT menu_id FROM core.menus
+    WHERE app_name = 'Finance'
+);
+
+DELETE FROM auth.group_menu_access_policy
+WHERE menu_id IN
+(
+    SELECT menu_id FROM core.menus
+    WHERE app_name = 'Finance'
+);
+
+DELETE FROM core.menus
+WHERE app_name = 'Finance';
+
+
+SELECT * FROM core.create_app('Finance', 'Finance', '1.0', 'MixERP Inc.', 'December 1, 2015', 'book red', '/dashboard/finance/tasks/journal/entry', NULL::text[]);
 
 SELECT * FROM core.create_menu('Finance', 'Tasks', '', 'lightning', '');
 SELECT * FROM core.create_menu('Finance', 'Journal Entry', '/dashboard/finance/tasks/journal/entry', 'user', 'Tasks');
