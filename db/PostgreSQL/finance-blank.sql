@@ -1842,7 +1842,7 @@ $$
 LANGUAGE plpgsql;
 
 
---SELECT * FROM finance.get_journal_view(2,1,'1-1-2000','1-1-2020',0,'', 'Jou', '', '','', '','','', '');
+--SELECT * FROM finance.get_journal_view(2,1,'1-1-2000','1-1-2020',0,'', 'Inventory Transfer', '', '','', '','','', '');
 
 
 
@@ -4018,6 +4018,24 @@ FOR EACH ROW EXECUTE PROCEDURE finance.update_transaction_meta();
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/03.menus/menus.sql --<--<--
+DELETE FROM auth.menu_access_policy
+WHERE menu_id IN
+(
+    SELECT menu_id FROM core.menus
+    WHERE app_name = 'Finance'
+);
+
+DELETE FROM auth.group_menu_access_policy
+WHERE menu_id IN
+(
+    SELECT menu_id FROM core.menus
+    WHERE app_name = 'Finance'
+);
+
+DELETE FROM core.menus
+WHERE app_name = 'Finance';
+
+
 SELECT * FROM core.create_app('Finance', 'Finance', '1.0', 'MixERP Inc.', 'December 1, 2015', 'book red', '/dashboard/finance/tasks/journal/entry', NULL::text[]);
 
 SELECT * FROM core.create_menu('Finance', 'Tasks', '', 'lightning', '');

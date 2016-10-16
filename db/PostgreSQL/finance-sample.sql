@@ -563,4 +563,20 @@ INSERT INTO finance.cash_repositories(office_id, cash_repository_code, cash_repo
 SELECT core.get_office_id_by_office_name('Default'), 'CAC', 'Cash in Counter' UNION ALL
 SELECT core.get_office_id_by_office_name('Default'), 'CAV', 'Cash in Vault';
 
+INSERT INTO finance.journal_verification_policy(user_id, office_id, can_verify, verification_limit, can_self_verify, self_verification_limit, effective_from, ends_on, is_active)
+SELECT
+    account.users.user_id,
+    core.offices.office_id,
+    true,
+    0,
+    true,
+    0,
+    '1-1-2000',
+    '1-1-2100',
+    true
+FROM account.users
+CROSS JOIN core.offices
+WHERE account.users.role_id = 9999;
+
+
 --ROLLBACK TRANSACTION;
