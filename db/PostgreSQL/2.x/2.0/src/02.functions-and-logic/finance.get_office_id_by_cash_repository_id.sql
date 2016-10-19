@@ -7,7 +7,8 @@ $$
 BEGIN
         RETURN office_id
         FROM finance.cash_repositories
-        WHERE cash_repository_id=$1;
+        WHERE finance.cash_repositories.cash_repository_id=$1
+		AND NOT finance.cash_repositories.deleted;
 END
 $$
 LANGUAGE plpgsql;

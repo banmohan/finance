@@ -9,7 +9,8 @@ BEGIN
     (
         SELECT core.offices.currency_code 
         FROM core.offices
-        WHERE core.offices.office_id = $1        
+        WHERE core.offices.office_id = $1
+		AND NOT core.offices.deleted	
     );
 END
 $$

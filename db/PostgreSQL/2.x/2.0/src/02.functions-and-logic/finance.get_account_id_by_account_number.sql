@@ -9,7 +9,8 @@ BEGIN
     RETURN
 		account_id
     FROM finance.accounts
-    WHERE account_number=$1;
+    WHERE finance.accounts.account_number=$1
+	AND NOT finance.accounts.deleted;
 END
 $$
 LANGUAGE plpgsql;

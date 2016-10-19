@@ -11,7 +11,9 @@ BEGIN
         WITH RECURSIVE account_cte(account_id, path) AS (
          SELECT
             tn.account_id,  tn.account_id::TEXT AS path
-            FROM finance.accounts AS tn WHERE tn.account_id =$1
+            FROM finance.accounts AS tn 
+			WHERE tn.account_id =$1
+			AND NOT tn.deleted
         UNION ALL
          SELECT
             c.account_id, (p.path || '->' || c.account_id::TEXT)

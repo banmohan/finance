@@ -41,7 +41,8 @@ BEGIN
         _voucher_date,
         _transaction_posted_by  
     FROM finance.transaction_master
-    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id;
+    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id
+	AND NOT finance.transaction_master.deleted;
     
     SELECT
         SUM(amount_in_local_currency)
@@ -60,11 +61,12 @@ BEGIN
         _has_policy,
         _verification_limit
     FROM finance.auto_verification_policy
-    WHERE user_id=_transaction_posted_by
-    AND office_id = _office_id
-    AND is_active=true
+    WHERE finance.auto_verification_policy.user_id=_transaction_posted_by
+    AND finance.auto_verification_policy.office_id = _office_id
+    AND finance.auto_verification_policy.is_active=true
     AND now() >= effective_from
-    AND now() <= ends_on;
+    AND now() <= ends_on
+	AND NOT finance.auto_verification_policy.deleted;
 
     IF(_has_policy=true) THEN
         UPDATE finance.transaction_master

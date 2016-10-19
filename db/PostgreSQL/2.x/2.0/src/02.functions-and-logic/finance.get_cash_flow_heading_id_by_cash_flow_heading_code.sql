@@ -11,7 +11,8 @@ BEGIN
     FROM
         finance.cash_flow_headings
     WHERE
-        cash_flow_heading_code = $1;
+        finance.cash_flow_headings.cash_flow_heading_code = $1
+	AND NOT finance.cash_flow_headings.deleted;
 END
 $$
 LANGUAGE plpgsql;

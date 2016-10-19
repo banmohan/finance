@@ -9,7 +9,8 @@ BEGIN
     SELECT INTO _ret_val
         COALESCE(MAX(transaction_counter),0)
     FROM finance.transaction_master
-    WHERE value_date=$1;
+    WHERE finance.transaction_master.value_date=$1
+	AND NOT finance.transaction_master.deleted;
 
     IF _ret_val IS NULL THEN
         RETURN 1::integer;
