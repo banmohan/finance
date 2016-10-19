@@ -8,7 +8,8 @@ $$
 BEGIN
     RETURN cost_center_id
     FROM finance.cost_centers
-    WHERE cost_center_code=$1;
+    WHERE finance.cost_centers.cost_center_code=$1
+	AND NOT finance.cost_centers.deleted;
 END
 $$
 LANGUAGE plpgsql;

@@ -10,7 +10,8 @@ BEGIN
     FROM  finance.accounts
     INNER JOIN finance.account_masters
     ON finance.accounts.account_master_id = finance.account_masters.account_master_id
-    WHERE account_id = $1;
+    WHERE finance.accounts.account_id = $1
+	AND NOT finance.accounts.deleted;
 END
 $$
 LANGUAGE plpgsql;

@@ -24,7 +24,8 @@ BEGIN
     INSERT INTO frequency_setups_temp
     SELECT frequency_setup_id, value_date
     FROM finance.frequency_setups
-    WHERE value_date BETWEEN _date_from AND _date_to
+    WHERE finance.frequency_setups.value_date BETWEEN _date_from AND _date_to
+	AND NOT finance.frequency_setups.deleted
     ORDER BY value_date;
 
     RETURN

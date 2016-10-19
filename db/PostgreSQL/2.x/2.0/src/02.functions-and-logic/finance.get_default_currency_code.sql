@@ -11,7 +11,8 @@ BEGIN
         FROM finance.cash_repositories
         INNER JOIN core.offices
         ON core.offices.office_id = finance.cash_repositories.office_id
-        WHERE finance.cash_repositories.cash_repository_id=$1        
+        WHERE finance.cash_repositories.cash_repository_id=$1
+		AND NOT finance.cash_repositories.deleted	
     );
 END
 $$

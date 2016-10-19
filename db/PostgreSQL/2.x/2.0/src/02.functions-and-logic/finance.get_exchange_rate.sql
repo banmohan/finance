@@ -11,7 +11,8 @@ BEGIN
     SELECT core.offices.currency_code
     INTO _local_currency_code
     FROM core.offices
-    WHERE core.offices.office_id=$1;
+    WHERE core.offices.office_id=$1
+	AND NOT core.offices.deleted;
 
     IF(_local_currency_code = $2) THEN
         RETURN 1;

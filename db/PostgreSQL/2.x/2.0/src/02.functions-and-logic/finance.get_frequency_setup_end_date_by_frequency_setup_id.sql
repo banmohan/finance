@@ -9,7 +9,8 @@ BEGIN
     FROM
         finance.frequency_setups
     WHERE
-        frequency_setup_id = $1;
+        finance.frequency_setups.frequency_setup_id = $1
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;
