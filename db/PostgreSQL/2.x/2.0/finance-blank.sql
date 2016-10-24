@@ -7,7 +7,7 @@ CREATE TABLE finance.verification_statuses
     verification_status_id                  smallint PRIMARY KEY,
     verification_status_name                national character varying(128) NOT NULL,
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -36,7 +36,7 @@ CREATE TABLE finance.frequencies
     frequency_code                          national character varying(12) NOT NULL,
     frequency_name                          national character varying(50) NOT NULL,
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -57,7 +57,7 @@ CREATE TABLE finance.currencies
     currency_name                           national character varying(48) NOT NULL UNIQUE,
     hundredth_name                          national character varying(48) NOT NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -70,7 +70,7 @@ CREATE TABLE finance.cash_repositories
     parent_cash_repository_id               integer NULL REFERENCES finance.cash_repositories,
     description                             national character varying(100) NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -91,7 +91,7 @@ CREATE TABLE finance.fiscal_year
     starts_from                             date NOT NULL,
     ends_on                                 date NOT NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -117,7 +117,7 @@ CREATE TABLE finance.account_masters
     normally_debit                          boolean NOT NULL CONSTRAINT account_masters_normally_debit_df DEFAULT(false),
     parent_account_master_id                smallint NULL REFERENCES finance.account_masters,
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -141,7 +141,7 @@ CREATE TABLE finance.cost_centers
     cost_center_code                        national character varying(24) NOT NULL,
     cost_center_name                        national character varying(50) NOT NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -162,7 +162,7 @@ CREATE TABLE finance.frequency_setups
     value_date                              date NOT NULL UNIQUE,
     frequency_id                            integer NOT NULL REFERENCES finance.frequencies,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -187,7 +187,7 @@ CREATE TABLE finance.accounts
     sys_type                                boolean NOT NULL CONSTRAINT accounts_sys_type_df DEFAULT(false),
     parent_account_id                       bigint NULL REFERENCES finance.accounts,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -215,7 +215,7 @@ CREATE TABLE finance.cash_flow_headings
     is_purchase                             boolean NOT NULL CONSTRAINT cash_flow_headings_is_purchase_df
                                             DEFAULT(false),
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -251,7 +251,7 @@ CREATE TABLE finance.bank_accounts
     relationship_officer_name               national character varying(128) NULL,
     relationship_officer_contact_number     national character varying(128) NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -261,7 +261,7 @@ CREATE TABLE finance.transaction_types
     transaction_type_code                   national character varying(4),
     transaction_type_name                   national character varying(100),
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -286,7 +286,7 @@ CREATE TABLE finance.cash_flow_setup
     cash_flow_heading_id                    integer NOT NULL REFERENCES finance.cash_flow_headings,
     account_master_id                       smallint NOT NULL REFERENCES finance.account_masters,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -323,7 +323,7 @@ CREATE TABLE finance.transaction_master
     verification_reason                     national character varying(128) NOT NULL DEFAULT(''),
 	cascading_tran_id 						bigint REFERENCES finance.transaction_master,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -344,7 +344,7 @@ CREATE TABLE finance.transaction_documents
 	file_path								national character varying(2000) NOT NULL,
 	memo									national character varying(2000),
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -366,7 +366,7 @@ CREATE TABLE finance.transaction_details
     amount_in_local_currency                money_strict NOT NULL,  
     office_id                               integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW())
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW())
 );
 
 
@@ -396,7 +396,7 @@ CREATE TABLE finance.card_types
 	card_type_code                  		national character varying(12) NOT NULL,
 	card_type_name                  		national character varying(100) NOT NULL,
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
 );
 
@@ -415,7 +415,7 @@ CREATE TABLE finance.payment_cards
 	payment_card_name                   	national character varying(100) NOT NULL,
 	card_type_id                        	integer NOT NULL REFERENCES finance.card_types,            
 	audit_user_id                       	integer NULL REFERENCES account.users,            
-	audit_ts                                TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)            
 );
 
@@ -438,7 +438,7 @@ CREATE TABLE finance.merchant_fee_setup
 	account_id                          	bigint NOT NULL REFERENCES finance.accounts,
 	statement_reference                 	national character varying(128) NOT NULL DEFAULT(''),
 	audit_user_id                       	integer NULL REFERENCES account.users,            
-	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	audit_ts                            	TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)            
 );
 
@@ -492,7 +492,7 @@ CREATE TABLE finance.journal_verification_policy
     ends_on                                 date NOT NULL,
     is_active                               boolean NOT NULL,
 	audit_user_id                       	integer NULL REFERENCES account.users,            
-	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	audit_ts                            	TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)            
 );
 
@@ -507,7 +507,7 @@ CREATE TABLE finance.auto_verification_policy
     ends_on                                 date NOT NULL,
     is_active                               boolean NOT NULL,
 	audit_user_id                       	integer NULL REFERENCES account.users,            
-	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	audit_ts                            	TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)                                            
 );
 
@@ -517,7 +517,7 @@ CREATE TABLE finance.tax_setups
 	office_id								integer NOT NULL REFERENCES core.offices,
 	income_tax_rate							public.decimal_strict NOT NULL,
 	audit_user_id                       	integer NULL REFERENCES account.users,            
-	audit_ts                            	TIMESTAMP WITH TIME ZONE NULL DEFAULT(NOW()),
+	audit_ts                            	TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)                                            
 );
 
@@ -2571,6 +2571,30 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_cash_account_id.sql --<--<--
+DROP FUNCTION IF EXISTS finance.is_cash_account_id(_account_id bigint);
+
+CREATE FUNCTION finance.is_cash_account_id(_account_id bigint)
+RETURNS boolean
+AS
+$$
+BEGIN
+    IF EXISTS
+    (
+        SELECT 1 FROM finance.accounts 
+        WHERE account_master_id IN(10101)
+        AND account_id=_account_id
+    ) THEN
+        RETURN true;
+    END IF;
+    RETURN false;
+END
+$$
+LANGUAGE plpgsql;
+
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_normally_debit.sql --<--<--
