@@ -87,16 +87,17 @@ BEGIN
     AND finance.transaction_master.value_date BETWEEN _from AND _to
     AND office_id IN (SELECT office_id FROM office_cte)
     AND (_tran_id = 0 OR _tran_id  = finance.transaction_master.transaction_master_id)
-    AND lower(finance.transaction_master.transaction_code) LIKE '%' || lower(_tran_code) || '%' 
-    AND lower(finance.transaction_master.book) LIKE '%' || lower(_book) || '%' 
-    AND COALESCE(lower(finance.transaction_master.reference_number), '') LIKE '%' || lower(_reference_number) || '%' 
-    AND COALESCE(lower(finance.transaction_master.statement_reference), '') LIKE '%' || lower(_statement_reference) || '%' 
-    AND COALESCE(lower(finance.transaction_master.verification_reason), '') LIKE '%' || lower(_reason) || '%' 
-    AND lower(account.get_name_by_user_id(finance.transaction_master.user_id)) LIKE '%' || lower(_posted_by) || '%' 
-    AND lower(core.get_office_name_by_office_id(finance.transaction_master.office_id)) LIKE '%' || lower(_office) || '%' 
-    AND COALESCE(lower(finance.get_verification_status_name_by_verification_status_id(finance.transaction_master.verification_status_id)), '') LIKE '%' || lower(_status) || '%' 
-    AND COALESCE(lower(account.get_name_by_user_id(finance.transaction_master.verified_by_user_id)), '') LIKE '%' || lower(_verified_by) || '%'    
-    ORDER BY value_date ASC, verification_status_id DESC;
+    AND LOWER(finance.transaction_master.transaction_code) LIKE '%' || LOWER(_tran_code) || '%' 
+    AND LOWER(finance.transaction_master.book) LIKE '%' || LOWER(_book) || '%' 
+    AND COALESCE(LOWER(finance.transaction_master.reference_number), '') LIKE '%' || LOWER(_reference_number) || '%' 
+    AND COALESCE(LOWER(finance.transaction_master.statement_reference), '') LIKE '%' || LOWER(_statement_reference) || '%' 
+    AND COALESCE(LOWER(finance.transaction_master.verification_reason), '') LIKE '%' || LOWER(_reason) || '%' 
+    AND LOWER(account.get_name_by_user_id(finance.transaction_master.user_id)) LIKE '%' || LOWER(_posted_by) || '%' 
+    AND LOWER(core.get_office_name_by_office_id(finance.transaction_master.office_id)) LIKE '%' || LOWER(_office) || '%' 
+    AND COALESCE(LOWER(finance.get_verification_status_name_by_verification_status_id(finance.transaction_master.verification_status_id)), '') LIKE '%' || LOWER(_status) || '%' 
+    AND COALESCE(LOWER(account.get_name_by_user_id(finance.transaction_master.verified_by_user_id)), '') LIKE '%' || LOWER(_verified_by) || '%'    
+    AND NOT finance.transaction_master.deleted
+	ORDER BY value_date ASC, verification_status_id DESC;
 END
 $$
 LANGUAGE plpgsql;

@@ -8,7 +8,8 @@ $$
 BEGIN
     RETURN finance.account_masters.account_master_id
     FROM finance.account_masters
-    WHERE finance.account_masters.account_master_code = $1;
+    WHERE finance.account_masters.account_master_code = $1
+	AND NOT finance.account_masters.deleted;
 END
 $$
 LANGUAGE plpgsql;

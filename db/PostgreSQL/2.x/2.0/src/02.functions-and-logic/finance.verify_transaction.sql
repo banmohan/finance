@@ -47,7 +47,8 @@ BEGIN
         _transaction_posted_by  
     FROM
     finance.transaction_master
-    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id;
+    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id
+	AND NOT finance.transaction_master.deleted;
 
 
     IF(_journal_office_id <> _office_id) THEN
@@ -77,11 +78,12 @@ BEGIN
         _can_self_verify,
         _self_verification_limit
     FROM finance.journal_verification_policy
-    WHERE user_id=_user_id
-    AND office_id = _office_id
-    AND is_active=true
+    WHERE finance.journal_verification_policy.user_id=_user_id
+    AND finance.journal_verification_policy.office_id = _office_id
+    AND finance.journal_verification_policy.is_active=true
     AND now() >= effective_from
-    AND now() <= ends_on;
+    AND now() <= ends_on
+	AND NOT finance.journal_verification_policy.deleted;
 
     IF(NOT _can_self_verify AND _user_id = _transaction_posted_by) THEN
         _can_verify := false;
@@ -93,7 +95,8 @@ BEGIN
             SELECT cascading_tran_id
             INTO _cascading_tran_id
             FROM finance.transaction_master
-            WHERE finance.transaction_master.transaction_master_id=_transaction_master_id;
+            WHERE finance.transaction_master.transaction_master_id=_transaction_master_id
+			AND NOT finance.transaction_master.deleted;
             
             UPDATE finance.transaction_master
             SET 
@@ -114,7 +117,8 @@ BEGIN
                 SELECT transaction_master_id
                 INTO _cascading_tran_id
                 FROM finance.transaction_master
-                WHERE finance.transaction_master.cascading_tran_id=_transaction_master_id;
+                WHERE finance.transaction_master.cascading_tran_id=_transaction_master_id
+				AND NOT finance.transaction_master.deleted;
             END IF;
             
             RETURN COALESCE(_cascading_tran_id, 0);

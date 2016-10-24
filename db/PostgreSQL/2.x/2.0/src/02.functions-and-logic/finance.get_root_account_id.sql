@@ -10,7 +10,8 @@ BEGIN
         parent_account_id
         INTO _parent_account_id
     FROM finance.accounts
-    WHERE account_id=$1;
+    WHERE finance.accounts.account_id=$1
+	AND NOT finance.accounts.deleted;
 
     
 

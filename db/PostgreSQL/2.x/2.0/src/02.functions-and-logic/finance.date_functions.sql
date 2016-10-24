@@ -20,7 +20,8 @@ $$
 BEGIN
     RETURN MIN(value_date) 
     FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date($1);
+    WHERE value_date >= finance.get_value_date($1)
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -42,12 +43,15 @@ BEGIN
         SELECT MIN(value_date)
         FROM finance.frequency_setups
         WHERE value_date >= finance.get_value_date($1)
-    );
+		AND NOT finance.frequency_setups.deleted
+    )
+	AND NOT finance.frequency_setups.deleted;
 
     IF(_date IS NULL) THEN
         SELECT starts_from 
         INTO _date
-        FROM finance.fiscal_year;
+        FROM finance.fiscal_year
+		WHERE NOT finance.fiscal_year.deleted;
     END IF;
 
     RETURN _date;
@@ -66,7 +70,8 @@ BEGIN
     RETURN MIN(value_date) 
     FROM finance.frequency_setups
     WHERE value_date >= finance.get_value_date($1)
-    AND frequency_id > 2;
+    AND frequency_id > 2
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -89,13 +94,16 @@ BEGIN
         SELECT MIN(value_date)
         FROM finance.frequency_setups
         WHERE value_date >= finance.get_value_date($1)
+		AND NOT finance.frequency_setups.deleted
     )
-    AND frequency_id > 2;
+    AND frequency_id > 2
+	AND NOT finance.frequency_setups.deleted;
 
     IF(_date IS NULL) THEN
         SELECT starts_from 
         INTO _date
-        FROM finance.fiscal_year;
+        FROM finance.fiscal_year
+		WHERE NOT finance.fiscal_year.deleted;
     END IF;
 
     RETURN _date;
@@ -114,7 +122,8 @@ BEGIN
     RETURN MIN(value_date) 
     FROM finance.frequency_setups
     WHERE value_date >= finance.get_value_date($1)
-    AND frequency_id > 3;
+    AND frequency_id > 3
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -137,13 +146,16 @@ BEGIN
         SELECT MIN(value_date)
         FROM finance.frequency_setups
         WHERE value_date >= finance.get_value_date($1)
+		AND NOT finance.frequency_setups.deleted
     )
-    AND frequency_id > 3;
+    AND frequency_id > 3
+	AND NOT finance.frequency_setups.deleted;
 
     IF(_date IS NULL) THEN
         SELECT starts_from 
         INTO _date
-        FROM finance.fiscal_year;
+        FROM finance.fiscal_year
+		WHERE NOT finance.fiscal_year.deleted;
     END IF;
 
     RETURN _date;
@@ -162,7 +174,8 @@ BEGIN
     RETURN MIN(value_date) 
     FROM finance.frequency_setups
     WHERE value_date >= finance.get_value_date($1)
-    AND frequency_id > 4;
+    AND frequency_id > 4
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -179,7 +192,8 @@ BEGIN
 
     SELECT starts_from 
     INTO _date
-    FROM finance.fiscal_year;
+    FROM finance.fiscal_year
+	WHERE NOT finance.fiscal_year.deleted;
 
     RETURN _date;
 END

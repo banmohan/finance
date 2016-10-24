@@ -8,7 +8,8 @@ $$
 BEGIN
     RETURN frequency_setup_code
     FROM finance.frequency_setups
-    WHERE frequency_setup_id = $1;
+    WHERE finance.frequency_setups.frequency_setup_id = $1
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;

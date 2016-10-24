@@ -8,17 +8,20 @@ BEGIN
     SELECT MAX(value_date) + 1 
     INTO _start_date
     FROM finance.frequency_setups
-    WHERE value_date < 
+    WHERE finance.frequency_setups.value_date < 
     (
         SELECT value_date
         FROM finance.frequency_setups
-        WHERE frequency_setup_id = $1
-    );
+        WHERE finance.frequency_setups.frequency_setup_id = $1
+		AND NOT finance.frequency_setups.deleted
+    )
+	AND NOT finance.frequency_setups.deleted;
 
     IF(_start_date IS NULL) THEN
         SELECT starts_from 
         INTO _start_date
-        FROM finance.fiscal_year;
+        FROM finance.fiscal_year
+		WHERE NOT finance.fiscal_year.deleted;
     END IF;
 
     RETURN _start_date;

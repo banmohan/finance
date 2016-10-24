@@ -10,11 +10,11 @@ SELECT
     finance.journal_verification_policy.office_id,
     core.get_office_name_by_office_id(finance.journal_verification_policy.office_id),
     finance.journal_verification_policy.can_verify,
-    finance.journal_verification_policy.verification_limit,
     finance.journal_verification_policy.can_self_verify,
-    finance.journal_verification_policy.self_verification_limit,
     finance.journal_verification_policy.effective_from,
     finance.journal_verification_policy.ends_on,
     finance.journal_verification_policy.is_active
 FROM finance.journal_verification_policy
-WHERE NOT deleted;
+WHERE NOT finance.journal_verification_policy.deleted;
+
+
