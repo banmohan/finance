@@ -24,12 +24,12 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
         {
             if (!ModelState.IsValid)
             {
-                return this.InvalidModelState();
+                return this.InvalidModelState(this.ModelState);
             }
 
             if (exchangeRates == null || exchangeRates.Count().Equals(0))
             {
-                return this.InvalidModelState();
+                return this.InvalidModelState(this.ModelState);
             }
 
            

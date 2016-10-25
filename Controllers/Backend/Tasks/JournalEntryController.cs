@@ -54,7 +54,7 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
         {
             if (!ModelState.IsValid)
             {
-                return this.InvalidModelState();
+                return this.InvalidModelState(this.ModelState);
             }
 
             foreach (var item in model.Details)
