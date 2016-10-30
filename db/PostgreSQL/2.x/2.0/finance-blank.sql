@@ -90,6 +90,8 @@ CREATE TABLE finance.fiscal_year
     fiscal_year_name                        national character varying(50) NOT NULL,
     starts_from                             date NOT NULL,
     ends_on                                 date NOT NULL,
+	eod_required							boolean NOT NULL DEFAULT(true),
+	office_id								integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
@@ -161,6 +163,7 @@ CREATE TABLE finance.frequency_setups
     frequency_setup_code                    national character varying(12) NOT NULL,
     value_date                              date NOT NULL UNIQUE,
     frequency_id                            integer NOT NULL REFERENCES finance.frequencies,
+	office_id								integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
@@ -370,26 +373,6 @@ CREATE TABLE finance.transaction_details
 );
 
 
-CREATE TABLE finance.day_operation
-(
-    day_id                                  BIGSERIAL PRIMARY KEY,
-    office_id                               integer NOT NULL REFERENCES core.offices,
-    value_date                              date NOT NULL,
-    started_on                              TIMESTAMP WITH TIME ZONE NOT NULL,
-    started_by                              integer NOT NULL REFERENCES account.users,    
-    completed_on                            TIMESTAMP WITH TIME ZONE NULL,
-    completed_by                            integer NULL REFERENCES account.users,
-    completed                               boolean NOT NULL 
-                                            CONSTRAINT day_operation_completed_df DEFAULT(false)
-                                            CONSTRAINT day_operation_completed_chk 
-                                            CHECK
-                                            (
-                                                (completed OR completed_on IS NOT NULL)
-                                                OR
-                                                (NOT completed OR completed_on IS NULL)
-                                            )
-);
-
 CREATE TABLE finance.card_types
 (
 	card_type_id                    		integer PRIMARY KEY,
@@ -526,6 +509,62 @@ ON finance.tax_setups(office_id)
 WHERE NOT finance.tax_setups.deleted;
 
 
+CREATE TABLE finance.routines
+(
+    routine_id                              SERIAL NOT NULL PRIMARY KEY,
+    "order"                                 integer NOT NULL,
+    routine_code                            national character varying(12) NOT NULL,
+    routine_name                            regproc NOT NULL UNIQUE,
+    status                                  boolean NOT NULL CONSTRAINT routines_status_df DEFAULT(true)
+);
+
+CREATE UNIQUE INDEX routines_routine_code_uix
+ON finance.routines(LOWER(routine_code));
+
+CREATE TABLE finance.day_operation
+(
+    day_id                                  BIGSERIAL PRIMARY KEY,
+    office_id                               integer NOT NULL REFERENCES core.offices,
+    value_date                              date NOT NULL,
+    started_on                              TIMESTAMP WITH TIME ZONE NOT NULL,
+    started_by                              integer NOT NULL REFERENCES account.users,    
+    completed_on                            TIMESTAMP WITH TIME ZONE NULL,
+    completed_by                            integer NULL REFERENCES account.users,
+    completed                               boolean NOT NULL 
+                                            CONSTRAINT day_operation_completed_df DEFAULT(false)
+                                            CONSTRAINT day_operation_completed_chk 
+                                            CHECK
+                                            (
+                                                (completed OR completed_on IS NOT NULL)
+                                                OR
+                                                (NOT completed OR completed_on IS NULL)
+                                            )
+);
+
+
+CREATE UNIQUE INDEX day_operation_value_date_uix
+ON finance.day_operation(value_date);
+
+CREATE INDEX day_operation_completed_on_inx
+ON finance.day_operation(completed_on);
+
+CREATE TABLE finance.day_operation_routines
+(
+    day_operation_routine_id                BIGSERIAL NOT NULL PRIMARY KEY,
+    day_id                                  bigint NOT NULL REFERENCES finance.day_operation,
+    routine_id                              integer NOT NULL REFERENCES finance.routines,
+    started_on                              TIMESTAMP WITH TIME ZONE NOT NULL,
+    completed_on                            TIMESTAMP WITH TIME ZONE NULL
+);
+
+CREATE INDEX day_operation_routines_started_on_inx
+ON finance.day_operation_routines(started_on);
+
+CREATE INDEX day_operation_routines_completed_on_inx
+ON finance.day_operation_routines(completed_on);
+
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.auto_verify.sql --<--<--
 DROP FUNCTION IF EXISTS finance.auto_verify
 (
@@ -570,7 +609,8 @@ BEGIN
         _voucher_date,
         _transaction_posted_by  
     FROM finance.transaction_master
-    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id;
+    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id
+	AND NOT finance.transaction_master.deleted;
     
     SELECT
         SUM(amount_in_local_currency)
@@ -589,11 +629,12 @@ BEGIN
         _has_policy,
         _verification_limit
     FROM finance.auto_verification_policy
-    WHERE user_id=_transaction_posted_by
-    AND office_id = _office_id
-    AND is_active=true
+    WHERE finance.auto_verification_policy.user_id=_transaction_posted_by
+    AND finance.auto_verification_policy.office_id = _office_id
+    AND finance.auto_verification_policy.is_active=true
     AND now() >= effective_from
-    AND now() <= ends_on;
+    AND now() <= ends_on
+	AND NOT finance.auto_verification_policy.deleted;
 
     IF(_has_policy=true) THEN
         UPDATE finance.transaction_master
@@ -623,6 +664,109 @@ LANGUAGE plpgsql;
 
 --SELECT * FROM finance.auto_verify(1, 1);
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.can_post_transaction.sql --<--<--
+DROP FUNCTION IF EXISTS finance.can_post_transaction(_login_id bigint, _user_id integer, _office_id integer, transaction_book text, _value_date date);
+DROP FUNCTION IF EXISTS finance.can_post_transaction(_login_id bigint, _user_id integer, _office_id integer, transaction_book text, _value_date timestamp);
+
+CREATE FUNCTION finance.can_post_transaction(_login_id bigint, _user_id integer, _office_id integer, transaction_book text, _value_date date)
+RETURNS bool
+AS
+$$
+    DECLARE _eod_required                       boolean := finance.eod_required(_office_id);
+    DECLARE _fiscal_year_start_date             date    := finance.get_fiscal_year_start_date(_office_id);
+    DECLARE _fiscal_year_end_date               date    := finance.get_fiscal_year_end_date(_office_id);
+BEGIN
+    IF(account.is_valid_login_id(_login_id) = false) THEN
+        RAISE EXCEPTION 'Invalid LoginId.'
+        USING ERRCODE='P3101';
+    END IF; 
+
+    IF(core.is_valid_office_id(_office_id) = false) THEN
+        RAISE EXCEPTION 'Invalid OfficeId.'
+        USING ERRCODE='P3010';
+    END IF;
+
+    IF(finance.is_transaction_restricted(_office_id)) THEN
+        RAISE EXCEPTION 'This establishment does not allow transaction posting.'
+        USING ERRCODE='P5100';
+    END IF;
+    
+    IF(_eod_required) THEN
+        IF(finance.is_restricted_mode()) THEN
+            RAISE EXCEPTION 'Cannot post transaction during restricted transaction mode.'
+            USING ERRCODE='P5101';
+        END IF;
+
+        IF(_value_date < finance.get_value_date(_office_id)) THEN
+            RAISE EXCEPTION 'Past dated transactions are not allowed.'
+            USING ERRCODE='P5010';
+        END IF;
+    END IF;
+
+    IF(_value_date < _fiscal_year_start_date) THEN
+        RAISE EXCEPTION 'You cannot post transactions before the current fiscal year start date.'
+        USING ERRCODE='P5010';
+    END IF;
+
+    IF(_value_date > _fiscal_year_end_date) THEN
+        RAISE EXCEPTION 'You cannot post transactions after the current fiscal year end date.'
+        USING ERRCODE='P5010';
+    END IF;
+    
+    IF NOT EXISTS 
+    (
+        SELECT *
+        FROM account.users
+        INNER JOIN account.roles
+        ON account.users.role_id = account.roles.role_id
+        AND user_id = _user_id
+    ) THEN
+        RAISE EXCEPTION 'Access is denied. You are not authorized to post this transaction.'
+        USING ERRCODE='P9010';        
+    END IF;
+
+    RETURN true;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE FUNCTION finance.can_post_transaction(_login_id bigint, _user_id integer, _office_id integer, transaction_book text, _value_date timestamp)
+RETURNS bool
+AS
+$$
+BEGIN
+    RETURN finance.can_post_transaction(_login_id, _user_id, _office_id, transaction_book, _value_date::date);
+END
+$$
+LANGUAGE plpgsql;
+
+--SELECT finance.can_post_transaction(1, 1, 1, 'Sales', '1-1-2020');
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.create_routine.sql --<--<--
+DROP FUNCTION IF EXISTS finance.create_routine(_routine_code national character varying(12), _routine regproc, _order integer);
+
+CREATE FUNCTION finance.create_routine(_routine_code national character varying(12), _routine regproc, _order integer)
+RETURNS void
+AS
+$$
+BEGIN
+    IF NOT EXISTS(SELECT * FROM finance.routines WHERE routine_code=_routine_code) THEN
+        INSERT INTO finance.routines(routine_code, routine_name, "order")
+        SELECT $1, $2, $3;
+        RETURN;
+    END IF;
+
+    UPDATE finance.routines
+    SET
+        routine_name = _routine,
+        "order" = _order
+    WHERE routine_code=_routine_code;
+    RETURN;
+END
+$$
+LANGUAGE plpgsql;
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.date_functions.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_date(_office_id integer);
 
@@ -646,7 +790,8 @@ $$
 BEGIN
     RETURN MIN(value_date) 
     FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date($1);
+    WHERE value_date >= finance.get_value_date($1)
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -668,12 +813,15 @@ BEGIN
         SELECT MIN(value_date)
         FROM finance.frequency_setups
         WHERE value_date >= finance.get_value_date($1)
-    );
+		AND NOT finance.frequency_setups.deleted
+    )
+	AND NOT finance.frequency_setups.deleted;
 
     IF(_date IS NULL) THEN
         SELECT starts_from 
         INTO _date
-        FROM finance.fiscal_year;
+        FROM finance.fiscal_year
+		WHERE NOT finance.fiscal_year.deleted;
     END IF;
 
     RETURN _date;
@@ -692,7 +840,8 @@ BEGIN
     RETURN MIN(value_date) 
     FROM finance.frequency_setups
     WHERE value_date >= finance.get_value_date($1)
-    AND frequency_id > 2;
+    AND frequency_id > 2
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -715,13 +864,16 @@ BEGIN
         SELECT MIN(value_date)
         FROM finance.frequency_setups
         WHERE value_date >= finance.get_value_date($1)
+		AND NOT finance.frequency_setups.deleted
     )
-    AND frequency_id > 2;
+    AND frequency_id > 2
+	AND NOT finance.frequency_setups.deleted;
 
     IF(_date IS NULL) THEN
         SELECT starts_from 
         INTO _date
-        FROM finance.fiscal_year;
+        FROM finance.fiscal_year
+		WHERE NOT finance.fiscal_year.deleted;
     END IF;
 
     RETURN _date;
@@ -740,7 +892,8 @@ BEGIN
     RETURN MIN(value_date) 
     FROM finance.frequency_setups
     WHERE value_date >= finance.get_value_date($1)
-    AND frequency_id > 3;
+    AND frequency_id > 3
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -763,13 +916,16 @@ BEGIN
         SELECT MIN(value_date)
         FROM finance.frequency_setups
         WHERE value_date >= finance.get_value_date($1)
+		AND NOT finance.frequency_setups.deleted
     )
-    AND frequency_id > 3;
+    AND frequency_id > 3
+	AND NOT finance.frequency_setups.deleted;
 
     IF(_date IS NULL) THEN
         SELECT starts_from 
         INTO _date
-        FROM finance.fiscal_year;
+        FROM finance.fiscal_year
+		WHERE NOT finance.fiscal_year.deleted;
     END IF;
 
     RETURN _date;
@@ -788,7 +944,8 @@ BEGIN
     RETURN MIN(value_date) 
     FROM finance.frequency_setups
     WHERE value_date >= finance.get_value_date($1)
-    AND frequency_id > 4;
+    AND frequency_id > 4
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -805,13 +962,31 @@ BEGIN
 
     SELECT starts_from 
     INTO _date
-    FROM finance.fiscal_year;
+    FROM finance.fiscal_year
+	WHERE NOT finance.fiscal_year.deleted;
 
     RETURN _date;
 END
 $$
 LANGUAGE plpgsql;
 
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.eod_required.sql --<--<--
+DROP FUNCTION IF EXISTS finance.eod_required(_office_id integer);
+
+CREATE FUNCTION finance.eod_required(_office_id integer)
+RETURNS boolean
+AS
+$$
+BEGIN
+    RETURN finance.fiscal_year.eod_required
+    FROM finance.fiscal_year
+    WHERE finance.fiscal_year.office_id = _office_id;
+END
+$$
+LANGUAGE plpgsql;
+
+--SELECT finance.eod_required(1);
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_id_by_account_name.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_account_id_by_account_name(text);
@@ -825,7 +1000,8 @@ BEGIN
     RETURN
 		account_id
     FROM finance.accounts
-    WHERE account_name=$1;
+    WHERE finance.accounts.account_name=$1
+	AND NOT finance.accounts.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -843,7 +1019,8 @@ BEGIN
     RETURN
 		account_id
     FROM finance.accounts
-    WHERE account_number=$1;
+    WHERE finance.accounts.account_number=$1
+	AND NOT finance.accounts.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -863,7 +1040,9 @@ BEGIN
         WITH RECURSIVE account_cte(account_id, path) AS (
          SELECT
             tn.account_id,  tn.account_id::TEXT AS path
-            FROM finance.accounts AS tn WHERE tn.account_id =$1
+            FROM finance.accounts AS tn 
+			WHERE tn.account_id =$1
+			AND NOT tn.deleted
         UNION ALL
          SELECT
             c.account_id, (p.path || '->' || c.account_id::TEXT)
@@ -888,7 +1067,8 @@ $$
 BEGIN
     RETURN finance.accounts.account_master_id
     FROM finance.accounts
-    WHERE finance.accounts.account_id= $1;
+    WHERE finance.accounts.account_id= $1
+	AND NOT finance.accounts.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -911,7 +1091,8 @@ $$
 BEGIN
     RETURN finance.account_masters.account_master_id
     FROM finance.account_masters
-    WHERE finance.account_masters.account_master_code = $1;
+    WHERE finance.account_masters.account_master_code = $1
+	AND NOT finance.account_masters.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -929,7 +1110,8 @@ $$
 BEGIN
     RETURN account_name
     FROM finance.accounts
-    WHERE account_id=$1;
+    WHERE finance.accounts.account_id=$1
+	AND NOT finance.accounts.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -1393,7 +1575,8 @@ BEGIN
     FROM
         finance.cash_flow_headings
     WHERE
-        cash_flow_heading_code = $1;
+        finance.cash_flow_headings.cash_flow_heading_code = $1
+	AND NOT finance.cash_flow_headings.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -1454,6 +1637,7 @@ LANGUAGE plpgsql;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_repository_id_by_cash_repository_code.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_cash_repository_id_by_cash_repository_code(text);
 CREATE FUNCTION finance.get_cash_repository_id_by_cash_repository_code(text)
 RETURNS integer
 AS
@@ -1463,7 +1647,8 @@ BEGIN
     (
         SELECT cash_repository_id
         FROM finance.cash_repositories
-        WHERE cash_repository_code=$1
+        WHERE finance.cash_repositories.cash_repository_code=$1
+		AND NOT finance.cash_repositories.deleted
     );
 END
 $$
@@ -1471,6 +1656,7 @@ LANGUAGE plpgsql;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_repository_id_by_cash_repository_name.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_cash_repository_id_by_cash_repository_name(text);
 CREATE FUNCTION finance.get_cash_repository_id_by_cash_repository_name(text)
 RETURNS integer
 AS
@@ -1480,7 +1666,8 @@ BEGIN
     (
         SELECT cash_repository_id
         FROM finance.cash_repositories
-        WHERE cash_repository_name=$1
+        WHERE finance.cash_repositories.cash_repository_name=$1
+		AND NOT finance.cash_repositories.deleted
     );
 END
 $$
@@ -1498,7 +1685,8 @@ $$
 BEGIN
     RETURN cost_center_id
     FROM finance.cost_centers
-    WHERE cost_center_code=$1;
+    WHERE finance.cost_centers.cost_center_code=$1
+	AND NOT finance.cost_centers.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -1517,7 +1705,8 @@ BEGIN
         FROM finance.cash_repositories
         INNER JOIN core.offices
         ON core.offices.office_id = finance.cash_repositories.office_id
-        WHERE finance.cash_repositories.cash_repository_id=$1        
+        WHERE finance.cash_repositories.cash_repository_id=$1
+		AND NOT finance.cash_repositories.deleted	
     );
 END
 $$
@@ -1536,7 +1725,8 @@ BEGIN
     (
         SELECT core.offices.currency_code 
         FROM core.offices
-        WHERE core.offices.office_id = $1        
+        WHERE core.offices.office_id = $1
+		AND NOT core.offices.deleted	
     );
 END
 $$
@@ -1557,7 +1747,8 @@ BEGIN
     SELECT core.offices.currency_code
     INTO _local_currency_code
     FROM core.offices
-    WHERE core.offices.office_id=$1;
+    WHERE core.offices.office_id=$1
+	AND NOT core.offices.deleted;
 
     IF(_local_currency_code = $2) THEN
         RETURN 1;
@@ -1607,6 +1798,65 @@ LANGUAGE plpgsql;
 --SELECT * FROM  finance.get_exchange_rate(1, 'USD')
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequencies.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_frequencies(_frequency_id integer);
+
+CREATE FUNCTION  finance.get_frequencies(_frequency_id integer)
+RETURNS integer[]
+IMMUTABLE
+AS
+$$
+    DECLARE _frequencies integer[];
+BEGIN
+    IF(_frequency_id = 2) THEN--End of month
+        --End of month
+        --End of quarter is also end of third/ninth month
+        --End of half is also end of sixth month
+        --End of year is also end of twelfth month
+        _frequencies = ARRAY[2, 3, 4, 5];
+    ELSIF(_frequency_id = 3) THEN--End of quarter
+        --End of quarter
+        --End of half is the second end of quarter
+        --End of year is the fourth/last end of quarter
+        _frequencies = ARRAY[3, 4, 5];
+    ELSIF(_frequency_id = 4) THEN--End of half
+        --End of half
+        --End of year is the second end of half
+        _frequencies = ARRAY[4, 5];
+    ELSIF(_frequency_id = 5) THEN--End of year
+        --End of year
+        _frequencies = ARRAY[5];
+    END IF;
+
+    RETURN _frequencies;
+END
+$$
+LANGUAGE plpgsql;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_end_date.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_frequency_end_date(_frequency_id integer, _value_date date);
+
+CREATE FUNCTION finance.get_frequency_end_date(_frequency_id integer, _value_date date)
+RETURNS date
+STABLE
+AS
+$$
+    DECLARE _end_date date;
+BEGIN
+    SELECT MIN(value_date)
+    INTO _end_date
+    FROM finance.frequency_setups
+    WHERE value_date > $2
+    AND frequency_id = ANY( finance.get_frequencies($1));
+
+    RETURN _end_date;
+END
+$$
+LANGUAGE plpgsql;
+
+--SELECT * FROM finance.get_frequency_end_date(1, '1-1-2000');
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_setup_code_by_frequency_setup_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_frequency_setup_code_by_frequency_setup_id(_frequency_setup_id integer);
 
@@ -1618,7 +1868,8 @@ $$
 BEGIN
     RETURN frequency_setup_code
     FROM finance.frequency_setups
-    WHERE frequency_setup_id = $1;
+    WHERE finance.frequency_setups.frequency_setup_id = $1
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -1636,7 +1887,8 @@ BEGIN
     FROM
         finance.frequency_setups
     WHERE
-        frequency_setup_id = $1;
+        finance.frequency_setups.frequency_setup_id = $1
+	AND NOT finance.frequency_setups.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -1653,17 +1905,20 @@ BEGIN
     SELECT MAX(value_date) + 1 
     INTO _start_date
     FROM finance.frequency_setups
-    WHERE value_date < 
+    WHERE finance.frequency_setups.value_date < 
     (
         SELECT value_date
         FROM finance.frequency_setups
-        WHERE frequency_setup_id = $1
-    );
+        WHERE finance.frequency_setups.frequency_setup_id = $1
+		AND NOT finance.frequency_setups.deleted
+    )
+	AND NOT finance.frequency_setups.deleted;
 
     IF(_start_date IS NULL) THEN
         SELECT starts_from 
         INTO _start_date
-        FROM finance.fiscal_year;
+        FROM finance.fiscal_year
+		WHERE NOT finance.fiscal_year.deleted;
     END IF;
 
     RETURN _start_date;
@@ -1682,17 +1937,20 @@ BEGIN
     SELECT MAX(value_date) + 1 
     INTO _start_date
     FROM finance.frequency_setups
-    WHERE value_date < 
+    WHERE finance.frequency_setups.value_date < 
     (
         SELECT value_date
         FROM finance.frequency_setups
-        WHERE frequency_setup_id = $1
-    );
+        WHERE finance.frequency_setups.frequency_setup_id = $1
+		AND NOT finance.frequency_setups.deleted
+    )
+	AND NOT finance.frequency_setups.deleted;
 
     IF(_start_date IS NULL) THEN
         SELECT starts_from 
         INTO _start_date
-        FROM finance.fiscal_year;
+        FROM finance.fiscal_year
+		WHERE NOT finance.fiscal_year.deleted;
     END IF;
 
     RETURN _start_date;
@@ -1827,16 +2085,17 @@ BEGIN
     AND finance.transaction_master.value_date BETWEEN _from AND _to
     AND office_id IN (SELECT office_id FROM office_cte)
     AND (_tran_id = 0 OR _tran_id  = finance.transaction_master.transaction_master_id)
-    AND lower(finance.transaction_master.transaction_code) LIKE '%' || lower(_tran_code) || '%' 
-    AND lower(finance.transaction_master.book) LIKE '%' || lower(_book) || '%' 
-    AND COALESCE(lower(finance.transaction_master.reference_number), '') LIKE '%' || lower(_reference_number) || '%' 
-    AND COALESCE(lower(finance.transaction_master.statement_reference), '') LIKE '%' || lower(_statement_reference) || '%' 
-    AND COALESCE(lower(finance.transaction_master.verification_reason), '') LIKE '%' || lower(_reason) || '%' 
-    AND lower(account.get_name_by_user_id(finance.transaction_master.user_id)) LIKE '%' || lower(_posted_by) || '%' 
-    AND lower(core.get_office_name_by_office_id(finance.transaction_master.office_id)) LIKE '%' || lower(_office) || '%' 
-    AND COALESCE(lower(finance.get_verification_status_name_by_verification_status_id(finance.transaction_master.verification_status_id)), '') LIKE '%' || lower(_status) || '%' 
-    AND COALESCE(lower(account.get_name_by_user_id(finance.transaction_master.verified_by_user_id)), '') LIKE '%' || lower(_verified_by) || '%'    
-    ORDER BY value_date ASC, verification_status_id DESC;
+    AND LOWER(finance.transaction_master.transaction_code) LIKE '%' || LOWER(_tran_code) || '%' 
+    AND LOWER(finance.transaction_master.book) LIKE '%' || LOWER(_book) || '%' 
+    AND COALESCE(LOWER(finance.transaction_master.reference_number), '') LIKE '%' || LOWER(_reference_number) || '%' 
+    AND COALESCE(LOWER(finance.transaction_master.statement_reference), '') LIKE '%' || LOWER(_statement_reference) || '%' 
+    AND COALESCE(LOWER(finance.transaction_master.verification_reason), '') LIKE '%' || LOWER(_reason) || '%' 
+    AND LOWER(account.get_name_by_user_id(finance.transaction_master.user_id)) LIKE '%' || LOWER(_posted_by) || '%' 
+    AND LOWER(core.get_office_name_by_office_id(finance.transaction_master.office_id)) LIKE '%' || LOWER(_office) || '%' 
+    AND COALESCE(LOWER(finance.get_verification_status_name_by_verification_status_id(finance.transaction_master.verification_status_id)), '') LIKE '%' || LOWER(_status) || '%' 
+    AND COALESCE(LOWER(account.get_name_by_user_id(finance.transaction_master.verified_by_user_id)), '') LIKE '%' || LOWER(_verified_by) || '%'    
+    AND NOT finance.transaction_master.deleted
+	ORDER BY value_date ASC, verification_status_id DESC;
 END
 $$
 LANGUAGE plpgsql;
@@ -1924,7 +2183,8 @@ BEGIN
     SELECT INTO _ret_val
         COALESCE(MAX(transaction_counter),0)
     FROM finance.transaction_master
-    WHERE value_date=$1;
+    WHERE finance.transaction_master.value_date=$1
+	AND NOT finance.transaction_master.deleted;
 
     IF _ret_val IS NULL THEN
         RETURN 1::integer;
@@ -1946,7 +2206,8 @@ $$
 BEGIN
         RETURN office_id
         FROM finance.cash_repositories
-        WHERE cash_repository_id=$1;
+        WHERE finance.cash_repositories.cash_repository_id=$1
+		AND NOT finance.cash_repositories.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -1979,7 +2240,8 @@ BEGIN
     INSERT INTO frequency_setups_temp
     SELECT frequency_setup_id, value_date
     FROM finance.frequency_setups
-    WHERE value_date BETWEEN _date_from AND _date_to
+    WHERE finance.frequency_setups.value_date BETWEEN _date_from AND _date_to
+	AND NOT finance.frequency_setups.deleted
     ORDER BY value_date;
 
     RETURN
@@ -2213,7 +2475,8 @@ BEGIN
         parent_account_id
         INTO _parent_account_id
     FROM finance.accounts
-    WHERE account_id=$1;
+    WHERE finance.accounts.account_id=$1
+	AND NOT finance.accounts.deleted;
 
     
 
@@ -2507,14 +2770,14 @@ LANGUAGE plpgsql;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_value_date.sql --<--<--
-DROP FUNCTION IF EXISTS finance.get_value_date(_office_id integer);
+--DROP FUNCTION IF EXISTS finance.get_value_date(_office_id integer);
 
-CREATE FUNCTION finance.get_value_date(_office_id integer)
+CREATE OR REPLACE FUNCTION finance.get_value_date(_office_id integer)
 RETURNS date
 AS
 $$
     DECLARE this            RECORD;
-    DECLARE _value_date     date=NOW();
+    DECLARE _value_date     date;
 BEGIN
     SELECT * FROM finance.day_operation
     WHERE office_id = _office_id
@@ -2532,11 +2795,198 @@ BEGIN
             _value_date  := this.value_date;    
         END IF;
     END IF;
+
+    IF(_value_date IS NULL) THEN
+        _value_date := NOW() AT time zone config.get_server_timezone();
+    END IF;
     
     RETURN _value_date;
 END
 $$
 LANGUAGE plpgsql;
+
+--DROP FUNCTION IF EXISTS finance.get_month_end_date(_office_id integer);
+
+CREATE OR REPLACE FUNCTION finance.get_month_end_date(_office_id integer)
+RETURNS date
+AS
+$$
+BEGIN
+    RETURN MIN(value_date) 
+    FROM finance.frequency_setups
+    WHERE value_date >= finance.get_value_date(_office_id)
+    AND finance.frequency_setups.office_id = _office_id;
+END
+$$
+LANGUAGE plpgsql;
+
+--DROP FUNCTION IF EXISTS finance.get_month_start_date(_office_id integer);
+
+CREATE OR REPLACE FUNCTION finance.get_month_start_date(_office_id integer)
+RETURNS date
+AS
+$$
+    DECLARE _date               date;
+BEGIN
+    SELECT MAX(value_date) + 1
+    INTO _date
+    FROM finance.frequency_setups
+    WHERE value_date < 
+    (
+        SELECT MIN(value_date)
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(_office_id)
+        AND finance.frequency_setups.office_id = _office_id
+    );
+
+    IF(_date IS NULL) THEN
+        SELECT starts_from 
+        INTO _date
+        FROM finance.fiscal_year
+        WHERE finance.fiscal_year.office_id = _office_id;
+    END IF;
+
+    RETURN _date;
+END
+$$
+LANGUAGE plpgsql;
+
+--DROP FUNCTION IF EXISTS finance.get_quarter_end_date(_office_id integer);
+
+CREATE OR REPLACE FUNCTION finance.get_quarter_end_date(_office_id integer)
+RETURNS date
+AS
+$$
+BEGIN
+    RETURN MIN(value_date) 
+    FROM finance.frequency_setups
+    WHERE value_date >= finance.get_value_date(_office_id)
+    AND frequency_id > 2
+    AND finance.frequency_setups.office_id = _office_id;
+END
+$$
+LANGUAGE plpgsql;
+
+
+
+--DROP FUNCTION IF EXISTS finance.get_quarter_start_date(_office_id integer);
+
+CREATE OR REPLACE FUNCTION finance.get_quarter_start_date(_office_id integer)
+RETURNS date
+AS
+$$
+    DECLARE _date               date;
+BEGIN
+    SELECT MAX(value_date) + 1
+    INTO _date
+    FROM finance.frequency_setups
+    WHERE value_date < 
+    (
+        SELECT MIN(value_date)
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(_office_id)
+        AND finance.frequency_setups.office_id = _office_id
+    )
+    AND frequency_id > 2;
+
+    IF(_date IS NULL) THEN
+        SELECT starts_from INTO _date
+        FROM finance.fiscal_year
+        WHERE finance.fiscal_year.office_id = _office_id;
+    END IF;
+
+    RETURN _date;
+END
+$$
+LANGUAGE plpgsql;
+
+--DROP FUNCTION IF EXISTS finance.get_fiscal_half_end_date(_office_id integer);
+
+CREATE OR REPLACE FUNCTION finance.get_fiscal_half_end_date(_office_id integer)
+RETURNS date
+AS
+$$
+BEGIN
+    RETURN MIN(value_date) 
+    FROM finance.frequency_setups
+    WHERE value_date >= finance.get_value_date(_office_id)
+    AND frequency_id > 3
+    AND finance.frequency_setups.office_id = _office_id;
+END
+$$
+LANGUAGE plpgsql;
+
+
+
+--DROP FUNCTION IF EXISTS finance.get_fiscal_half_start_date(_office_id integer);
+
+CREATE OR REPLACE FUNCTION finance.get_fiscal_half_start_date(_office_id integer)
+RETURNS date
+AS
+$$
+    DECLARE _date               date;
+BEGIN
+    SELECT MAX(value_date) + 1 INTO _date
+    FROM finance.frequency_setups
+    WHERE value_date < 
+    (
+        SELECT MIN(value_date)
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(_office_id)
+        AND finance.frequency_setups.office_id = _office_id
+    )
+    AND frequency_id > 3;
+
+    IF(_date IS NULL) THEN
+        SELECT starts_from INTO _date
+        FROM finance.fiscal_year
+        WHERE finance.fiscal_year.office_id = _office_id;
+    END IF;
+
+    RETURN _date;
+END
+$$
+LANGUAGE plpgsql;
+
+
+--DROP FUNCTION IF EXISTS finance.get_fiscal_year_end_date(_office_id integer);
+
+CREATE OR REPLACE FUNCTION finance.get_fiscal_year_end_date(_office_id integer)
+RETURNS date
+AS
+$$
+BEGIN
+    RETURN MIN(value_date) 
+    FROM finance.frequency_setups
+    WHERE value_date >= finance.get_value_date($1)
+    AND frequency_id > 4
+    AND finance.frequency_setups.office_id = _office_id;
+END
+$$
+LANGUAGE plpgsql;
+
+
+
+--DROP FUNCTION IF EXISTS finance.get_fiscal_year_start_date(_office_id integer);
+
+CREATE OR REPLACE FUNCTION finance.get_fiscal_year_start_date(_office_id integer)
+RETURNS date
+AS
+$$
+    DECLARE _date               date;
+BEGIN
+
+    SELECT starts_from INTO _date
+    FROM finance.fiscal_year
+    WHERE finance.fiscal_year.office_id = _office_id;
+
+    RETURN _date;
+END
+$$
+LANGUAGE plpgsql;
+
+
+--SELECT 1 AS office_id, finance.get_value_date(1::integer) AS today, finance.get_month_start_date(1::integer) AS month_start_date,finance.get_month_end_date(1::integer) AS month_end_date, finance.get_quarter_start_date(1::integer) AS quarter_start_date, finance.get_quarter_end_date(1::integer) AS quarter_end_date, finance.get_fiscal_half_start_date(1::integer) AS fiscal_half_start_date, finance.get_fiscal_half_end_date(1::integer) AS fiscal_half_end_date, finance.get_fiscal_year_start_date(1::integer) AS fiscal_year_start_date, finance.get_fiscal_year_end_date(1::integer) AS fiscal_year_end_date;
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_verification_status_name_by_verification_status_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_verification_status_name_by_verification_status_id(_verification_status_id integer);
@@ -2549,7 +2999,8 @@ BEGIN
     RETURN
         verification_status_name
     FROM finance.verification_statuses
-    WHERE verification_status_id = _verification_status_id;
+    WHERE finance.verification_statuses.verification_status_id = _verification_status_id
+	AND NOT finance.verification_statuses.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -2571,6 +3022,54 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.initialize_eod_operation.sql --<--<--
+DROP FUNCTION IF EXISTS finance.initialize_eod_operation(_user_id integer, _office_id integer, _value_date date);
+
+CREATE FUNCTION finance.initialize_eod_operation(_user_id integer, _office_id integer, _value_date date)
+RETURNS void
+AS
+$$
+    DECLARE this            RECORD;    
+BEGIN
+    IF(_value_date IS NULL) THEN
+        RAISE EXCEPTION 'Invalid date.'
+        USING ERRCODE='P3008';        
+    END IF;
+
+    IF(NOT account.is_admin(_user_id)) THEN
+        RAISE EXCEPTION 'Access is denied.'
+        USING ERRCODE='P9010';
+    END IF;
+
+    IF(_value_date != finance.get_value_date(_office_id)) THEN
+        RAISE EXCEPTION 'Invalid value date.'
+        USING ERRCODE='P3007';
+    END IF;
+
+    SELECT * FROM finance.day_operation
+    WHERE value_date=_value_date 
+    AND office_id = _office_id INTO this;
+
+    IF(this IS NULL) THEN
+        INSERT INTO finance.day_operation(office_id, value_date, started_on, started_by)
+        SELECT _office_id, _value_date, NOW(), _user_id;
+    ELSE    
+        RAISE EXCEPTION 'EOD operation was already initialized.'
+        USING ERRCODE='P8101';
+    END IF;
+
+    RETURN;
+END
+$$
+LANGUAGE plpgsql;
+
+
+--SELECT finance.initialize_eod_operation(1, 1, finance.get_value_date(1));
+--delete from finance.day_operation
+
+--select * from finance.day_operation
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_cash_account_id.sql --<--<--
@@ -2597,6 +3096,57 @@ LANGUAGE plpgsql;
 
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_eod_initialized.sql --<--<--
+DROP FUNCTION IF EXISTS finance.is_eod_initialized(_office_id integer, _value_date date);
+
+CREATE FUNCTION finance.is_eod_initialized(_office_id integer, _value_date date)
+RETURNS boolean
+AS
+$$
+BEGIN
+    IF EXISTS
+    (
+        SELECT * FROM finance.day_operation
+        WHERE office_id = _office_id
+        AND value_date = _value_date
+        AND completed = false
+    ) then
+        RETURN true;
+    END IF;
+
+    RETURN false;
+END
+$$
+LANGUAGE plpgsql;
+
+
+--SELECT * FROM finance.is_eod_initialized(1, '1-1-2000');
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_new_day_started.sql --<--<--
+DROP FUNCTION IF EXISTS finance.is_new_day_started(_office_id integer);
+
+CREATE FUNCTION finance.is_new_day_started(_office_id integer)
+RETURNS boolean
+AS
+$$
+BEGIN
+    IF EXISTS
+    (
+        SELECT 0 FROM finance.day_operation
+        WHERE finance.day_operation.office_id = _office_id
+        AND finance.day_operation.completed = false
+        LIMIT 1
+    ) THEN
+        RETURN true;
+    END IF;
+
+    RETURN false;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_normally_debit.sql --<--<--
 DROP FUNCTION IF EXISTS finance.is_normally_debit(_account_id bigint);
 
@@ -2610,7 +3160,8 @@ BEGIN
     FROM  finance.accounts
     INNER JOIN finance.account_masters
     ON finance.accounts.account_master_id = finance.account_masters.account_master_id
-    WHERE account_id = $1;
+    WHERE finance.accounts.account_id = $1
+	AND NOT finance.accounts.deleted;
 END
 $$
 LANGUAGE plpgsql;
@@ -2629,6 +3180,200 @@ END
 $$
 LANGUAGE plpgsql;
 
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_restricted_mode.sql --<--<--
+DROP FUNCTION IF EXISTS finance.is_restricted_mode();
+
+CREATE FUNCTION finance.is_restricted_mode()
+RETURNS boolean
+AS
+$$
+BEGIN
+    IF EXISTS
+    (
+        SELECT 0 FROM finance.day_operation
+        WHERE completed = false
+        LIMIT 1
+    ) THEN
+        RETURN true;
+    END IF;
+
+    RETURN false;
+END;
+$$
+LANGUAGE plpgsql;
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_transaction_restricted.sql --<--<--
+DROP FUNCTION IF EXISTS finance.is_transaction_restricted
+(
+    _office_id      integer
+);
+
+CREATE FUNCTION finance.is_transaction_restricted
+(
+    _office_id      integer
+)
+RETURNS boolean
+STABLE
+AS
+$$
+BEGIN
+    RETURN NOT allow_transaction_posting
+    FROM core.offices
+    WHERE office_id=$1;
+END
+$$
+LANGUAGE plpgsql;
+
+
+--SELECT * FROM finance.is_transaction_restricted(1);
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.perform_eod_operation.sql --<--<--
+DROP FUNCTION IF EXISTS finance.perform_eod_operation(_user_id integer, _login_id bigint, _office_id integer, _value_date date);
+
+CREATE OR REPLACE FUNCTION finance.perform_eod_operation(_user_id integer, _login_id bigint, _office_id integer, _value_date date)
+RETURNS boolean 
+AS
+$$
+    DECLARE _routine            regproc;
+    DECLARE _routine_id         integer;
+    DECLARE this                RECORD;
+    DECLARE _sql                text;
+    DECLARE _is_error           boolean=false;
+    DECLARE _notice             text;
+    DECLARE _office_code        text;
+BEGIN
+    IF(_value_date IS NULL) THEN
+        RAISE EXCEPTION 'Invalid date.'
+        USING ERRCODE='P3008';
+    END IF;
+
+    IF(NOT account.is_admin(_user_id)) THEN
+        RAISE EXCEPTION 'Access is denied.'
+        USING ERRCODE='P9001';
+    END IF;
+
+    IF(_value_date != finance.get_value_date(_office_id)) THEN
+        RAISE EXCEPTION 'Invalid value date.'
+        USING ERRCODE='P3007';
+    END IF;
+
+    SELECT * FROM finance.day_operation
+    WHERE value_date=_value_date 
+    AND office_id = _office_id INTO this;
+
+    IF(this IS NULL) THEN
+        RAISE EXCEPTION 'Invalid value date.'
+        USING ERRCODE='P3007';
+    ELSE    
+        IF(this.completed OR this.completed_on IS NOT NULL) THEN
+            RAISE EXCEPTION 'End of day operation was already performed.'
+            USING ERRCODE='P5102';
+            _is_error        := true;
+        END IF;
+    END IF;
+
+    IF EXISTS
+    (
+        SELECT * FROM finance.transaction_master
+        WHERE value_date < _value_date
+        AND verification_status_id = 0
+    ) THEN
+        RAISE EXCEPTION 'Past dated transactions in verification queue.'
+        USING ERRCODE='P5103';
+        _is_error        := true;
+    END IF;
+
+    IF EXISTS
+    (
+        SELECT * FROM finance.transaction_master
+        WHERE value_date = _value_date
+        AND verification_status_id = 0
+    ) THEN
+        RAISE EXCEPTION 'Please verify transactions before performing end of day operation.'
+        USING ERRCODE='P5104';
+        _is_error        := true;
+    END IF;
+    
+    IF(NOT _is_error) THEN
+        _office_code        := core.get_office_code_by_office_id(_office_id);
+        _notice             := 'EOD started.'::text;
+        RAISE INFO  '%', _notice;
+
+        FOR this IN
+        SELECT routine_id, routine_name 
+        FROM finance.routines 
+        WHERE status 
+        ORDER BY "order" ASC
+        LOOP
+            _routine_id             := this.routine_id;
+            _routine                := this.routine_name;
+            _sql                    := format('SELECT * FROM %1$s($1, $2, $3, $4);', _routine);
+
+            RAISE NOTICE '%', _sql;
+
+            _notice             := 'Performing ' || _routine::text || '.';
+            RAISE INFO '%', _notice;
+
+            PERFORM pg_sleep(5);
+            EXECUTE _sql USING _user_id, _login_id, _office_id, _value_date;
+
+            _notice             := 'Completed  ' || _routine::text || '.';
+            RAISE INFO '%', _notice;
+            
+            PERFORM pg_sleep(5);            
+        END LOOP;
+
+
+        UPDATE finance.day_operation SET 
+            completed_on = NOW(), 
+            completed_by = _user_id,
+            completed = true
+        WHERE value_date=_value_date
+        AND office_id = _office_id;
+
+        _notice             := 'EOD of ' || _office_code || ' for ' || _value_date::text || ' completed without errors.'::text;
+        RAISE INFO '%', _notice;
+
+        _notice             := 'OK'::text;
+        RAISE INFO '%', _notice;
+
+        RETURN true;
+    END IF;
+
+    RETURN false;    
+END;
+$$
+LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION finance.perform_eod_operation(_login_id bigint)
+RETURNS boolean 
+AS
+$$
+    DECLARE _user_id    integer;
+    DECLARE _office_id integer;
+    DECLARE _value_date date;
+BEGIN
+    SELECT 
+        user_id,
+        office_id,
+        finance.get_value_date(office_id)
+    INTO
+        _user_id,
+        _office_id,
+        _value_date
+    FROM account.logins
+    WHERE login_id=_login_id;
+
+    RETURN finance.perform_eod_operation(_user_id,_login_id, _office_id, _value_date);
+END
+$$
+LANGUAGE plpgsql;
+
+
+--SELECT * FROM finance.perform_eod_operation(1, 1, 1, finance.get_value_date(1));
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--
@@ -2681,7 +3426,8 @@ BEGIN
         _transaction_posted_by  
     FROM
     finance.transaction_master
-    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id;
+    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id
+	AND NOT finance.transaction_master.deleted;
 
 
     IF(_journal_office_id <> _office_id) THEN
@@ -2711,11 +3457,12 @@ BEGIN
         _can_self_verify,
         _self_verification_limit
     FROM finance.journal_verification_policy
-    WHERE user_id=_user_id
-    AND office_id = _office_id
-    AND is_active=true
+    WHERE finance.journal_verification_policy.user_id=_user_id
+    AND finance.journal_verification_policy.office_id = _office_id
+    AND finance.journal_verification_policy.is_active=true
     AND now() >= effective_from
-    AND now() <= ends_on;
+    AND now() <= ends_on
+	AND NOT finance.journal_verification_policy.deleted;
 
     IF(NOT _can_self_verify AND _user_id = _transaction_posted_by) THEN
         _can_verify := false;
@@ -2727,7 +3474,8 @@ BEGIN
             SELECT cascading_tran_id
             INTO _cascading_tran_id
             FROM finance.transaction_master
-            WHERE finance.transaction_master.transaction_master_id=_transaction_master_id;
+            WHERE finance.transaction_master.transaction_master_id=_transaction_master_id
+			AND NOT finance.transaction_master.deleted;
             
             UPDATE finance.transaction_master
             SET 
@@ -2748,7 +3496,8 @@ BEGIN
                 SELECT transaction_master_id
                 INTO _cascading_tran_id
                 FROM finance.transaction_master
-                WHERE finance.transaction_master.cascading_tran_id=_transaction_master_id;
+                WHERE finance.transaction_master.cascading_tran_id=_transaction_master_id
+				AND NOT finance.transaction_master.deleted;
             END IF;
             
             RETURN COALESCE(_cascading_tran_id, 0);
@@ -4068,6 +4817,7 @@ SELECT * FROM core.create_menu('Finance', 'Exchange Rates', '/dashboard/finance/
 SELECT * FROM core.create_menu('Finance', 'Journal Verification', '/dashboard/finance/tasks/journal/verification', 'food', 'Tasks');
 SELECT * FROM core.create_menu('Finance', 'Verification Policy', '/dashboard/finance/tasks/verification-policy', 'keyboard', 'Tasks');
 SELECT * FROM core.create_menu('Finance', 'Auto Verification Policy', '/dashboard/finance/tasks/verification-policy/auto', 'keyboard', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'keyboard', 'Tasks');
 
 SELECT * FROM core.create_menu('Finance', 'Setup', 'square outline', 'configure', '');
 SELECT * FROM core.create_menu('Finance', 'Chart of Account', '/dashboard/finance/setup/chart-of-accounts', 'users', 'Setup');
@@ -4137,12 +4887,11 @@ SELECT
     account.get_name_by_user_id(finance.auto_verification_policy.user_id),
     finance.auto_verification_policy.office_id,
     core.get_office_name_by_office_id(finance.auto_verification_policy.office_id),
-    finance.auto_verification_policy.verification_limit,
     finance.auto_verification_policy.effective_from,
     finance.auto_verification_policy.ends_on,
     finance.auto_verification_policy.is_active
 FROM finance.auto_verification_policy
-WHERE NOT deleted;
+WHERE NOT finance.auto_verification_policy.deleted;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.bank_account_scrud_view.sql --<--<--
@@ -4246,14 +4995,14 @@ SELECT
     finance.journal_verification_policy.office_id,
     core.get_office_name_by_office_id(finance.journal_verification_policy.office_id),
     finance.journal_verification_policy.can_verify,
-    finance.journal_verification_policy.verification_limit,
     finance.journal_verification_policy.can_self_verify,
-    finance.journal_verification_policy.self_verification_limit,
     finance.journal_verification_policy.effective_from,
     finance.journal_verification_policy.ends_on,
     finance.journal_verification_policy.is_active
 FROM finance.journal_verification_policy
-WHERE NOT deleted;
+WHERE NOT finance.journal_verification_policy.deleted;
+
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.merchant_fee_setup_scrud_view.sql --<--<--
@@ -4379,6 +5128,35 @@ SELECT * FROM finance.transaction_view
 WHERE verification_status_id > 0;
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/2.finance.verified_transaction_mat_view.sql --<--<--
+DROP MATERIALIZED VIEW IF EXISTS finance.verified_transaction_mat_view CASCADE;
+
+CREATE MATERIALIZED VIEW finance.verified_transaction_mat_view
+AS
+SELECT * FROM finance.verified_transaction_view;
+
+ALTER MATERIALIZED VIEW finance.verified_transaction_mat_view
+OWNER TO frapid_db_user;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/3. finance.verified_cash_transaction_mat_view.sql --<--<--
+DROP MATERIALIZED VIEW IF EXISTS finance.verified_cash_transaction_mat_view;
+
+CREATE MATERIALIZED VIEW finance.verified_cash_transaction_mat_view
+AS
+SELECT * FROM finance.verified_transaction_mat_view
+WHERE finance.verified_transaction_mat_view.transaction_master_id
+IN
+(
+    SELECT finance.verified_transaction_mat_view.transaction_master_id 
+    FROM finance.verified_transaction_mat_view
+    WHERE account_master_id IN(10101, 10102) --Cash and Bank A/C
+);
+
+ALTER MATERIALIZED VIEW finance.verified_cash_transaction_mat_view
+OWNER TO mix_erp;
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.account_view.sql --<--<--
 DROP VIEW IF EXISTS finance.account_view;
 
@@ -4411,6 +5189,28 @@ LEFT OUTER JOIN finance.accounts AS parent_accounts
 ON finance.accounts.parent_account_id = parent_accounts.account_id
 WHERE NOT finance.account_masters.deleted;
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.frequency_dates.sql --<--<--
+DROP VIEW IF EXISTS finance.frequency_date_view;
+
+CREATE VIEW finance.frequency_date_view
+AS
+SELECT 
+    office_id AS office_id, 
+    finance.get_value_date(office_id) AS today, 
+    finance.is_new_day_started(@0) as new_day_started,
+    finance.get_month_start_date(office_id) AS month_start_date,
+    finance.get_month_end_date(office_id) AS month_end_date, 
+    finance.get_quarter_start_date(office_id) AS quarter_start_date, 
+    finance.get_quarter_end_date(office_id) AS quarter_end_date, 
+    finance.get_fiscal_half_start_date(office_id) AS fiscal_half_start_date, 
+    finance.get_fiscal_half_end_date(office_id) AS fiscal_half_end_date, 
+    finance.get_fiscal_year_start_date(office_id) AS fiscal_year_start_date, 
+    finance.get_fiscal_year_end_date(office_id) AS fiscal_year_end_date 
+FROM core.offices;
+
+
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.trial_balance_view.sql --<--<--
 DROP MATERIALIZED VIEW IF EXISTS finance.trial_balance_view;
 CREATE MATERIALIZED VIEW finance.trial_balance_view
@@ -4422,17 +5222,6 @@ FROM finance.verified_transaction_view
 GROUP BY account_id;
 
 ALTER MATERIALIZED VIEW finance.trial_balance_view
-OWNER TO frapid_db_user;
-
-
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.verified_transaction_mat_view.sql --<--<--
-DROP MATERIALIZED VIEW IF EXISTS finance.verified_transaction_mat_view CASCADE;
-
-CREATE MATERIALIZED VIEW finance.verified_transaction_mat_view
-AS
-SELECT * FROM finance.verified_transaction_view;
-
-ALTER MATERIALIZED VIEW finance.verified_transaction_mat_view
 OWNER TO frapid_db_user;
 
 
@@ -4451,6 +5240,25 @@ BEGIN
     AND tableowner <> 'frapid_db_user'
     LOOP
         EXECUTE 'ALTER TABLE '|| this.schemaname || '.' || this.tablename ||' OWNER TO frapid_db_user;';
+    END LOOP;
+END
+$$
+LANGUAGE plpgsql;
+
+DO
+$$
+    DECLARE this record;
+BEGIN
+    IF(CURRENT_USER = 'frapid_db_user') THEN
+        RETURN;
+    END IF;
+
+    FOR this IN 
+    SELECT oid::regclass::text as mat_view
+    FROM   pg_class
+    WHERE  relkind = 'm'
+    LOOP
+        EXECUTE 'ALTER TABLE '|| this.mat_view ||' OWNER TO frapid_db_user;';
     END LOOP;
 END
 $$

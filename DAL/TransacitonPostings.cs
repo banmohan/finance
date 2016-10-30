@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Frapid.ApplicationState.Models;
 using Frapid.Configuration;
 using Frapid.Configuration.Db;
+using Frapid.DataAccess;
 using Frapid.Framework.Extensions;
 using Frapid.NPoco;
 using MixERP.Finance.DTO;
@@ -12,9 +13,23 @@ namespace MixERP.Finance.DAL
 {
     public static class TransacitonPostings
     {
-        public static async Task<long> Add(string tenant, LoginView userInfo, TransactionPosting model)
+        public static async Task<bool> CanPostTransactionAsync(string tenant, long loginId, int userId, int officeId, string transactionBook, DateTime valueDate)
+        {
+            const string sql = "SELECT finance.can_post_transaction(@0, @1, @2, @3, @4);";
+            return await Factory.ScalarAsync<bool>(tenant, sql, loginId, userId, officeId, transactionBook, valueDate).ConfigureAwait(false);
+        }
+
+        public static async Task<long> AddAsync(string tenant, LoginView userInfo, TransactionPosting model)
         {
             long transactionMasterId = 0;
+            string bookName = "Journal Entry";
+            bool canPost = await CanPostTransactionAsync(tenant, userInfo.LoginId, userInfo.UserId, userInfo.OfficeId, bookName, model.ValueDate).ConfigureAwait(false);
+
+            if (!canPost)
+            {
+                return transactionMasterId;
+            }
+
 
             using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
             {
@@ -24,7 +39,7 @@ namespace MixERP.Finance.DAL
 
                     var master = new TransactionMaster
                     {
-                        Book = "Journal Entry",
+                        Book = bookName,
                         ValueDate = model.ValueDate,
                         BookDate = model.BookDate,
                         TransactionTs = DateTimeOffset.UtcNow,
@@ -76,9 +91,9 @@ namespace MixERP.Finance.DAL
                             ValueDate = model.ValueDate,
                             BookDate = model.BookDate,
                             TranType = tranType,
-                            AccountId = await Accounts.GetAccountIdByAccountNumberAsync(tenant, line.AccountNumber),
+                            AccountId = await Accounts.GetAccountIdByAccountNumberAsync(tenant, line.AccountNumber).ConfigureAwait(false),
                             StatementReference = line.StatementReference,
-                            CashRepositoryId = await CashRepositories.GetCashRepositoryIdByCashRepositoryCodeAsync(tenant, line.CashRepositoryCode),
+                            CashRepositoryId = await CashRepositories.GetCashRepositoryIdByCashRepositoryCodeAsync(tenant, line.CashRepositoryCode).ConfigureAwait(false),
                             CurrencyCode = line.CurrencyCode,
                             AmountInCurrency = amountInCurrency,
                             OfficeId = userInfo.OfficeId,
@@ -86,10 +101,10 @@ namespace MixERP.Finance.DAL
                             Er = line.ExchangeRate,
                             AmountInLocalCurrency = amountInLocalCurrency,
                             AuditUserId = userInfo.UserId,
-                            AuditTs = DateTimeOffset.UtcNow,
+                            AuditTs = DateTimeOffset.UtcNow
                         };
 
-                        await db.InsertAsync("finance.transaction_details", "transaction_detail_id", true, detail);
+                        await db.InsertAsync("finance.transaction_details", "transaction_detail_id", true, detail).ConfigureAwait(false);
                     }
 
                     if (model.Attachemnts != null && model.Attachemnts.Count > 0)
@@ -108,12 +123,12 @@ namespace MixERP.Finance.DAL
                                 Deleted = false
                             };
 
-                            await db.InsertAsync("finance.transaction_documents", "document_id", true, document);
+                            await db.InsertAsync("finance.transaction_documents", "document_id", true, document).ConfigureAwait(false);
                         }
                     }
 
                     var sql = new Sql("SELECT * FROM finance.auto_verify(@0::bigint, @1::integer)", transactionMasterId, userInfo.UserId);
-                    await db.ExecuteAsync(sql);
+                    await db.ExecuteAsync(sql).ConfigureAwait(false);
 
                     db.CompleteTransaction();
                 }

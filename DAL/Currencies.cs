@@ -19,10 +19,7 @@ namespace MixERP.Finance.DAL
         {
             using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
             {
-                var awaiter =
-                    await
-                        db.Query<Currency>()
-                            .Where(x => !x.Deleted).ToListAsync().ConfigureAwait(false);
+                var awaiter = await db.Query<Currency>().Where(x => !x.Deleted).ToListAsync().ConfigureAwait(false);
 
                 return awaiter;
             }

@@ -1,4 +1,10 @@
-﻿using Frapid.Dashboard.Controllers;
+﻿using System.Web.Mvc;
+using Frapid.ApplicationState.Cache;
+using Frapid.Configuration;
+using Frapid.Dashboard.Controllers;
+using MixERP.Finance.AppModels;
+using MixERP.Finance.Cache;
+using MixERP.Finance.DTO;
 
 namespace MixERP.Finance.Controllers
 {
@@ -6,8 +12,19 @@ namespace MixERP.Finance.Controllers
     {
         public FinanceDashboardController()
         {
-            ViewBag.FinanceLayoutPath = this.GetLayoutPath();
+            this.ViewBag.FinanceLayoutPath = this.GetLayoutPath();
         }
+
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            string tenant = TenantConvention.GetTenant();
+            var meta = AppUsers.GetCurrent(tenant);
+            this.FrequencyDates = Dates.GetFrequencyDatesAsync(tenant, meta.OfficeId).Result;
+
+            base.OnActionExecuting(filterContext);
+        }
+
+        public FrequencyDates FrequencyDates { get; set; }
 
         private string GetLayoutPath()
         {

@@ -1,0 +1,269 @@
+﻿@model MixERP.Finance.DTO.FrequencyDates
+
+@{
+    ViewBag.Title = "Exchange Rates";
+    Layout = ViewBag.FinanceLayoutPath;
+}
+<script src="/signalr/hubs"></script>
+<style>
+    .eod.messages {
+        color: #666;
+    }
+
+    .eod.error.messages {
+        color: #D10D89;
+    }
+
+    .eod.messages div {
+        padding: 0.25em 1em;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        word-spacing: 0.12em;
+        font-size: 0.87em;
+        border-bottom: 1px dotted #ddd;
+        display: flex;
+    }
+
+        .eod.messages div time,
+        .eod.messages div span {
+            display: inline-flex;
+            flex-direction: column;
+        }
+
+        .eod.messages div time {
+            font-weight: bold;
+            padding-right: 4em;
+            color: #999;
+        }
+</style>
+
+<div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
+    <div class="ui container">
+        <div class="ui stackable grid">
+            @if (!Model.NewDayStarted)
+            {
+                <div class="eight wide column">
+
+                    <div class="ui huge header">
+                        Initialize EOD Processing for @Model.Today.ToString("d")
+                    </div>
+
+                    <div class="ui warning message">
+                        <p>When you initialize day-end operation, the already logged-in application users including you are logged off after 120 seconds.</p>
+
+                        <p>
+                            During the day-end period, only users having elevated privilege are allowed to log-in.
+                            Please do not close this window or navigate away from this page during initialization.
+                        </p>
+
+
+                    </div>
+
+
+
+                    <button id = "InitializeEODButton" class="ui blue button">Initialize EOD</button>
+                </div>
+            }
+            @if (Model.NewDayStarted)
+            {
+                <div class="eight wide column">
+                    <div class="ui huge header">
+                        <div class="content">Perform EOD Operation (@Model.Today.ToString("d")</div>
+                    </div>
+                    <div class="ui warning message">
+                        <p>When you perform EOD operation for a particular date, no transaction on that date or before can be altered, changed, or deleted.</p>
+
+                        <p>
+                            During EOD operation, routine tasks such as interest calculation, settlements, and report generation are performed.
+                            This process is irreversible.
+                        </p>
+                    </div>
+                    <button id="PerformEODButton" class="ui small red button" onclick="return false;">Perform EOD</button>
+                </div>
+            }
+            <div class="sixteen wide column">
+                <div class="ui teal progress">
+                    <div class="bar">
+                        <div class="progress"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        @if (Model.NewDayStarted)
+        {
+            <h2 class="ui blue header">EOD Console</h2>
+            <div id="EODSegment" class="ui segment" style="height: 600px; overflow: auto;">
+                <div class="eod messages">
+                </div>
+            </div>
+            <div class="big error message"></div>
+        }
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    var counter = 120;
+    var interval;
+    var url;
+    var data;
+    var start;
+    var receivingData = true;
+
+    $("#EODModal").remove();
+
+    $(function () {
+        var dayOperation = $.connection.dayOperationHub;
+        //EOD Notices from PostgreSQL Server
+        dayOperation.client.getNotification = function (msg, condition) {
+            AddItem(msg);
+
+            if (condition.toLowerCase() === "error") {
+                receivingData = false;
+
+                $(".blue").removeClass("blue").addClass("red");
+                $("h2").removeClass("blue").addClass("red");
+                $(".loading").removeClass("loading");
+                $(".progress").removeClass("success").addClass("error");
+                $(".eod.messages").addClass("error");
+                $(".big.error.message").text(msg);
+            };
+
+            if (msg === "OK") {
+                receivingData = false;
+                $(".loading").removeClass("loading");
+                notifyServer();
+            };
+        };
+
+        $.connection.hub.start().done(function () {
+            $("#PerformEODButton").click(function () {
+                $(this).addClass("disabled");
+                $(".ui.blue.header").removeClass("initially hidden");
+                ShowProgress(0);
+                dayOperation.server.performEod();
+            });
+        });
+    });
+
+    //Termination Signal
+    function terminateListener(counter) {
+        $("#PerformEODButton").addClass("disabled");
+        $("#InitializeEODButton").addClass("disabled");
+
+        $('.progress').progress({
+            percent: counter
+        });
+    };
+
+    //Connection to EOD SignalR Hub was successful.
+    function connectionListener() {
+        $("#InitializeEODButton").removeClass("disabled loading");
+        $("#PerformEODButton").removeClass("disabled loading");
+
+        $("#InitializeEODButton").click(function () {
+            function request() {
+                const url = "/dashboard/finance/tasks/eod-processing/initialize";
+                return window.getAjaxRequest(url, "POST");
+            };
+
+            $(this).addClass("disabled");
+            const ajax = request();
+
+            ajax.success(function () {
+                start = new Date();
+
+                interval = setInterval(sendMessage, 5000);
+                return;
+            });
+
+            ajax.fail(function (xhr) {
+                window.logAjaxErrorMessage(xhr);
+            });
+        });
+    };
+
+    var toggle = false;
+
+    function AddItem(msg) {
+        const timestamp = new Date().toISOString();
+
+        var html = `<div>
+                        <time>{0}</time>
+                        <span>{1}</span>
+                    </div>`;
+
+        html = window.stringFormat(html, timestamp, msg);
+
+        $(".eod.messages").append(html);
+        counter++;
+
+        $('#EODSegment').scrollTop($('#EODSegment')[0].scrollHeight - $('#EODSegment')[0].clientHeight);
+    };
+
+    function ShowProgress(counter) {
+        if (receivingData) {
+            if (counter >= 100 || counter <= 0) {
+                if (toggle === true) {
+                    toggle = false;
+                } else {
+                    toggle = true;
+                }
+            };
+
+            if (toggle) {
+                counter++;
+            } else {
+                counter--;
+            };
+
+            $('.progress').progress({
+                percent: counter,
+                limitValues: true,
+                label: "ratio"
+            });
+
+            setTimeout(ShowProgress, 100, counter);
+
+        } else {
+            $('.progress').progress({
+                percent: 100,
+                limitValues: true,
+                label: "ratio"
+            });
+        };
+    };
+
+    function notifyServer() {
+        function request() {
+            const url = "/dashboard/finance/tasks/eod-processing/start-new-day";
+            return window.getAjaxRequest(url, "PUT");
+        };
+
+        const ajax = request();
+
+        ajax.success(function () {
+            //Okay
+        });
+
+        ajax.fail(function (xhr) {
+            window.logAjaxErrorMessage(xhr);
+        });
+
+    };
+
+    var sendMessage = function () {
+        const elapsed = parseInt((new Date - start) / 1000);
+        const progress = parseInt((elapsed / counter) * 100);
+
+        if (progress > 100) {
+            clearInterval(interval);
+            return;
+        };
+
+        $.connection.baseHub.server.terminate(progress);
+        //localStorage.removeItem("access_token");
+    };
+</script>

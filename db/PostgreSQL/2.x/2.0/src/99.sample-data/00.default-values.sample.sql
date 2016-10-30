@@ -2,6 +2,9 @@
 IMPORTANT:
 The table account_masters must only be translated, but not changed.        
 */
+UPDATE core.offices
+SET allow_transaction_posting = true;
+
 INSERT INTO finance.verification_statuses
 SELECT -3,  'Rejected'                              UNION ALL
 SELECT -2,  'Closed'                                UNION ALL
@@ -576,6 +579,25 @@ SELECT
 FROM account.users
 CROSS JOIN core.offices
 WHERE account.users.role_id = 9999;
+
+
+
+INSERT INTO finance.fiscal_year (fiscal_year_code, fiscal_year_name, starts_from, ends_on, office_id) 
+VALUES ('FY1617', 'FY 2016/2017', '2016-07-17'::date, '2017-07-16'::date, core.get_office_id_by_office_name('Default'));
+
+INSERT INTO finance.frequency_setups (fiscal_year_code, frequency_setup_code, value_date, frequency_id, office_id) 
+SELECT 'FY1617', 'Jul-Aug', '2016-08-16'::date, 2, core.get_office_id_by_office_name('Default') UNION ALL
+SELECT 'FY1617', 'Aug-Sep', '2016-09-16'::date, 2, core.get_office_id_by_office_name('Default') UNION ALL
+SELECT 'FY1617', 'Sep-Oc',  '2016-10-17'::date, 3, core.get_office_id_by_office_name('Default') UNION ALL
+SELECT 'FY1617', 'Oct-Nov', '2016-11-16'::date, 2, core.get_office_id_by_office_name('Default') UNION ALL
+SELECT 'FY1617', 'Nov-Dec', '2016-12-15'::date, 2, core.get_office_id_by_office_name('Default') UNION ALL
+SELECT 'FY1617', 'Dec-Jan', '2017-01-14'::date, 4, core.get_office_id_by_office_name('Default') UNION ALL
+SELECT 'FY1617', 'Jan-Feb', '2017-02-12'::date, 2, core.get_office_id_by_office_name('Default') UNION ALL
+SELECT 'FY1617', 'Feb-Mar', '2017-03-14'::date, 2, core.get_office_id_by_office_name('Default') UNION ALL
+SELECT 'FY1617', 'Mar-Apr', '2017-04-13'::date, 3, core.get_office_id_by_office_name('Default') UNION ALL
+SELECT 'FY1617', 'Apr-May', '2017-05-14'::date, 2, core.get_office_id_by_office_name('Default') UNION ALL
+SELECT 'FY1617', 'May-Jun', '2017-06-15'::date, 2, core.get_office_id_by_office_name('Default') UNION ALL
+SELECT 'FY1617', 'Jun-Jul', '2017-07-16'::date, 5, core.get_office_id_by_office_name('Default');
 
 
 --ROLLBACK TRANSACTION;

@@ -89,6 +89,8 @@ CREATE TABLE finance.fiscal_year
     fiscal_year_name                        national character varying(50) NOT NULL,
     starts_from                             date NOT NULL,
     ends_on                                 date NOT NULL,
+	eod_required							boolean NOT NULL DEFAULT(true),
+	office_id								integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
@@ -160,6 +162,7 @@ CREATE TABLE finance.frequency_setups
     frequency_setup_code                    national character varying(12) NOT NULL,
     value_date                              date NOT NULL UNIQUE,
     frequency_id                            integer NOT NULL REFERENCES finance.frequencies,
+	office_id								integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
@@ -369,26 +372,6 @@ CREATE TABLE finance.transaction_details
 );
 
 
-CREATE TABLE finance.day_operation
-(
-    day_id                                  BIGSERIAL PRIMARY KEY,
-    office_id                               integer NOT NULL REFERENCES core.offices,
-    value_date                              date NOT NULL,
-    started_on                              TIMESTAMP WITH TIME ZONE NOT NULL,
-    started_by                              integer NOT NULL REFERENCES account.users,    
-    completed_on                            TIMESTAMP WITH TIME ZONE NULL,
-    completed_by                            integer NULL REFERENCES account.users,
-    completed                               boolean NOT NULL 
-                                            CONSTRAINT day_operation_completed_df DEFAULT(false)
-                                            CONSTRAINT day_operation_completed_chk 
-                                            CHECK
-                                            (
-                                                (completed OR completed_on IS NOT NULL)
-                                                OR
-                                                (NOT completed OR completed_on IS NULL)
-                                            )
-);
-
 CREATE TABLE finance.card_types
 (
 	card_type_id                    		integer PRIMARY KEY,
@@ -523,3 +506,59 @@ CREATE TABLE finance.tax_setups
 CREATE UNIQUE INDEX tax_setup_office_id_uix
 ON finance.tax_setups(office_id)
 WHERE NOT finance.tax_setups.deleted;
+
+
+CREATE TABLE finance.routines
+(
+    routine_id                              SERIAL NOT NULL PRIMARY KEY,
+    "order"                                 integer NOT NULL,
+    routine_code                            national character varying(12) NOT NULL,
+    routine_name                            regproc NOT NULL UNIQUE,
+    status                                  boolean NOT NULL CONSTRAINT routines_status_df DEFAULT(true)
+);
+
+CREATE UNIQUE INDEX routines_routine_code_uix
+ON finance.routines(LOWER(routine_code));
+
+CREATE TABLE finance.day_operation
+(
+    day_id                                  BIGSERIAL PRIMARY KEY,
+    office_id                               integer NOT NULL REFERENCES core.offices,
+    value_date                              date NOT NULL,
+    started_on                              TIMESTAMP WITH TIME ZONE NOT NULL,
+    started_by                              integer NOT NULL REFERENCES account.users,    
+    completed_on                            TIMESTAMP WITH TIME ZONE NULL,
+    completed_by                            integer NULL REFERENCES account.users,
+    completed                               boolean NOT NULL 
+                                            CONSTRAINT day_operation_completed_df DEFAULT(false)
+                                            CONSTRAINT day_operation_completed_chk 
+                                            CHECK
+                                            (
+                                                (completed OR completed_on IS NOT NULL)
+                                                OR
+                                                (NOT completed OR completed_on IS NULL)
+                                            )
+);
+
+
+CREATE UNIQUE INDEX day_operation_value_date_uix
+ON finance.day_operation(value_date);
+
+CREATE INDEX day_operation_completed_on_inx
+ON finance.day_operation(completed_on);
+
+CREATE TABLE finance.day_operation_routines
+(
+    day_operation_routine_id                BIGSERIAL NOT NULL PRIMARY KEY,
+    day_id                                  bigint NOT NULL REFERENCES finance.day_operation,
+    routine_id                              integer NOT NULL REFERENCES finance.routines,
+    started_on                              TIMESTAMP WITH TIME ZONE NOT NULL,
+    completed_on                            TIMESTAMP WITH TIME ZONE NULL
+);
+
+CREATE INDEX day_operation_routines_started_on_inx
+ON finance.day_operation_routines(started_on);
+
+CREATE INDEX day_operation_routines_completed_on_inx
+ON finance.day_operation_routines(completed_on);
+

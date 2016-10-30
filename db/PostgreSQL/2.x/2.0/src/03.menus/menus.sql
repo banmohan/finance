@@ -24,6 +24,7 @@ SELECT * FROM core.create_menu('Finance', 'Exchange Rates', '/dashboard/finance/
 SELECT * FROM core.create_menu('Finance', 'Journal Verification', '/dashboard/finance/tasks/journal/verification', 'food', 'Tasks');
 SELECT * FROM core.create_menu('Finance', 'Verification Policy', '/dashboard/finance/tasks/verification-policy', 'keyboard', 'Tasks');
 SELECT * FROM core.create_menu('Finance', 'Auto Verification Policy', '/dashboard/finance/tasks/verification-policy/auto', 'keyboard', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'keyboard', 'Tasks');
 
 SELECT * FROM core.create_menu('Finance', 'Setup', 'square outline', 'configure', '');
 SELECT * FROM core.create_menu('Finance', 'Chart of Account', '/dashboard/finance/setup/chart-of-accounts', 'users', 'Setup');

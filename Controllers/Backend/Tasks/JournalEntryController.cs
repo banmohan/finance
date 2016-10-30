@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Frapid.ApplicationState.Cache;
@@ -52,10 +53,12 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
         [HttpPost]
         public async Task<ActionResult> PostAsync(TransactionPosting model)
         {
-            if (!ModelState.IsValid)
+            if (!this.ModelState.IsValid)
             {
                 return this.InvalidModelState(this.ModelState);
             }
+
+           
 
             foreach (var item in model.Details)
             {
@@ -80,7 +83,7 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
                     {
                         if (
                             await CashRepositories.GetBalanceAsync(this.Tenant, item.CashRepositoryCode,
-                                item.CurrencyCode) < item.Credit)
+                                item.CurrencyCode).ConfigureAwait(true) < item.Credit)
                         {
                             throw new InvalidOperationException("Insufficient balance in cash repository.");
                         }
@@ -99,19 +102,27 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
             int decimalPlaces = CultureManager.GetCurrencyDecimalPlaces();
 
             if ((from detail in model.Details
-                 where
-                     decimal.Round(detail.Credit * detail.ExchangeRate, decimalPlaces) !=
-                     decimal.Round(detail.LocalCurrencyCredit, decimalPlaces) ||
-                     decimal.Round(detail.Debit * detail.ExchangeRate, decimalPlaces) !=
-                     decimal.Round(detail.LocalCurrencyDebit, decimalPlaces)
-                 select detail).Any())
+                where
+                    decimal.Round(detail.Credit*detail.ExchangeRate, decimalPlaces) !=
+                    decimal.Round(detail.LocalCurrencyCredit, decimalPlaces) ||
+                    decimal.Round(detail.Debit*detail.ExchangeRate, decimalPlaces) !=
+                    decimal.Round(detail.LocalCurrencyDebit, decimalPlaces)
+                select detail).Any())
             {
                 throw new InvalidOperationException("Referencing sides are not equal.");
             }
 
             var user = await AppUsers.GetCurrentAsync().ConfigureAwait(true);
-            long tranId = await TransacitonPostings.Add(this.Tenant, user, model).ConfigureAwait(true);
-            return this.Ok(tranId);
+
+            try
+            {
+                long tranId = await TransacitonPostings.AddAsync(this.Tenant, user, model).ConfigureAwait(true);
+                return this.Ok(tranId);
+            }
+            catch (Exception ex)
+            {
+                return this.Failed(ex.Message, HttpStatusCode.InternalServerError);
+            }
         }
     }
 }

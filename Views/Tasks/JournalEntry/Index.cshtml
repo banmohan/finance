@@ -11,7 +11,6 @@
         height: 700px;
     }
 </style>
-<script src="/Scripts/frapid/utilities/form.js"></script>
 <div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
     <div class="ui huge header">Journal Entries</div>
     <div class="ui divider"></div>
@@ -47,10 +46,10 @@
     <div class="ui stackable form segment" id="Annotation" style="">
         <div class="eight fields">
             <div class="field">
-                <input class="date" placeholder="From" id="FromInputDate" title="From" type="date">
+                <input class="date" placeholder="From" id="FromInputDate" data-expression="BOY" title="From" type="date">
             </div>
             <div class="field">
-                <input class="date" placeholder="To" id="ToInputDate" title="To" type="date">
+                <input class="date" placeholder="To" id="ToInputDate" data-expression="EOY" title="To" type="date">
             </div>
             <div class="field">
                 <input placeholder="TranId" id="TranIdInputText" title="TranId" type="text">
@@ -122,6 +121,7 @@
     <iframe></iframe>
 </div>
 <script>
+    $(document).ready(function(){})
     function displayTable(target, model) {
         target.find("tbody").html("");
         function getCell(text) {
@@ -173,6 +173,7 @@
         function getModel() {
             var model = window.serializeForm($("#Annotation"));
             model.Book = "Journal Entry";
+
             return model;
         };
 
@@ -182,6 +183,7 @@
                 var data = JSON.stringify(model);
                 return window.getAjaxRequest(url, "POST", data);
             };
+
 
             var model = getModel();
 
@@ -207,7 +209,7 @@
     });
 
     loadDatepicker();
-    processQuery();
+    
 
     function showJournalAdvice(tranId) {
         $(".journal.advice.modal iframe").attr("src", "/dashboard/reports/source/Areas/MixERP.Finance/Reports/JournalEntry.xml?transaction_master_id=" + tranId);
@@ -222,4 +224,8 @@
 
         }, 300);
     };
+
+    setTimeout(function () {
+        processQuery();
+    }, 1000);
 </script>
