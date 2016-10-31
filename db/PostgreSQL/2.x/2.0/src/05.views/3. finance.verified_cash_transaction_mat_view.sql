@@ -12,4 +12,4 @@ IN
 );
 
 ALTER MATERIALIZED VIEW finance.verified_cash_transaction_mat_view
-OWNER TO mix_erp;
+OWNER TO frapid_db_user;

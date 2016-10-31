@@ -5154,7 +5154,7 @@ IN
 );
 
 ALTER MATERIALIZED VIEW finance.verified_cash_transaction_mat_view
-OWNER TO mix_erp;
+OWNER TO frapid_db_user;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.account_view.sql --<--<--
