@@ -531,19 +531,6 @@ SELECT 20600,  '44000', 'Other Expenses',                                       
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 20600,  '44100', 'Gain/Loss on Sale of Assets',                                FALSE, finance.get_account_id_by_account_name('Expenses');
 
-INSERT INTO finance.currencies(currency_code, currency_symbol, currency_name, hundredth_name)
-SELECT 'NPR', 'रू.',       'Nepali Rupees',        'paisa'     UNION ALL
-SELECT 'USD', '$',      'United States Dollar', 'cents'     UNION ALL
-SELECT 'GBP', '£',      'Pound Sterling',       'penny'     UNION ALL
-SELECT 'EUR', '€',      'Euro',                 'cents'     UNION ALL
-SELECT 'JPY', '¥',      'Japanese Yen',         'sen'       UNION ALL
-SELECT 'CHF', 'CHF',    'Swiss Franc',          'centime'   UNION ALL
-SELECT 'CAD', '¢',      'Canadian Dollar',      'cent'      UNION ALL
-SELECT 'AUD', 'AU$',    'Australian Dollar',    'cent'      UNION ALL
-SELECT 'HKD', 'HK$',    'Hong Kong Dollar',     'cent'      UNION ALL
-SELECT 'INR', '₹',      'Indian Rupees',        'paise'     UNION ALL
-SELECT 'SEK', 'kr',     'Swedish Krona',        'öre'       UNION ALL
-SELECT 'NZD', 'NZ$',    'New Zealand Dollar',   'cent';
 
 UPDATE finance.accounts
 SET currency_code='USD';

@@ -5,7 +5,7 @@ using Frapid.NPoco;
 namespace MixERP.Finance.DTO
 {
     [PrimaryKey("currency_code", AutoIncrement = true)]
-    [TableName("finance.currencies")]
+    [TableName("core.currencies")]
     public sealed class Currency : IPoco
     {
         public int CurrencyId { get; set; }

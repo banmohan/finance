@@ -7,7 +7,7 @@ SELECT
     finance.account_masters.account_master_code || ' (' || finance.account_masters.account_master_name || ')' AS account_master,
     finance.accounts.account_number,
     finance.accounts.external_code,
-	finance.currencies.currency_code || ' ('|| finance.currencies.currency_name|| ')' currency,
+	core.currencies.currency_code || ' ('|| core.currencies.currency_name|| ')' currency,
     finance.accounts.account_name,
     finance.accounts.description,
 	finance.accounts.confidential,
@@ -18,8 +18,8 @@ SELECT
 FROM finance.accounts
 INNER JOIN finance.account_masters
 ON finance.account_masters.account_master_id=finance.accounts.account_master_id
-LEFT JOIN finance.currencies
-ON finance.accounts.currency_code = finance.currencies.currency_code
+LEFT JOIN core.currencies
+ON finance.accounts.currency_code = core.currencies.currency_code
 LEFT JOIN finance.accounts parent_account
 ON parent_account.account_id=finance.accounts.parent_account_id
 WHERE NOT finance.accounts.deleted;

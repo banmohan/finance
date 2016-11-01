@@ -48,18 +48,6 @@ CREATE UNIQUE INDEX frequencies_frequency_name_uix
 ON finance.frequencies(UPPER(frequency_name))
 WHERE NOT deleted;
 
-CREATE TABLE finance.currencies
-(
-	currency_id								SERIAL,
-    currency_code                           national character varying(12) PRIMARY KEY,
-    currency_symbol                         national character varying(12) NOT NULL,
-    currency_name                           national character varying(48) NOT NULL UNIQUE,
-    hundredth_name                          national character varying(48) NOT NULL,
-    audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
-	deleted									boolean DEFAULT(false)
-);
-
 CREATE TABLE finance.cash_repositories
 (
     cash_repository_id                      SERIAL PRIMARY KEY,
@@ -180,7 +168,7 @@ CREATE TABLE finance.accounts
     account_master_id                       smallint NOT NULL REFERENCES finance.account_masters,
     account_number                          national character varying(12) NOT NULL,
     external_code                           national character varying(12) NULL CONSTRAINT accounts_external_code_df DEFAULT(''),
-    currency_code                           national character varying(12) NOT NULL REFERENCES finance.currencies,
+    currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
     account_name                            national character varying(100) NOT NULL,
     description                             national character varying(200) NULL,
     confidential                            boolean NOT NULL CONSTRAINT accounts_confidential_df DEFAULT(false),
@@ -361,9 +349,9 @@ CREATE TABLE finance.transaction_details
     account_id                              bigint NOT NULL REFERENCES finance.accounts,
     statement_reference                     text,
     cash_repository_id                      integer REFERENCES finance.cash_repositories,
-    currency_code                           national character varying(12) NOT NULL REFERENCES finance.currencies,
+    currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
     amount_in_currency                      money_strict NOT NULL,
-    local_currency_code                     national character varying(12) NOT NULL REFERENCES finance.currencies,
+    local_currency_code                     national character varying(12) NOT NULL REFERENCES core.currencies,
     er                                      decimal_strict NOT NULL,
     amount_in_local_currency                money_strict NOT NULL,  
     office_id                               integer NOT NULL REFERENCES core.offices,
@@ -445,8 +433,8 @@ CREATE TABLE finance.exchange_rate_details
 (
     exchange_rate_detail_id                 BIGSERIAL PRIMARY KEY,
     exchange_rate_id                        bigint NOT NULL REFERENCES finance.exchange_rates,
-    local_currency_code                     national character varying(12) NOT NULL REFERENCES finance.currencies,
-    foreign_currency_code                   national character varying(12) NOT NULL REFERENCES finance.currencies,
+    local_currency_code                     national character varying(12) NOT NULL REFERENCES core.currencies,
+    foreign_currency_code                   national character varying(12) NOT NULL REFERENCES core.currencies,
     unit                                    integer_strict NOT NULL,
     exchange_rate                           decimal_strict NOT NULL
 );

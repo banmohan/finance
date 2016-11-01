@@ -1,6 +1,6 @@
 ﻿DROP FUNCTION IF EXISTS finance.is_new_day_started(_office_id integer);
 
-CREATE FUNCTION finance.is_new_day_started(_office_id integer)
+CREATE or replace FUNCTION finance.is_new_day_started(_office_id integer)
 RETURNS boolean
 AS
 $$
@@ -20,3 +20,5 @@ END;
 $$
 LANGUAGE plpgsql;
 
+
+--SELECT * FROM finance.is_new_day_started(1);

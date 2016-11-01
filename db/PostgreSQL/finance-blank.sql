@@ -49,18 +49,6 @@ CREATE UNIQUE INDEX frequencies_frequency_name_uix
 ON finance.frequencies(UPPER(frequency_name))
 WHERE NOT deleted;
 
-CREATE TABLE finance.currencies
-(
-	currency_id								SERIAL,
-    currency_code                           national character varying(12) PRIMARY KEY,
-    currency_symbol                         national character varying(12) NOT NULL,
-    currency_name                           national character varying(48) NOT NULL UNIQUE,
-    hundredth_name                          national character varying(48) NOT NULL,
-    audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
-	deleted									boolean DEFAULT(false)
-);
-
 CREATE TABLE finance.cash_repositories
 (
     cash_repository_id                      SERIAL PRIMARY KEY,
@@ -181,7 +169,7 @@ CREATE TABLE finance.accounts
     account_master_id                       smallint NOT NULL REFERENCES finance.account_masters,
     account_number                          national character varying(12) NOT NULL,
     external_code                           national character varying(12) NULL CONSTRAINT accounts_external_code_df DEFAULT(''),
-    currency_code                           national character varying(12) NOT NULL REFERENCES finance.currencies,
+    currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
     account_name                            national character varying(100) NOT NULL,
     description                             national character varying(200) NULL,
     confidential                            boolean NOT NULL CONSTRAINT accounts_confidential_df DEFAULT(false),
@@ -362,9 +350,9 @@ CREATE TABLE finance.transaction_details
     account_id                              bigint NOT NULL REFERENCES finance.accounts,
     statement_reference                     text,
     cash_repository_id                      integer REFERENCES finance.cash_repositories,
-    currency_code                           national character varying(12) NOT NULL REFERENCES finance.currencies,
+    currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
     amount_in_currency                      money_strict NOT NULL,
-    local_currency_code                     national character varying(12) NOT NULL REFERENCES finance.currencies,
+    local_currency_code                     national character varying(12) NOT NULL REFERENCES core.currencies,
     er                                      decimal_strict NOT NULL,
     amount_in_local_currency                money_strict NOT NULL,  
     office_id                               integer NOT NULL REFERENCES core.offices,
@@ -446,8 +434,8 @@ CREATE TABLE finance.exchange_rate_details
 (
     exchange_rate_detail_id                 BIGSERIAL PRIMARY KEY,
     exchange_rate_id                        bigint NOT NULL REFERENCES finance.exchange_rates,
-    local_currency_code                     national character varying(12) NOT NULL REFERENCES finance.currencies,
-    foreign_currency_code                   national character varying(12) NOT NULL REFERENCES finance.currencies,
+    local_currency_code                     national character varying(12) NOT NULL REFERENCES core.currencies,
+    foreign_currency_code                   national character varying(12) NOT NULL REFERENCES core.currencies,
     unit                                    integer_strict NOT NULL,
     exchange_rate                           decimal_strict NOT NULL
 );
@@ -3125,7 +3113,7 @@ LANGUAGE plpgsql;
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_new_day_started.sql --<--<--
 DROP FUNCTION IF EXISTS finance.is_new_day_started(_office_id integer);
 
-CREATE FUNCTION finance.is_new_day_started(_office_id integer)
+CREATE or replace FUNCTION finance.is_new_day_started(_office_id integer)
 RETURNS boolean
 AS
 $$
@@ -3146,6 +3134,7 @@ $$
 LANGUAGE plpgsql;
 
 
+--SELECT * FROM finance.is_new_day_started(1);
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_normally_debit.sql --<--<--
 DROP FUNCTION IF EXISTS finance.is_normally_debit(_account_id bigint);
@@ -4857,7 +4846,7 @@ SELECT
     finance.account_masters.account_master_code || ' (' || finance.account_masters.account_master_name || ')' AS account_master,
     finance.accounts.account_number,
     finance.accounts.external_code,
-	finance.currencies.currency_code || ' ('|| finance.currencies.currency_name|| ')' currency,
+	core.currencies.currency_code || ' ('|| core.currencies.currency_name|| ')' currency,
     finance.accounts.account_name,
     finance.accounts.description,
 	finance.accounts.confidential,
@@ -4868,8 +4857,8 @@ SELECT
 FROM finance.accounts
 INNER JOIN finance.account_masters
 ON finance.account_masters.account_master_id=finance.accounts.account_master_id
-LEFT JOIN finance.currencies
-ON finance.accounts.currency_code = finance.currencies.currency_code
+LEFT JOIN core.currencies
+ON finance.accounts.currency_code = core.currencies.currency_code
 LEFT JOIN finance.accounts parent_account
 ON parent_account.account_id=finance.accounts.parent_account_id
 WHERE NOT finance.accounts.deleted;
@@ -5197,7 +5186,7 @@ AS
 SELECT 
     office_id AS office_id, 
     finance.get_value_date(office_id) AS today, 
-    finance.is_new_day_started(@0) as new_day_started,
+    finance.is_new_day_started(office_id) as new_day_started,
     finance.get_month_start_date(office_id) AS month_start_date,
     finance.get_month_end_date(office_id) AS month_end_date, 
     finance.get_quarter_start_date(office_id) AS quarter_start_date, 
@@ -5207,8 +5196,6 @@ SELECT
     finance.get_fiscal_year_start_date(office_id) AS fiscal_year_start_date, 
     finance.get_fiscal_year_end_date(office_id) AS fiscal_year_end_date 
 FROM core.offices;
-
-
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.trial_balance_view.sql --<--<--
