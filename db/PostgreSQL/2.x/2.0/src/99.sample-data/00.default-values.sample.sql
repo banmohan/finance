@@ -587,10 +587,4 @@ SELECT 'FY1617', 'May-Jun', '2017-06-15'::date, 2, core.get_office_id_by_office_
 SELECT 'FY1617', 'Jun-Jul', '2017-07-16'::date, 5, core.get_office_id_by_office_name('Default');
 
 
-INSERT INTO finance.journal_verification_policy(user_id, office_id, can_verify, can_self_verify, effective_from, ends_on, is_active)
-SELECT account.get_user_id_by_email('nepalbinod@yahoo.com'), core.get_office_id_by_office_name('Default'), true, true, NOW()::date, NOW() + INTERVAL '1 YEAR', true;
-
-INSERT INTO finance.auto_verification_policy(user_id, office_id, verification_limit, effective_from, ends_on, is_active)
-SELECT account.get_user_id_by_email('nepalbinod@yahoo.com'), core.get_office_id_by_office_name('Default'), 0, NOW()::date, NOW() + INTERVAL '1 YEAR', true;
-
 --ROLLBACK TRANSACTION;
