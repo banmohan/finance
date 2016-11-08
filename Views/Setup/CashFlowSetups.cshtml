@@ -38,15 +38,22 @@
     //    }
     //];
 
-    //scrudFactory.keys = [
-    //    {
-    //        property: "CamelCase",
-    //        url: '/api/forms/finance//display-fields',
-    //        data: null,
-    //        valueField: "Key",
-    //        textField: "Value"
-    //    }
-    //];
+    scrudFactory.keys = [
+        {
+            property: "CashFlowHeadingId",
+            url: '/api/forms/finance/cash-flow-headings/display-fields',
+            data: null,
+            valueField: "Key",
+            textField: "Value"
+        },
+        {
+            property: "AccountMasterId",
+            url: '/api/forms/finance/account-masters/display-fields',
+            data: null,
+            valueField: "Key",
+            textField: "Value"
+        }
+    ];
 
 
 
