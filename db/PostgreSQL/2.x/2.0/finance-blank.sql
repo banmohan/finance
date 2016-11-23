@@ -4801,30 +4801,30 @@ WHERE app_name = 'Finance';
 SELECT * FROM core.create_app('Finance', 'Finance', '1.0', 'MixERP Inc.', 'December 1, 2015', 'book red', '/dashboard/finance/tasks/journal/entry', NULL::text[]);
 
 SELECT * FROM core.create_menu('Finance', 'Tasks', '', 'lightning', '');
-SELECT * FROM core.create_menu('Finance', 'Journal Entry', '/dashboard/finance/tasks/journal/entry', 'user', 'Tasks');
-SELECT * FROM core.create_menu('Finance', 'Exchange Rates', '/dashboard/finance/tasks/exchange-rates', 'ticket', 'Tasks');
-SELECT * FROM core.create_menu('Finance', 'Journal Verification', '/dashboard/finance/tasks/journal/verification', 'food', 'Tasks');
-SELECT * FROM core.create_menu('Finance', 'Verification Policy', '/dashboard/finance/tasks/verification-policy', 'keyboard', 'Tasks');
-SELECT * FROM core.create_menu('Finance', 'Auto Verification Policy', '/dashboard/finance/tasks/verification-policy/auto', 'keyboard', 'Tasks');
-SELECT * FROM core.create_menu('Finance', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'keyboard', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'Journal Entry', '/dashboard/finance/tasks/journal/entry', 'add square', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'Exchange Rates', '/dashboard/finance/tasks/exchange-rates', 'exchange', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'Journal Verification', '/dashboard/finance/tasks/journal/verification', 'checkmark', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'Verification Policy', '/dashboard/finance/tasks/verification-policy', 'checkmark box', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'Auto Verification Policy', '/dashboard/finance/tasks/verification-policy/auto', 'check circle', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'spinner', 'Tasks');
 
 SELECT * FROM core.create_menu('Finance', 'Setup', 'square outline', 'configure', '');
-SELECT * FROM core.create_menu('Finance', 'Chart of Account', '/dashboard/finance/setup/chart-of-accounts', 'users', 'Setup');
-SELECT * FROM core.create_menu('Finance', 'Currencies', '/dashboard/finance/setup/currencies', 'users', 'Setup');
-SELECT * FROM core.create_menu('Finance', 'Bank Accounts', '/dashboard/finance/setup/bank-accounts', 'users', 'Setup');
-SELECT * FROM core.create_menu('Finance', 'Cash Flow Headings', '/dashboard/finance/setup/cash-flow/headings', 'desktop', 'Setup');
-SELECT * FROM core.create_menu('Finance', 'Cash Flow Setup', '/dashboard/finance/setup/cash-flow/setup', 'film', 'Setup');
-SELECT * FROM core.create_menu('Finance', 'Cost Centers', '/dashboard/finance/setup/cost-centers', 'square outline', 'Setup');
-SELECT * FROM core.create_menu('Finance', 'Cash Repositories', '/dashboard/finance/setup/cash-repositories', 'money', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Chart of Account', '/dashboard/finance/setup/chart-of-accounts', 'sitemap', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Currencies', '/dashboard/finance/setup/currencies', 'dollar', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Bank Accounts', '/dashboard/finance/setup/bank-accounts', 'university', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Cash Flow Headings', '/dashboard/finance/setup/cash-flow/headings', 'book', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Cash Flow Setup', '/dashboard/finance/setup/cash-flow/setup', 'edit', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Cost Centers', '/dashboard/finance/setup/cost-centers', 'closed captioning', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Cash Repositories', '/dashboard/finance/setup/cash-repositories', 'bookmark', 'Setup');
 
-SELECT * FROM core.create_menu('Finance', 'Reports', '', 'configure', '');
-SELECT * FROM core.create_menu('Finance', 'Account Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountStatement.xml', 'money', 'Reports');
-SELECT * FROM core.create_menu('Finance', 'Trial Balance', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/TrialBalance.xml', 'money', 'Reports');
-SELECT * FROM core.create_menu('Finance', 'Profit & Loss Account', '/dashboard/finance/reports/pl-account', 'money', 'Reports');
-SELECT * FROM core.create_menu('Finance', 'Retained Earnings Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/RetainedEarnings.xml', 'money', 'Reports');
-SELECT * FROM core.create_menu('Finance', 'Balance Sheet', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/BalanceSheet.xml', 'money', 'Reports');
-SELECT * FROM core.create_menu('Finance', 'Cash Flow', '/dashboard/finance/reports/cash-flow', 'money', 'Reports');
-SELECT * FROM core.create_menu('Finance', 'Exchange Rate Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ExchangeRates.xml', 'money', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Reports', '', 'block layout', '');
+SELECT * FROM core.create_menu('Finance', 'Account Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountStatement.xml', 'file text outline', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Trial Balance', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/TrialBalance.xml', 'signal', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Profit & Loss Account', '/dashboard/finance/reports/pl-account', 'line chart', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Retained Earnings Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/RetainedEarnings.xml', 'arrow circle down', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Balance Sheet', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/BalanceSheet.xml', 'calculator', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Cash Flow', '/dashboard/finance/reports/cash-flow', 'crosshairs', 'Reports');
+SELECT * FROM core.create_menu('Finance', 'Exchange Rate Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ExchangeRates.xml', 'options', 'Reports');
 
 SELECT * FROM auth.create_app_menu_policy
 (
@@ -5059,6 +5059,33 @@ SELECT
 FROM finance.account_scrud_view
 WHERE account_master_id = 10102
 ORDER BY account_id;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.payable_account_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.payable_account_selector_view;
+
+CREATE VIEW finance.payable_account_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS payable_account_id,
+    finance.account_scrud_view.account_name AS payable_account_name
+FROM finance.account_scrud_view
+WHERE account_master_id = 15010
+ORDER BY account_id;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.receivable_account_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.receivable_account_selector_view;
+
+CREATE VIEW finance.receivable_account_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS receivable_account_id,
+    finance.account_scrud_view.account_name AS receivable_account_name
+FROM finance.account_scrud_view
+WHERE account_master_id = 10110
+ORDER BY account_id;
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/0. finance.transaction_view.sql --<--<--
