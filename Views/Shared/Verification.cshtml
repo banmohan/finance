@@ -1,0 +1,171 @@
+﻿@using MixERP.Finance.Extensions
+@model dynamic
+
+@{
+    ViewBag.Title = "Verification";
+    Layout = ViewBag.FinanceLayoutPath;
+}
+
+@Html.PartialView("Shared/JournalView.cshtml", TenantConvention.GetTenant())
+
+<div id="ActionModal" class="ui modal">
+    <div class="ui massive red header"></div>
+    <div class="ui inverted red content">
+        <div class="ui form">
+            <div class="ui blue large dividing header"></div>
+            <div class="field">
+                <label for="ReasonTextArea">Verification Reason</label>
+                <textarea id="ReasonTextArea"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui buttons">
+            <input type="button" class="ui red cancel button" value="Cancel" />
+            <input type="button" id="VerifyButton" class="ui green ok button" value="Verify" title="CTRL + RETURN" />
+        </div>
+    </div>
+</div>
+
+<script>
+    var reasonTextArea = $("#ReasonTextArea");
+    var journalView = $("#JournalView");
+    var modal = $("#ActionModal");
+    var verifyButton = $("#VerifyButton");
+    var tranId;
+    var approve;
+
+    verifyButton.click(function () {
+        function getModel() {
+            const reason = reasonTextArea.val();
+
+            return {
+                TranId: tranId,
+                Reason: reason
+            };
+        };
+
+        function request(model, type) {
+            const url = "/dashboard/finance/tasks/verification/" + type;
+            const data = JSON.stringify(model);
+
+            return window.getAjaxRequest(url, "POST", data);
+        }
+
+        const model = getModel();
+        const type = approve ? "approve" : "reject";
+
+        const ajax = request(model, type);
+
+        ajax.success(function (response) {
+            var cascadingTranId = parseFloat(response);
+
+            if (cascadingTranId) {
+                journalView.find("tr td:nth-child(3)").each(function (i) {
+                    const tranId = parseFloat($(this).text() || 0);
+
+                    if (cascadingTranId === tranId) {
+                        removeRow(i);
+                    };
+                });
+            };
+
+            journalView.find("input:checked").first().parent().parent().parent().remove();
+            hideModal();
+        });
+
+        ajax.fail(function (xhr) {
+            window.logAjaxErrorMessage(xhr);
+        });
+
+        return false;
+    });
+    shortcut.add("CTRL+RETURN", function () {
+        if (modal.is(":visible")) {
+            verifyButton.trigger("click");
+        };
+    });
+
+    function showModal() {
+        const header = modal.find(".ui.massive.header");
+        const subheader = modal.find(".ui.dividing.header");
+
+        header.html("Reject Transaction");
+        subheader.html(window.stringFormat("TranId: #{0}", tranId));
+        header.removeClass("green").addClass("red");
+
+        if (approve) {
+            header.html("Approve Transaction");
+            header.removeClass("red").addClass("green");
+        };
+
+        modal.modal('setting', 'closable', false).modal('show');
+    };
+
+    function getSelectedItem() {
+        const selected = journalView.find("input:checked").first();
+
+        if (selected.length) {
+            const row = selected.parent().parent().parent();
+            const id = row.find("td:nth-child(3)").html();
+            return parseInt(id);
+        };
+
+        return 0;
+    };
+
+    function removeRow(index, callback) {
+        journalView.find("tr").eq(index + 1).addClass("negative").fadeOut(500, function () {
+            $(this).remove();
+
+            if (typeof (callback) === "function") {
+                callback();
+            };
+        });
+    };
+
+    function hideModal() {
+        modal.modal("hide");
+    };
+
+    function prepareVerification(model) {
+        function getButton(id, text) {
+            const button = $("<a class='ui basic button' />");
+            button.attr("id", id);
+            button.html(text);
+
+            return button;
+        };
+
+        $("#StatusInputText").val("Unverified");
+
+
+        const approveButton = getButton("ApproveButton", "Approve");
+        const rejectButton = getButton("RejectButton", "Reject");
+
+        $("#AddNewButton").after(approveButton);
+        approveButton.after(rejectButton);
+
+
+        approveButton.click(function () {
+            tranId = getSelectedItem();
+
+            if (tranId) {
+                approve = true;
+                showModal();
+            };
+        });
+
+        rejectButton.click(function () {
+            tranId = getSelectedItem();
+
+            if (tranId) {
+                approve = false;
+                showModal();
+            };
+        });
+
+
+        window.prepareView(model);
+    };
+</script>

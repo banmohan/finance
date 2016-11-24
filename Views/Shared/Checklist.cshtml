@@ -1,0 +1,64 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "Checklist";
+    Layout = ViewBag.FinanceLayoutPath;
+}
+<style>
+iframe{
+	display: block;
+	margin:1em 0;
+	width: 800px;
+	height: 800px;
+	border:1px solid #ccc;
+}    
+</style>
+<div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
+    <div class="ui huge title header"></div>
+    <div class="ui divider"></div>
+
+    <div class="ui positive message">The transaction was posted successfully.</div>
+
+    <div class="ui basic  buttons">
+        <a class="ui basic view transaction button"></a>
+        <a class="ui basic add new button"></a>
+        <a class="ui basic withdraw button" onclick="alert('todo');">Cancel/Withdraw Transaction</a>
+    </div>
+
+    <div class="ui header">Notes</div>
+    <div class="ui warning message">No note(s) found.</div>
+    <div class="ui green button">Add Note</div>
+
+
+    <div class="ui header">Documents</div>
+    <div class="ui warning message">No document(s) found.</div>
+    <div class="ui green button">Upload a New Document</div>
+
+
+    <div class="ui header">Reminder</div>
+    <div class="ui warning message">Remind me about this transaction.</div>
+    <div class="ui green button">Add Reminder</div>
+
+    <div class="ui header">Advice</div>
+    <iframe id="ReportIFrame"></iframe>
+    <div class="ui green button">Send Email</div>
+</div>
+
+<script>
+    function prepareChecklist(model) {
+        $(".title.header").html(model.Title);
+        $(".view.transaction.button").html(model.ViewText);
+        $(".view.transaction.button").attr("href", model.ViewUrl);
+        $(".add.new.button").html(model.AddNewText);
+        $(".add.new.button").attr("href", model.AddNewUrl);
+        $("#ReportIFrame").attr("src", model.ReportPath);
+
+        if (!model.ViewText) {
+            $(".view.transaction.button").remove();
+        };
+
+        if (!model.AddNewText) {
+            $(".add.new.button").remove();
+        };
+    };
+</script>
