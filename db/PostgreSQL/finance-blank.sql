@@ -2093,7 +2093,6 @@ LANGUAGE plpgsql;
 
 
 
-
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_net_profit.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_net_profit
 (
