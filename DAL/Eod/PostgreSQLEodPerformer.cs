@@ -86,7 +86,7 @@ namespace MixERP.Finance.DAL.Eod
             {
                 if (e.Notice != null)
                 {
-                    var args = new EodEventArgs(e.Notice.Message, e.Notice.Detail);
+                    var args = new EodEventArgs(e.Notice.MessageText, e.Notice.Detail);
 
                     notificationReceived(this, args);
                 }
