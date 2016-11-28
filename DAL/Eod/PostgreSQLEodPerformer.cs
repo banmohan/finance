@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Frapid.Configuration;
 using MixERP.Finance.AppModels;
 using Npgsql;
+using Frapid.DataAccess.Extensions;
 
 namespace MixERP.Finance.DAL.Eod
 {
@@ -27,7 +28,7 @@ namespace MixERP.Finance.DAL.Eod
 
             using (var command = new NpgsqlCommand(sql))
             {
-                command.Parameters.AddWithValue("@LoginId", loginId);
+                command.Parameters.AddWithNullableValue("@LoginId", loginId);
                 command.CommandTimeout = 3600;
                 eodTask = this.ListenNonQueryAsync(tenant, command);
             }
