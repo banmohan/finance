@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Frapid.Configuration;
 using Frapid.Configuration.Db;
-using MixERP.Finance.AppModels;
+using Frapid.Mapper;
+using Frapid.Mapper.Query.Select;
 using MixERP.Finance.DTO;
 
 namespace MixERP.Finance.DAL
@@ -20,18 +22,20 @@ namespace MixERP.Finance.DAL
         {
             using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
             {
-                var awaiter = await db.Query<FrequencyDates>().Where(x => x.OfficeId == officeId).FirstOrDefaultAsync().ConfigureAwait(false);
-                return awaiter;
+                var sql = new Sql("SELECT * FROM finance.frequency_date_view");
+                sql.Where("office_id=@0", officeId);
+
+                var awaiter = await db.SelectAsync<FrequencyDates>(sql).ConfigureAwait(false);
+                return awaiter.FirstOrDefault();
             }
         }
 
-        public static async Task<List<FrequencyDates>> GetFrequencyDatesAsync(string tenant)
+        public static async Task<IEnumerable<FrequencyDates>> GetFrequencyDatesAsync(string tenant)
         {
             using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
             {
-                var awaiter = await db.Query<FrequencyDates>().ToListAsync().ConfigureAwait(false);
-
-                return awaiter;
+                var sql = new Sql("SELECT * FROM finance.frequency_date_view");
+                return await db.SelectAsync<FrequencyDates>(sql).ConfigureAwait(false);
             }
         }
     }

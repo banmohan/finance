@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 using Frapid.Configuration;
 using Frapid.Configuration.Db;
 using Frapid.Framework.Extensions;
-using Frapid.NPoco;
+using Frapid.Mapper;
+using Frapid.Mapper.Query.Insert;
+using Frapid.Mapper.Query.NonQuery;
 using MixERP.Finance.DTO;
 using MixERP.Finance.ViewModels;
 
@@ -19,12 +21,12 @@ namespace MixERP.Finance.DAL
 
             using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
             {
-                db.BeginTransaction();
+                await db.BeginTransactionAsync().ConfigureAwait(false);
 
                 try
                 {
                     var sql = new Sql("UPDATE finance.exchange_rates SET status = @0 WHERE office_id=@1", false, officeId);
-                    await db.ExecuteAsync(sql);
+                    await db.NonQueryAsync(sql).ConfigureAwait(false);
 
                     var exchangeRate = new ExchangeRate
                     {
@@ -49,14 +51,14 @@ namespace MixERP.Finance.DAL
                             Unit = 1                            
                         };
 
-                        await db.InsertAsync("finance.exchange_rate_details", "exchange_rate_detail_id", true, detail);
+                        await db.InsertAsync("finance.exchange_rate_details", "exchange_rate_detail_id", true, detail).ConfigureAwait(false);
                     }
 
-                    db.CompleteTransaction();
+                    db.CommitTransaction();
                 }
                 catch (Exception)
                 {
-                    db.AbortTransaction();
+                    db.RollbackTransaction();
                 }
 
                 return exchangeRateId;

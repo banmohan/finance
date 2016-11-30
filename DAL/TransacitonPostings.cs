@@ -5,7 +5,9 @@ using Frapid.Configuration;
 using Frapid.Configuration.Db;
 using Frapid.DataAccess;
 using Frapid.Framework.Extensions;
-using Frapid.NPoco;
+using Frapid.Mapper;
+using Frapid.Mapper.Query.Insert;
+using Frapid.Mapper.Query.NonQuery;
 using MixERP.Finance.DTO;
 using MixERP.Finance.ViewModels;
 
@@ -35,7 +37,7 @@ namespace MixERP.Finance.DAL
             {
                 try
                 {
-                    db.BeginTransaction();
+                    await db.BeginTransactionAsync().ConfigureAwait(false);
 
                     var master = new TransactionMaster
                     {
@@ -128,13 +130,13 @@ namespace MixERP.Finance.DAL
                     }
 
                     var sql = new Sql("SELECT * FROM finance.auto_verify(@0::bigint, @1::integer)", transactionMasterId, userInfo.UserId);
-                    await db.ExecuteAsync(sql).ConfigureAwait(false);
+                    await db.NonQueryAsync(sql).ConfigureAwait(false);
 
-                    db.CompleteTransaction();
+                    db.CommitTransaction();
                 }
                 catch (Exception)
                 {
-                    db.AbortTransaction();
+                    db.RollbackTransaction();
                     throw;
                 }
             }

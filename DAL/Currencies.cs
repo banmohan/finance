@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using Frapid.Configuration;
 using Frapid.Configuration.Db;
 using Frapid.DataAccess;
+using Frapid.Mapper;
+using Frapid.Mapper.Query.Select;
 using MixERP.Finance.DTO;
 
 namespace MixERP.Finance.DAL
@@ -15,13 +17,14 @@ namespace MixERP.Finance.DAL
             return await Factory.ScalarAsync<decimal>(tenant, sql, officeId, currencyCode).ConfigureAwait(false);
         }
 
-        public static async Task<List<Currency>> GetCurrenciesAsync(string tenant)
+        public static async Task<IEnumerable<Currency>> GetCurrenciesAsync(string tenant)
         {
             using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
             {
-                var awaiter = await db.Query<Currency>().Where(x => !x.Deleted).ToListAsync().ConfigureAwait(false);
+                var sql = new Sql("SELECT * FROM core.currencies");
+                sql.Where("deleted=@0", false);
 
-                return awaiter;
+                return await db.SelectAsync<Currency>(sql).ConfigureAwait(false);
             }
         }
     }

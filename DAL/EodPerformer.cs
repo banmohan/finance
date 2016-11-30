@@ -1,6 +1,6 @@
 using System;
 using Frapid.Configuration.Db;
-using Frapid.NPoco;
+using Frapid.Mapper.Database;
 using MixERP.Finance.AppModels;
 using MixERP.Finance.DAL.Eod;
 

@@ -40,7 +40,7 @@ namespace MixERP.Finance.Cache
 
             if (applicationDates == null || applicationDates.Count.Equals(0))
             {
-                applicationDates = await FiscalYears.GetFrequencyDatesAsync(tenant).ConfigureAwait(false);
+                applicationDates = (await FiscalYears.GetFrequencyDatesAsync(tenant).ConfigureAwait(false)).ToList();
                 persist = true;
             }
             else

@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Frapid.Configuration;
 using Frapid.Configuration.Db;
 using Frapid.DataAccess;
+using Frapid.Mapper;
+using Frapid.Mapper.Query.Select;
 using MixERP.Finance.DTO;
 
 namespace MixERP.Finance.DAL
@@ -16,16 +18,14 @@ namespace MixERP.Finance.DAL
             return await Factory.ScalarAsync<long>(tenant, sql, accountNumber).ConfigureAwait(false);
         }
 
-        public static async Task<List<Account>> GetAsync(string tenant)
+        public static async Task<IEnumerable<Account>> GetAsync(string tenant)
         {
             using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
             {
-                var awaiter =
-                    await
-                        db.Query<Account>()
-                            .Where(x => !x.Deleted).ToListAsync().ConfigureAwait(false);
+                var sql = new Sql("SELECT * FROM finance.accounts");
+                sql.Where("deleted=@0", false);
 
-                return awaiter;
+                return await db.SelectAsync<Account>(sql).ConfigureAwait(false);
             }
         }
 
@@ -37,16 +37,15 @@ namespace MixERP.Finance.DAL
         }
 
 
-        public static async Task<List<Account>> GetNonConfidentialAsync(string tenant)
+        public static async Task<IEnumerable<Account>> GetNonConfidentialAsync(string tenant)
         {
             using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
             {
-                var awaiter =
-                    await
-                        db.Query<Account>()
-                            .Where(x => !x.Confidential && !x.Deleted).ToListAsync().ConfigureAwait(false);
+                var sql = new Sql("SELECT * FROM finance.accounts");
+                sql.Where("deleted=@0", false);
+                sql.Where("confidential=@0", false);
 
-                return awaiter;
+                return await db.SelectAsync<Account>(sql).ConfigureAwait(false);
             }
         }
     }

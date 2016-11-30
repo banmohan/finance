@@ -1,5 +1,6 @@
 ﻿using Frapid.DataAccess;
-using Frapid.NPoco;
+using Frapid.Mapper.Decorators;
+
 
 namespace MixERP.Finance.DTO
 {
