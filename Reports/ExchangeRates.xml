@@ -49,7 +49,7 @@
         LIMIT 1;
       </Query>
       <Parameters>
-        <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="Number"  DefaultValue="{Meta.OfficeId}" />
+        <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="int"  DefaultValue="{Meta.OfficeId}" />
       </Parameters>
     </DataSource>
     <DataSource>
@@ -67,7 +67,7 @@
         );
       </Query>
       <Parameters>
-        <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="Number"  DefaultValue="{Meta.OfficeId}" />
+        <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="int"  DefaultValue="{Meta.OfficeId}" />
       </Parameters>
     </DataSource>
   </DataSources>

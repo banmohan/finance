@@ -105,7 +105,7 @@
         WHERE finance.transaction_master.transaction_master_id = @transaction_master_id;
       </Query>
       <Parameters>
-        <Parameter Name="@transaction_master_id" FieldLabel="Enter Transaction Id" Type="Number" />
+        <Parameter Name="@transaction_master_id" FieldLabel="Enter Transaction Id" Type="long" />
       </Parameters>
     </DataSource>
     <DataSource>
@@ -140,7 +140,7 @@
         ORDER BY tran_type DESC, amount_in_local_currency DESC;
       </Query>
       <Parameters>
-        <Parameter Name="@transaction_master_id" Type="Number" />
+        <Parameter Name="@transaction_master_id" Type="long" />
       </Parameters>
       <RunningTotalTextColumnIndex>7</RunningTotalTextColumnIndex>
       <RunningTotalFieldIndices>8,9</RunningTotalFieldIndices>
