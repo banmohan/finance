@@ -487,9 +487,12 @@ CREATE TABLE finance.tax_setups
 	tax_setup_id							SERIAL PRIMARY KEY,
 	office_id								integer NOT NULL REFERENCES core.offices,
 	income_tax_rate							public.decimal_strict NOT NULL,
-	audit_user_id                       	integer NULL REFERENCES account.users,            
+	income_tax_account_id					integer NOT NULL REFERENCES finance.accounts,
+	sales_tax_rate							public.decimal_strict NOT NULL,
+	sales_tax_account_id					integer NOT NULL REFERENCES finance.accounts,
+	audit_user_id                       	integer NULL REFERENCES account.users,
 	audit_ts                            	TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
-	deleted									boolean DEFAULT(false)                                            
+	deleted									boolean DEFAULT(false)
 );
 
 CREATE UNIQUE INDEX tax_setup_office_id_uix
@@ -2476,6 +2479,22 @@ END
 $$
 LANGUAGE plpgsql;
 
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_sales_tax_account_id_by_office_id.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_sales_tax_account_id_by_office_id(_office_id integer);
+
+CREATE FUNCTION finance.get_sales_tax_account_id_by_office_id(_office_id integer)
+RETURNS integer
+AS
+$$
+BEGIN
+    RETURN finance.tax_setups.sales_tax_account_id
+    FROM finance.tax_setups
+    WHERE NOT finance.tax_setups.deleted
+    AND finance.tax_setups.office_id = _office_id;
+END
+$$
+LANGUAGE plpgsql;
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_second_root_account_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_second_root_account_id(integer, integer);

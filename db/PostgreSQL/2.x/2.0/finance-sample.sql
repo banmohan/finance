@@ -587,6 +587,10 @@ SELECT 'FY1617', 'Apr-May', '2017-05-14'::date, 2, core.get_office_id_by_office_
 SELECT 'FY1617', 'May-Jun', '2017-06-15'::date, 2, core.get_office_id_by_office_name('Default') UNION ALL
 SELECT 'FY1617', 'Jun-Jul', '2017-07-16'::date, 5, core.get_office_id_by_office_name('Default');
 
+INSERT INTO finance.tax_setups(office_id, income_tax_rate, income_tax_account_id, sales_tax_rate, sales_tax_account_id)
+SELECT office_id, 25, finance.get_account_id_by_account_number('20770'), 13, finance.get_account_id_by_account_number('20710')
+FROM core.offices;
+
 
 --ROLLBACK TRANSACTION;
 

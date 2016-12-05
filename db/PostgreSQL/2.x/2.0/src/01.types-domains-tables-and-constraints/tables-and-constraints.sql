@@ -486,9 +486,12 @@ CREATE TABLE finance.tax_setups
 	tax_setup_id							SERIAL PRIMARY KEY,
 	office_id								integer NOT NULL REFERENCES core.offices,
 	income_tax_rate							public.decimal_strict NOT NULL,
-	audit_user_id                       	integer NULL REFERENCES account.users,            
+	income_tax_account_id					integer NOT NULL REFERENCES finance.accounts,
+	sales_tax_rate							public.decimal_strict NOT NULL,
+	sales_tax_account_id					integer NOT NULL REFERENCES finance.accounts,
+	audit_user_id                       	integer NULL REFERENCES account.users,
 	audit_ts                            	TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
-	deleted									boolean DEFAULT(false)                                            
+	deleted									boolean DEFAULT(false)
 );
 
 CREATE UNIQUE INDEX tax_setup_office_id_uix
