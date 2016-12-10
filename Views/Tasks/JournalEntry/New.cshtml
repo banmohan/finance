@@ -466,7 +466,7 @@
         window.removeDirty(cashRepositorySelect);
 
         if (cashRepositorySelect.find("option").size() > 1 && window.isNullOrWhiteSpace(cashRepositorySelect.getSelectedValue())) {
-            $.notify("Invalid cash repository specified.");
+            window.displayMessage("Invalid cash repository specified.");
             return;
         };
 
@@ -475,12 +475,12 @@
         if (isCash) {
             if (window.isNullOrWhiteSpace(cashRepositoryCode)) {
                 window.makeDirty(cashRepositorySelect);
-                $.notify("Invalid cash repository specified.", "error");
+                window.displayMessage("Invalid cash repository specified.", "error");
                 return;
             };
         } else {
             if (!window.isNullOrWhiteSpace(cashRepositoryCode)) {
-                $.notify("Invalid cash repository specified.");
+                window.displayMessage("Invalid cash repository specified.");
                 window.makeDirty(cashRepositorySelect);
                 return;
             };
@@ -510,7 +510,7 @@
                     var hasBalance = response;
 
                     if (!hasBalance) {
-                        $.notify("Not enough balance in the cash repository " + cashRepositoryCode, "error");
+                        window.displayMessage("Not enough balance in the cash repository " + cashRepositoryCode, "error");
                         removeLoader(transactionGridView);
                         window.makeDirty(cashRepositorySelect);
                         return;
@@ -540,7 +540,7 @@
 
             if (!isCash) {
                 if (window.getColumnText(row, 1) === accountNumber) {
-                    $.notify("Duplicate entry.");
+                    window.displayMessage("Duplicate entry.");
                     window.makeDirty(accountNumberInputText);
                     duplicateEntry = true;
 
@@ -551,7 +551,7 @@
 
             if (isCash) {
                 if (window.getColumnText(row, 3) === cashRepository) {
-                    $.notify("Duplicate entry");
+                    window.displayMessage("Duplicate entry");
                     window.makeDirty(accountNumberInputText);
                     duplicateEntry = true;
                 };
@@ -773,7 +773,7 @@
         summate();
 
         if (parseFloat(debitTotalTextBox.val() || 0) !== parseFloat(creditTotalTextBox.val() || 0)) {
-            $.notify("Referencing sides are not equal.", "error");
+            window.displayMessage("Referencing sides are not equal.", "error");
             return false;
         };
 
