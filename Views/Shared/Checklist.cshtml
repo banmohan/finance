@@ -5,15 +5,43 @@
     Layout = ViewBag.FinanceLayoutPath;
 }
 <style>
-iframe{
-	display: block;
-	margin:1em 0;
-	width: 800px;
-	height: 800px;
-	border:1px solid #ccc;
-}    
+    iframe {
+        display: block;
+        margin: 1em 0;
+        width: 800px;
+        height: 800px;
+        border: 1px solid #ccc;
+    }
+
+    .checklist.segment .form:not(.unstyled),
+    .checklist.segment .message {
+        max-width: 800px;
+    }
+
+
+
+    .choices {
+        display: flex;
+    }
+
+    .choice {
+        background: #999;
+        padding: 0.5em 1.25em;
+        cursor: pointer;
+        color: #eee;
+    }
+
+        .choice.active,
+        .choice:hover {
+            background: #777;
+            color: #eee;
+        }
+
+        .selection.group .field:last-child {
+            padding-bottom: 1em;
+        }
 </style>
-<div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
+<div class="ui attached page checklist segment" style="min-height: 100%; padding: 3em;">
     <div class="ui huge title header"></div>
     <div class="ui divider"></div>
 
@@ -26,8 +54,13 @@ iframe{
     </div>
 
     <div class="ui header">Notes</div>
-    <div class="ui warning message">No note(s) found.</div>
-    <div class="ui green button">Add Note</div>
+    <div class="ui warning message">You haven't left a note yet.</div>
+    <div class="ui form">
+        <div class="field">
+            <textarea rows="2"></textarea>
+        </div>
+        <div class="ui green button">Add Note</div>
+    </div>
 
 
     <div class="ui header">Documents</div>
@@ -36,14 +69,129 @@ iframe{
 
 
     <div class="ui header">Reminder</div>
-    <div class="ui warning message">Remind me about this transaction.</div>
-    <div class="ui green button">Add Reminder</div>
+    <div class="ui warning message">No reminder was set.</div>
+    <div class="ui green add reminder button">Create a New Reminder</div>
+
 
     <div class="ui header">Advice</div>
     <iframe id="ReportIFrame"></iframe>
-    <div class="ui green button">Send Email</div>
+    <div class="ui green button">Email Me This Document</div>
 </div>
 
+<div class="ui reminder small modal">
+    <i class="close icon"></i>
+        <div class="header">Create a New Reminder</div>
+    <div class="content">
+        <div class="ui padded unstyled form">
+            <div class="field">
+                <label>Title</label>
+                <input placeholder="Remind Me About"/>
+            </div>
+            <div class="selection group">
+                <div class="field">
+                    <label>Whom to Remind?</label>
+                    <div class="single selection choices">
+                        <div tabindex="0" data-selection="" class="active choice">Only Me</div>
+                        <div tabindex="0" data-selection="role" class="choice">Selected Role(s)</div>
+                        <div tabindex="0" data-selection="user" class="choice">Selected Users(s)</div>
+                    </div>
+                </div>
+                <div class="role selection field" style="display: none;">
+                    <label>Select Roles</label>
+                    <select class="ui collapsing select dropdown"></select>
+                </div>
+                <div class="user selection field" style="display: none;">
+                    <label>Select Users</label>
+                    <select class="ui collapsing select dropdown"></select>
+                </div>                
+            </div>
+            <div class="field">
+                <label>Starts From</label>
+                <div class="fields">
+                    <div class="three wide field">
+                        <input type="text" class="date" value="d" />
+                    </div>
+                    <div class="two wide field">
+                        <input type="text" class="time" />
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label>Ends On</label>
+                <div class="fields">
+                    <div class="three wide field">
+                        <input type="text" class="date" value="7d" />
+                    </div>
+                    <div class="two wide field">
+                        <input type="text" class="time" />
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label>Enter Description for Reminder</label>
+                <textarea></textarea>
+            </div>
+            <div class="selection group">
+                <div class="field">
+                    <label>Repeat?</label>
+                    <div class="single selection choices">
+                        <div tabindex="0" data-selection="" class="active choice">No</div>
+                        <div tabindex="0" data-selection="repeat.hour.value" class="choice">Hour</div>
+                        <div tabindex="0" data-selection="repeat.day.value" class="choice">Day</div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="four fields">
+                        <div class="repeat hour value selection field" style="display: none;">
+                            <label>Repeat Every</label>
+                            <input/>
+                            <label>hours</label>
+                        </div>
+                        <div class="repeat day value selection field" style="display: none;">
+                            <label>Repeat Every</label>
+                            <input />
+                            <label>days</label>
+                        </div>                        
+                        <div class="field">
+                            <label>Remind Me at Least</label>
+                            <input type="text" value="2" />
+                            <label>hours before the schedule</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <div class="ui checkbox">
+                    <input type="checkbox" checked="checked" />
+                    <label>Display This Reminder to Other Users</label>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="ui checkbox">
+                    <input type="checkbox" checked="checked" />
+                    <label>Send Me an Email</label>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="ui checkbox">
+                    <input type="checkbox"  />
+                    <label>Including Other Participants</label>
+                </div>
+            </div>
+            <div class="field">
+                <div class="ui checkbox">
+                    <input type="checkbox" />
+                    <label>Attach All Documents</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui deny button">Cancel</div>
+        <div class="ui positive button">OK</div>
+    </div></div>
 <script>
     function prepareChecklist(model) {
         $(".title.header").html(model.Title);
@@ -61,4 +209,33 @@ iframe{
             $(".add.new.button").remove();
         };
     };
+
+    $(".selection.choices .choice").off("click").on("click", function () {
+        const el = $(this);
+        const singleSelection = el.parent().hasClass("single");
+
+        if (singleSelection) {
+            el.parent().find(".choice").removeClass("active");
+        };
+
+        el.toggleClass("active");
+
+        const active = el.hasClass("active");
+        if (!active) {
+            return;
+        };
+
+        const selection = el.attr("data-selection");
+
+        el.closest(".selection.group").find(".selection.field").hide();
+
+        if (selection) {
+            $("." + selection + ".selection.field").show();
+        };
+    });
+
+    $(".add.reminder.button").off("click").on("click", function() {
+        $(".reminder.modal").modal("show");
+        $(".time").timepicker('setTime', new Date());
+    });
 </script>

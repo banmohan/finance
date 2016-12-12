@@ -33,7 +33,6 @@ namespace ASP
     using Frapid.Framework;
     using Frapid.i18n;
     using Frapid.Messaging;
-    
     using Frapid.WebsiteBuilder;
     using MixERP.Finance;
     
@@ -55,10 +54,47 @@ namespace ASP
             
             #line default
             #line hidden
-WriteLiteral("\r\n<style>\r\niframe{\r\n\tdisplay: block;\r\n\tmargin:1em 0;\r\n\twidth: 800px;\r\n\theight: 80" +
-"0px;\r\n\tborder:1px solid #ccc;\r\n}    \r\n</style>\r\n<div");
+WriteLiteral(@"
+<style>
+    iframe {
+        display: block;
+        margin: 1em 0;
+        width: 800px;
+        height: 800px;
+        border: 1px solid #ccc;
+    }
 
-WriteLiteral(" class=\"ui attached page segment\"");
+    .checklist.segment .form:not(.unstyled),
+    .checklist.segment .message {
+        max-width: 800px;
+    }
+
+
+
+    .choices {
+        display: flex;
+    }
+
+    .choice {
+        background: #999;
+        padding: 0.5em 1.25em;
+        cursor: pointer;
+        color: #eee;
+    }
+
+        .choice.active,
+        .choice:hover {
+            background: #777;
+            color: #eee;
+        }
+
+        .selection.group .field:last-child {
+            padding-bottom: 1em;
+        }
+</style>
+<div");
+
+WriteLiteral(" class=\"ui attached page checklist segment\"");
 
 WriteLiteral(" style=\"min-height: 100%; padding: 3em;\"");
 
@@ -100,11 +136,23 @@ WriteLiteral(">Notes</div>\r\n    <div");
 
 WriteLiteral(" class=\"ui warning message\"");
 
-WriteLiteral(">No note(s) found.</div>\r\n    <div");
+WriteLiteral(">You haven\'t left a note yet.</div>\r\n    <div");
+
+WriteLiteral(" class=\"ui form\"");
+
+WriteLiteral(">\r\n        <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n            <textarea");
+
+WriteLiteral(" rows=\"2\"");
+
+WriteLiteral("></textarea>\r\n        </div>\r\n        <div");
 
 WriteLiteral(" class=\"ui green button\"");
 
-WriteLiteral(">Add Note</div>\r\n\r\n\r\n    <div");
+WriteLiteral(">Add Note</div>\r\n    </div>\r\n\r\n\r\n    <div");
 
 WriteLiteral(" class=\"ui header\"");
 
@@ -124,11 +172,11 @@ WriteLiteral(">Reminder</div>\r\n    <div");
 
 WriteLiteral(" class=\"ui warning message\"");
 
-WriteLiteral(">Remind me about this transaction.</div>\r\n    <div");
+WriteLiteral(">No reminder was set.</div>\r\n    <div");
 
-WriteLiteral(" class=\"ui green button\"");
+WriteLiteral(" class=\"ui green add reminder button\"");
 
-WriteLiteral(">Add Reminder</div>\r\n\r\n    <div");
+WriteLiteral(">Create a New Reminder</div>\r\n\r\n\r\n    <div");
 
 WriteLiteral(" class=\"ui header\"");
 
@@ -140,9 +188,303 @@ WriteLiteral("></iframe>\r\n    <div");
 
 WriteLiteral(" class=\"ui green button\"");
 
-WriteLiteral(@">Send Email</div>
-</div>
+WriteLiteral(">Email Me This Document</div>\r\n</div>\r\n\r\n<div");
 
+WriteLiteral(" class=\"ui reminder small modal\"");
+
+WriteLiteral(">\r\n    <i");
+
+WriteLiteral(" class=\"close icon\"");
+
+WriteLiteral("></i>\r\n        <div");
+
+WriteLiteral(" class=\"header\"");
+
+WriteLiteral(">Create a New Reminder</div>\r\n    <div");
+
+WriteLiteral(" class=\"content\"");
+
+WriteLiteral(">\r\n        <div");
+
+WriteLiteral(" class=\"ui padded unstyled form\"");
+
+WriteLiteral(">\r\n            <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                <label>Title</label>\r\n                <input");
+
+WriteLiteral(" placeholder=\"Remind Me About\"");
+
+WriteLiteral("/>\r\n            </div>\r\n            <div");
+
+WriteLiteral(" class=\"selection group\"");
+
+WriteLiteral(">\r\n                <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                    <label>Whom to Remind?</label>\r\n                    <div");
+
+WriteLiteral(" class=\"single selection choices\"");
+
+WriteLiteral(">\r\n                        <div");
+
+WriteLiteral(" tabindex=\"0\"");
+
+WriteLiteral(" data-selection=\"\"");
+
+WriteLiteral(" class=\"active choice\"");
+
+WriteLiteral(">Only Me</div>\r\n                        <div");
+
+WriteLiteral(" tabindex=\"0\"");
+
+WriteLiteral(" data-selection=\"role\"");
+
+WriteLiteral(" class=\"choice\"");
+
+WriteLiteral(">Selected Role(s)</div>\r\n                        <div");
+
+WriteLiteral(" tabindex=\"0\"");
+
+WriteLiteral(" data-selection=\"user\"");
+
+WriteLiteral(" class=\"choice\"");
+
+WriteLiteral(">Selected Users(s)</div>\r\n                    </div>\r\n                </div>\r\n   " +
+"             <div");
+
+WriteLiteral(" class=\"role selection field\"");
+
+WriteLiteral(" style=\"display: none;\"");
+
+WriteLiteral(">\r\n                    <label>Select Roles</label>\r\n                    <select");
+
+WriteLiteral(" class=\"ui collapsing select dropdown\"");
+
+WriteLiteral("></select>\r\n                </div>\r\n                <div");
+
+WriteLiteral(" class=\"user selection field\"");
+
+WriteLiteral(" style=\"display: none;\"");
+
+WriteLiteral(">\r\n                    <label>Select Users</label>\r\n                    <select");
+
+WriteLiteral(" class=\"ui collapsing select dropdown\"");
+
+WriteLiteral("></select>\r\n                </div>                \r\n            </div>\r\n         " +
+"   <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                <label>Starts From</label>\r\n                <div");
+
+WriteLiteral(" class=\"fields\"");
+
+WriteLiteral(">\r\n                    <div");
+
+WriteLiteral(" class=\"three wide field\"");
+
+WriteLiteral(">\r\n                        <input");
+
+WriteLiteral(" type=\"text\"");
+
+WriteLiteral(" class=\"date\"");
+
+WriteLiteral(" value=\"d\"");
+
+WriteLiteral(" />\r\n                    </div>\r\n                    <div");
+
+WriteLiteral(" class=\"two wide field\"");
+
+WriteLiteral(">\r\n                        <input");
+
+WriteLiteral(" type=\"text\"");
+
+WriteLiteral(" class=\"time\"");
+
+WriteLiteral(" />\r\n                    </div>\r\n                </div>\r\n            </div>\r\n    " +
+"        <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                <label>Ends On</label>\r\n                <div");
+
+WriteLiteral(" class=\"fields\"");
+
+WriteLiteral(">\r\n                    <div");
+
+WriteLiteral(" class=\"three wide field\"");
+
+WriteLiteral(">\r\n                        <input");
+
+WriteLiteral(" type=\"text\"");
+
+WriteLiteral(" class=\"date\"");
+
+WriteLiteral(" value=\"7d\"");
+
+WriteLiteral(" />\r\n                    </div>\r\n                    <div");
+
+WriteLiteral(" class=\"two wide field\"");
+
+WriteLiteral(">\r\n                        <input");
+
+WriteLiteral(" type=\"text\"");
+
+WriteLiteral(" class=\"time\"");
+
+WriteLiteral(" />\r\n                    </div>\r\n                </div>\r\n            </div>\r\n    " +
+"        <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                <label>Enter Description for Reminder</label>\r\n               " +
+" <textarea></textarea>\r\n            </div>\r\n            <div");
+
+WriteLiteral(" class=\"selection group\"");
+
+WriteLiteral(">\r\n                <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                    <label>Repeat?</label>\r\n                    <div");
+
+WriteLiteral(" class=\"single selection choices\"");
+
+WriteLiteral(">\r\n                        <div");
+
+WriteLiteral(" tabindex=\"0\"");
+
+WriteLiteral(" data-selection=\"\"");
+
+WriteLiteral(" class=\"active choice\"");
+
+WriteLiteral(">No</div>\r\n                        <div");
+
+WriteLiteral(" tabindex=\"0\"");
+
+WriteLiteral(" data-selection=\"repeat.hour.value\"");
+
+WriteLiteral(" class=\"choice\"");
+
+WriteLiteral(">Hour</div>\r\n                        <div");
+
+WriteLiteral(" tabindex=\"0\"");
+
+WriteLiteral(" data-selection=\"repeat.day.value\"");
+
+WriteLiteral(" class=\"choice\"");
+
+WriteLiteral(">Day</div>\r\n                    </div>\r\n                </div>\r\n                <" +
+"div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                    <div");
+
+WriteLiteral(" class=\"four fields\"");
+
+WriteLiteral(">\r\n                        <div");
+
+WriteLiteral(" class=\"repeat hour value selection field\"");
+
+WriteLiteral(" style=\"display: none;\"");
+
+WriteLiteral(">\r\n                            <label>Repeat Every</label>\r\n                     " +
+"       <input/>\r\n                            <label>hours</label>\r\n             " +
+"           </div>\r\n                        <div");
+
+WriteLiteral(" class=\"repeat day value selection field\"");
+
+WriteLiteral(" style=\"display: none;\"");
+
+WriteLiteral(">\r\n                            <label>Repeat Every</label>\r\n                     " +
+"       <input />\r\n                            <label>days</label>\r\n             " +
+"           </div>                        \r\n                        <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                            <label>Remind Me at Least</label>\r\n               " +
+"             <input");
+
+WriteLiteral(" type=\"text\"");
+
+WriteLiteral(" value=\"2\"");
+
+WriteLiteral(" />\r\n                            <label>hours before the schedule</label>\r\n      " +
+"                  </div>\r\n                    </div>\r\n                </div>\r\n  " +
+"          </div>\r\n            <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                <div");
+
+WriteLiteral(" class=\"ui checkbox\"");
+
+WriteLiteral(">\r\n                    <input");
+
+WriteLiteral(" type=\"checkbox\"");
+
+WriteLiteral(" checked=\"checked\"");
+
+WriteLiteral(" />\r\n                    <label>Display This Reminder to Other Users</label>\r\n   " +
+"             </div>\r\n            </div>\r\n\r\n            <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                <div");
+
+WriteLiteral(" class=\"ui checkbox\"");
+
+WriteLiteral(">\r\n                    <input");
+
+WriteLiteral(" type=\"checkbox\"");
+
+WriteLiteral(" checked=\"checked\"");
+
+WriteLiteral(" />\r\n                    <label>Send Me an Email</label>\r\n                </div>\r" +
+"\n            </div>\r\n\r\n            <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                <div");
+
+WriteLiteral(" class=\"ui checkbox\"");
+
+WriteLiteral(">\r\n                    <input");
+
+WriteLiteral(" type=\"checkbox\"");
+
+WriteLiteral("  />\r\n                    <label>Including Other Participants</label>\r\n          " +
+"      </div>\r\n            </div>\r\n            <div");
+
+WriteLiteral(" class=\"field\"");
+
+WriteLiteral(">\r\n                <div");
+
+WriteLiteral(" class=\"ui checkbox\"");
+
+WriteLiteral(">\r\n                    <input");
+
+WriteLiteral(" type=\"checkbox\"");
+
+WriteLiteral(" />\r\n                    <label>Attach All Documents</label>\r\n                </d" +
+"iv>\r\n            </div>\r\n        </div>\r\n    </div>\r\n    <div");
+
+WriteLiteral(" class=\"actions\"");
+
+WriteLiteral(">\r\n        <div");
+
+WriteLiteral(" class=\"ui deny button\"");
+
+WriteLiteral(">Cancel</div>\r\n        <div");
+
+WriteLiteral(" class=\"ui positive button\"");
+
+WriteLiteral(@">OK</div>
+    </div></div>
 <script>
     function prepareChecklist(model) {
         $("".title.header"").html(model.Title);
@@ -160,6 +502,35 @@ WriteLiteral(@">Send Email</div>
             $("".add.new.button"").remove();
         };
     };
+
+    $("".selection.choices .choice"").off(""click"").on(""click"", function () {
+        const el = $(this);
+        const singleSelection = el.parent().hasClass(""single"");
+
+        if (singleSelection) {
+            el.parent().find("".choice"").removeClass(""active"");
+        };
+
+        el.toggleClass(""active"");
+
+        const active = el.hasClass(""active"");
+        if (!active) {
+            return;
+        };
+
+        const selection = el.attr(""data-selection"");
+
+        el.closest("".selection.group"").find("".selection.field"").hide();
+
+        if (selection) {
+            $(""."" + selection + "".selection.field"").show();
+        };
+    });
+
+    $("".add.reminder.button"").off(""click"").on(""click"", function() {
+        $("".reminder.modal"").modal(""show"");
+        $("".time"").timepicker('setTime', new Date());
+    });
 </script>");
 
         }
