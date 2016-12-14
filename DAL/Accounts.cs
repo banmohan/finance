@@ -12,10 +12,10 @@ namespace MixERP.Finance.DAL
 {
     public static class Accounts
     {
-        public static async Task<long> GetAccountIdByAccountNumberAsync(string tenant, string accountNumber)
+        public static async Task<int> GetAccountIdByAccountNumberAsync(string tenant, string accountNumber)
         {
             const string sql = "SELECT finance.get_account_id_by_account_number(@0)";
-            return await Factory.ScalarAsync<long>(tenant, sql, accountNumber).ConfigureAwait(false);
+            return await Factory.ScalarAsync<int>(tenant, sql, accountNumber).ConfigureAwait(false);
         }
 
         public static async Task<IEnumerable<Account>> GetAsync(string tenant)
