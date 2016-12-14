@@ -9,7 +9,7 @@ namespace MixERP.Finance.DTO
     [TableName("finance.accounts")]
     public sealed class Account : IPoco
     {
-        public long AccountId { get; set; }
+        public int AccountId { get; set; }
         public short AccountMasterId { get; set; }
         public string AccountNumber { get; set; }
         public string ExternalCode { get; set; }

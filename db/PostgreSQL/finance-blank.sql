@@ -165,10 +165,10 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.accounts
 (
-    account_id                              BIGSERIAL PRIMARY KEY,
+    account_id                              SERIAL PRIMARY KEY,
     account_master_id                       smallint NOT NULL REFERENCES finance.account_masters,
-    account_number                          national character varying(12) NOT NULL,
-    external_code                           national character varying(12) NULL CONSTRAINT accounts_external_code_df DEFAULT(''),
+    account_number                          national character varying(24) NOT NULL,
+    external_code                           national character varying(24) NULL CONSTRAINT accounts_external_code_df DEFAULT(''),
     currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
     account_name                            national character varying(100) NOT NULL,
     description                             national character varying(200) NULL,
@@ -176,7 +176,7 @@ CREATE TABLE finance.accounts
     is_transaction_node                     boolean NOT NULL --Non transaction nodes cannot be used in transaction.
                                             CONSTRAINT accounts_is_transaction_node_df DEFAULT(true),
     sys_type                                boolean NOT NULL CONSTRAINT accounts_sys_type_df DEFAULT(false),
-    parent_account_id                       bigint NULL REFERENCES finance.accounts,
+    parent_account_id                       integer NULL REFERENCES finance.accounts,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
@@ -223,7 +223,7 @@ WHERE NOT deleted;
 CREATE TABLE finance.bank_accounts
 (
 	bank_account_id							SERIAL PRIMARY KEY,
-    account_id                              bigint REFERENCES finance.accounts,                                            
+    account_id                              integer REFERENCES finance.accounts,                                            
     maintained_by_user_id                   integer NOT NULL REFERENCES account.users,
 	is_merchant_account 					boolean NOT NULL DEFAULT(false),
     office_id                               integer NOT NULL REFERENCES core.offices,
@@ -347,7 +347,7 @@ CREATE TABLE finance.transaction_details
     value_date                              date NOT NULL,
     book_date                              	date NOT NULL,
     tran_type                               national character varying(4) NOT NULL CHECK(tran_type IN ('Dr', 'Cr')),
-    account_id                              bigint NOT NULL REFERENCES finance.accounts,
+    account_id                              integer NOT NULL REFERENCES finance.accounts,
     statement_reference                     text,
     cash_repository_id                      integer REFERENCES finance.cash_repositories,
     currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
@@ -402,11 +402,11 @@ WHERE NOT deleted;
 CREATE TABLE finance.merchant_fee_setup
 (
 	merchant_fee_setup_id               	SERIAL PRIMARY KEY,
-	merchant_account_id                 	bigint NOT NULL REFERENCES finance.bank_accounts,
+	merchant_account_id                 	integer NOT NULL REFERENCES finance.bank_accounts,
 	payment_card_id                     	integer NOT NULL REFERENCES finance.payment_cards,
 	rate                                	public.decimal_strict NOT NULL,
 	customer_pays_fee                   	boolean NOT NULL DEFAULT(false),
-	account_id                          	bigint NOT NULL REFERENCES finance.accounts,
+	account_id                          	integer NOT NULL REFERENCES finance.accounts,
 	statement_reference                 	national character varying(128) NOT NULL DEFAULT(''),
 	audit_user_id                       	integer NULL REFERENCES account.users,            
 	audit_ts                            	TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
@@ -733,6 +733,34 @@ LANGUAGE plpgsql;
 
 --SELECT finance.can_post_transaction(1, 1, 1, 'Sales', '1-1-2020');
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.convert_exchange_rate.sql --<--<--
+DROP FUNCTION IF EXISTS finance.convert_exchange_rate(office_id integer, source_currency_code national character varying(12), destination_currency_code national character varying(12));
+
+CREATE FUNCTION finance.convert_exchange_rate(office_id integer, source_currency_code national character varying(12), destination_currency_code national character varying(12))
+RETURNS decimal_strict2
+AS
+$$
+    DECLARE _unit integer_strict2 = 0;
+    DECLARE _exchange_rate decimal_strict2=0;
+    DECLARE _from_source_currency decimal_strict2=0;
+    DECLARE _from_destination_currency decimal_strict2=0;
+BEGIN
+    IF($2 = $3) THEN
+        RETURN 1;
+    END IF;
+
+
+    _from_source_currency := finance.get_exchange_rate($1, $2);
+    _from_destination_currency := finance.get_exchange_rate($1, $3);
+        
+    RETURN _from_source_currency / _from_destination_currency ; 
+END
+$$
+LANGUAGE plpgsql;
+
+--SELECT * FROM  finance.convert_exchange_rate(1, 'USD', 'NPR');
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.create_routine.sql --<--<--
 DROP FUNCTION IF EXISTS finance.create_routine(_routine_code national character varying(12), _routine regproc, _order integer);
 
@@ -1018,9 +1046,9 @@ LANGUAGE plpgsql;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_ids.sql --<--<--
-DROP FUNCTION IF EXISTS finance.get_account_ids(root_account_id bigint);
+DROP FUNCTION IF EXISTS finance.get_account_ids(root_account_id integer);
 
-CREATE FUNCTION finance.get_account_ids(root_account_id bigint)
+CREATE FUNCTION finance.get_account_ids(root_account_id integer)
 RETURNS SETOF bigint
 STABLE
 AS
@@ -1091,9 +1119,9 @@ LANGUAGE plpgsql;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_name.sql --<--<--
-DROP FUNCTION IF EXISTS finance.get_account_name_by_account_id(bigint);
+DROP FUNCTION IF EXISTS finance.get_account_name_by_account_id(_account_id integer);
 
-CREATE FUNCTION finance.get_account_name_by_account_id(_account_id bigint)
+CREATE FUNCTION finance.get_account_name_by_account_id(_account_id integer)
 RETURNS text
 STABLE
 AS
@@ -1101,7 +1129,7 @@ $$
 BEGIN
     RETURN account_name
     FROM finance.accounts
-    WHERE finance.accounts.account_id=$1
+    WHERE finance.accounts.account_id=_account_id
 	AND NOT finance.accounts.deleted;
 END
 $$
@@ -1114,7 +1142,7 @@ DROP FUNCTION IF EXISTS finance.get_account_statement
     _value_date_from        date,
     _value_date_to          date,
     _user_id                integer,
-    _account_id             bigint,
+    _account_id             integer,
     _office_id              integer
 );
 
@@ -1123,7 +1151,7 @@ CREATE FUNCTION finance.get_account_statement
     _value_date_from        date,
     _value_date_to          date,
     _user_id                integer,
-    _account_id             bigint,
+    _account_id             integer,
     _office_id              integer
 )
 RETURNS TABLE
@@ -1303,255 +1331,6 @@ LANGUAGE plpgsql;
 --SELECT * FROM finance.get_account_statement('1-1-2010','1-1-2020',1,1,1);
 
 
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_balance_sheet.sql --<--<--
-DROP FUNCTION IF EXISTS finance.get_balance_sheet
-(
-    _previous_period                date,
-    _current_period                 date,
-    _user_id                        integer,
-    _office_id                      integer,
-    _factor                         integer
-);
-
-CREATE FUNCTION finance.get_balance_sheet
-(
-    _previous_period                date,
-    _current_period                 date,
-    _user_id                        integer,
-    _office_id                      integer,
-    _factor                         integer
-)
-RETURNS TABLE
-(
-    id                              bigint,
-    item                            text,
-    previous_period                 decimal(24, 4),
-    current_period                  decimal(24, 4),
-    account_id                      integer,
-    account_number                  text,
-    is_retained_earning             boolean
-)
-AS
-$$
-    DECLARE this                    RECORD;
-    DECLARE _date_from              date;
-BEGIN
-    _date_from := finance.get_fiscal_year_start_date(_office_id);
-
-    IF(COALESCE(_factor, 0) = 0) THEN
-        _factor := 1;
-    END IF;
-
-    DROP TABLE IF EXISTS bs_temp;
-    CREATE TEMPORARY TABLE bs_temp
-    (
-        item_id                     int PRIMARY KEY,
-        item                        text,
-        account_number              text,
-        account_id                  integer,
-        child_accounts              integer[],
-        parent_item_id              integer REFERENCES bs_temp(item_id),
-        is_debit                    boolean DEFAULT(false),
-        previous_period             decimal(24, 4) DEFAULT(0),
-        current_period              decimal(24, 4) DEFAULT(0),
-        sort                        int,
-        skip                        boolean DEFAULT(false),
-        is_retained_earning         boolean DEFAULT(false)
-    ) ON COMMIT DROP;
-    
-    --BS structure setup start
-    INSERT INTO bs_temp(item_id, item, parent_item_id)
-    SELECT  1,       'Assets',                              NULL::numeric   UNION ALL
-    SELECT  10100,   'Current Assets',                      1               UNION ALL
-    SELECT  10101,   'Cash A/C',                            1               UNION ALL
-    SELECT  10102,   'Bank A/C',                            1               UNION ALL
-    SELECT  10110,   'Accounts Receivable',                 10100           UNION ALL
-    SELECT  10200,   'Fixed Assets',                        1               UNION ALL
-    SELECT  10201,   'Property, Plants, and Equipments',    10201           UNION ALL
-    SELECT  10300,   'Other Assets',                        1               UNION ALL
-    SELECT  14900,   'Liabilities & Shareholders'' Equity', NULL            UNION ALL
-    SELECT  15000,   'Current Liabilities',                 14900           UNION ALL
-    SELECT  15010,   'Accounts Payable',                    15000           UNION ALL
-    SELECT  15011,   'Salary Payable',                      15000           UNION ALL
-    SELECT  15100,   'Long-Term Liabilities',               14900           UNION ALL
-    SELECT  15200,   'Shareholders'' Equity',               14900           UNION ALL
-    SELECT  15300,   'Retained Earnings',                   15200;
-
-    UPDATE bs_temp SET is_debit = true WHERE bs_temp.item_id <= 10300;
-    UPDATE bs_temp SET is_retained_earning = true WHERE bs_temp.item_id = 15300;
-    
-    INSERT INTO bs_temp(item_id, account_id, account_number, parent_item_id, item, is_debit, child_accounts)
-    SELECT 
-        row_number() OVER(ORDER BY finance.accounts.account_master_id) + (finance.accounts.account_master_id * 100) AS id,
-        finance.accounts.account_id,
-        finance.accounts.account_number,
-        finance.accounts.account_master_id,
-        finance.accounts.account_name,
-        finance.account_masters.normally_debit,
-        array_agg(agg)
-    FROM finance.accounts
-    INNER JOIN finance.account_masters
-    ON finance.accounts.account_master_id = finance.account_masters.account_master_id,
-    finance.get_account_ids(finance.accounts.account_id) as agg
-    WHERE parent_account_id IN
-    (
-        SELECT finance.accounts.account_id
-        FROM finance.accounts
-        WHERE finance.accounts.sys_type
-        AND finance.accounts.account_master_id BETWEEN 10100 AND 15200
-    )
-    AND finance.accounts.account_master_id BETWEEN 10100 AND 15200
-    GROUP BY finance.accounts.account_id, finance.account_masters.normally_debit
-    ORDER BY account_master_id;
-
-
-    --Updating credit balances of individual GL accounts.
-    UPDATE bs_temp SET previous_period = tran.previous_period
-    FROM
-    (
-        SELECT 
-            bs_temp.account_id,         
-            SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END) AS previous_period
-        FROM bs_temp
-        INNER JOIN finance.verified_transaction_mat_view
-        ON finance.verified_transaction_mat_view.account_id = ANY(bs_temp.child_accounts)
-        WHERE value_date <=_previous_period
-        AND office_id IN (SELECT * FROM core.get_office_ids(_office_id))
-        GROUP BY bs_temp.account_id
-    ) AS tran
-    WHERE bs_temp.account_id = tran.account_id;
-
-    --Updating credit balances of individual GL accounts.
-    UPDATE bs_temp SET current_period = tran.current_period
-    FROM
-    (
-        SELECT 
-            bs_temp.account_id,         
-            SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END) AS current_period
-        FROM bs_temp
-        INNER JOIN finance.verified_transaction_mat_view
-        ON finance.verified_transaction_mat_view.account_id = ANY(bs_temp.child_accounts)
-        WHERE value_date <=_current_period
-        AND office_id IN (SELECT * FROM core.get_office_ids(_office_id))
-        GROUP BY bs_temp.account_id
-    ) AS tran
-    WHERE bs_temp.account_id = tran.account_id;
-
-
-    --Dividing by the factor.
-    UPDATE bs_temp SET 
-        previous_period = bs_temp.previous_period / _factor,
-        current_period = bs_temp.current_period / _factor;
-
-    --Upading balance of retained earnings
-    UPDATE bs_temp SET 
-        previous_period = finance.get_retained_earnings(_previous_period, _office_id, _factor),
-        current_period = finance.get_retained_earnings(_current_period, _office_id, _factor)
-    WHERE bs_temp.item_id = 15300;
-
-    --Reversing assets to debit balance.
-    UPDATE bs_temp SET 
-        previous_period=bs_temp.previous_period*-1,
-        current_period=bs_temp.current_period*-1 
-    WHERE bs_temp.is_debit;
-
-
-
-    FOR this IN 
-    SELECT * FROM bs_temp 
-    WHERE COALESCE(bs_temp.previous_period, 0) + COALESCE(bs_temp.current_period, 0) != 0 
-    AND bs_temp.account_id IS NOT NULL
-    LOOP
-        UPDATE bs_temp SET skip = true WHERE this.account_id = ANY(bs_temp.child_accounts)
-        AND bs_temp.account_id != this.account_id;
-    END LOOP;
-
-    --Updating current period amount on GL parent item by the sum of their respective child balances.
-    WITH running_totals AS
-    (
-        SELECT bs_temp.parent_item_id,
-        SUM(COALESCE(bs_temp.previous_period, 0)) AS previous_period,
-        SUM(COALESCE(bs_temp.current_period, 0)) AS current_period
-        FROM bs_temp
-        WHERE NOT skip
-        AND parent_item_id IS NOT NULL
-        GROUP BY bs_temp.parent_item_id
-    )
-    UPDATE bs_temp SET 
-        previous_period = running_totals.previous_period,
-        current_period = running_totals.current_period
-    FROM running_totals
-    WHERE running_totals.parent_item_id = bs_temp.item_id
-    AND bs_temp.item_id
-    IN
-    (
-        SELECT parent_item_id FROM running_totals
-    );
-
-
-    --Updating sum amount on parent item by the sum of their respective child balances.
-    UPDATE bs_temp SET 
-        previous_period = tran.previous_period,
-        current_period = tran.current_period
-    FROM 
-    (
-        SELECT bs_temp.parent_item_id,
-        SUM(bs_temp.previous_period) AS previous_period,
-        SUM(bs_temp.current_period) AS current_period
-        FROM bs_temp
-        WHERE bs_temp.parent_item_id IS NOT NULL
-        GROUP BY bs_temp.parent_item_id
-    ) 
-    AS tran 
-    WHERE tran.parent_item_id = bs_temp.item_id
-    AND tran.parent_item_id IS NOT NULL;
-
-
-    --Updating sum amount on grandparents.
-    UPDATE bs_temp SET 
-        previous_period = tran.previous_period,
-        current_period = tran.current_period
-    FROM 
-    (
-        SELECT bs_temp.parent_item_id,
-        SUM(bs_temp.previous_period) AS previous_period,
-        SUM(bs_temp.current_period) AS current_period
-        FROM bs_temp
-        WHERE bs_temp.parent_item_id IS NOT NULL
-        GROUP BY bs_temp.parent_item_id
-    ) 
-    AS tran 
-    WHERE tran.parent_item_id = bs_temp.item_id;
-
-    --Removing ledgers having zero balances
-    DELETE FROM bs_temp
-    WHERE COALESCE(bs_temp.previous_period, 0) + COALESCE(bs_temp.current_period, 0) = 0
-    AND bs_temp.account_id IS NOT NULL;
-
-    --Converting 0's to NULLS.
-    UPDATE bs_temp SET previous_period = CASE WHEN bs_temp.previous_period = 0 THEN NULL ELSE bs_temp.previous_period END;
-    UPDATE bs_temp SET current_period = CASE WHEN bs_temp.current_period = 0 THEN NULL ELSE bs_temp.current_period END;
-    
-    UPDATE bs_temp SET sort = bs_temp.item_id WHERE bs_temp.item_id < 15400;
-    UPDATE bs_temp SET sort = bs_temp.parent_item_id WHERE bs_temp.item_id >= 15400;
-
-    RETURN QUERY
-    SELECT
-        row_number() OVER(order by bs_temp.sort, bs_temp.item_id) AS id,
-        bs_temp.item,
-        bs_temp.previous_period,
-        bs_temp.current_period,
-        bs_temp.account_id,
-        bs_temp.account_number,
-        bs_temp.is_retained_earning
-    FROM bs_temp;
-END;
-$$
-LANGUAGE plpgsql;
-
---SELECT * FROM finance.get_balance_sheet('7/17/2014', '7/16/2015', 2, 2, 1000);
-
-
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_cash_flow_heading_id_by_cash_flow_heading_code.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_cash_flow_heading_id_by_cash_flow_heading_code(_cash_flow_heading_code national character varying(12));
 
@@ -1592,33 +1371,6 @@ BEGIN
     FROM finance.verified_transaction_view
     WHERE cash_repository_id=$1
     AND currency_code=$2
-    AND tran_type='Cr';
-
-    RETURN _debit - _credit;
-END
-$$
-LANGUAGE plpgsql;
-
-
-DROP FUNCTION IF EXISTS finance.get_cash_repository_balance(_cash_repository_id integer);
-CREATE FUNCTION finance.get_cash_repository_balance(_cash_repository_id integer)
-RETURNS public.money_strict2
-AS
-$$
-    DECLARE _local_currency_code national character varying(12) = finance.get_default_currency_code($1);
-    DECLARE _debit public.money_strict2;
-    DECLARE _credit public.money_strict2;
-BEGIN
-    SELECT COALESCE(SUM(amount_in_currency), 0::public.money_strict2) INTO _debit
-    FROM finance.verified_transaction_view
-    WHERE cash_repository_id=$1
-    AND currency_code=_local_currency_code
-    AND tran_type='Dr';
-
-    SELECT COALESCE(SUM(amount_in_currency), 0::public.money_strict2) INTO _credit
-    FROM finance.verified_transaction_view
-    WHERE cash_repository_id=$1
-    AND currency_code=_local_currency_code
     AND tran_type='Cr';
 
     RETURN _debit - _credit;
@@ -1761,33 +1513,6 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
-
-DROP FUNCTION IF EXISTS finance.get_exchange_rate(office_id integer, source_currency_code national character varying(12), destination_currency_code national character varying(12));
-
-CREATE FUNCTION finance.get_exchange_rate(office_id integer, source_currency_code national character varying(12), destination_currency_code national character varying(12))
-RETURNS decimal_strict2
-AS
-$$
-    DECLARE _unit integer_strict2 = 0;
-    DECLARE _exchange_rate decimal_strict2=0;
-    DECLARE _from_source_currency decimal_strict2=0;
-    DECLARE _from_destination_currency decimal_strict2=0;
-BEGIN
-    IF($2 = $3) THEN
-        RETURN 1;
-    END IF;
-
-
-    _from_source_currency := finance.get_exchange_rate($1, $2);
-    _from_destination_currency := finance.get_exchange_rate($1, $3);
-        
-    RETURN _from_source_currency / _from_destination_currency ; 
-END
-$$
-LANGUAGE plpgsql;
-
---SELECT * FROM  finance.get_exchange_rate(1, 'USD')
-
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequencies.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_frequencies(_frequency_id integer);
@@ -2096,71 +1821,6 @@ LANGUAGE plpgsql;
 
 
 
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_net_profit.sql --<--<--
-DROP FUNCTION IF EXISTS finance.get_net_profit
-(
-    _date_from                      date,
-    _date_to                        date,
-    _office_id                      integer,
-    _factor                         integer,
-    _no_provison                    boolean
-);
-
-CREATE FUNCTION finance.get_net_profit
-(
-    _date_from                      date,
-    _date_to                        date,
-    _office_id                      integer,
-    _factor                         integer,
-    _no_provison                    boolean DEFAULT false
-)
-RETURNS decimal(24, 4)
-AS
-$$
-    DECLARE _incomes                decimal(24, 4) = 0;
-    DECLARE _expenses               decimal(24, 4) = 0;
-    DECLARE _profit_before_tax      decimal(24, 4) = 0;
-    DECLARE _tax_paid               decimal(24, 4) = 0;
-    DECLARE _tax_provison           decimal(24, 4) = 0;
-BEGIN
-    SELECT SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
-    INTO _incomes
-    FROM finance.verified_transaction_mat_view
-    WHERE value_date >= _date_from AND value_date <= _date_to
-    AND office_id IN (SELECT * FROM core.get_office_ids(_office_id))
-    AND account_master_id >=20100
-    AND account_master_id <= 20300;
-    
-    SELECT SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
-    INTO _expenses
-    FROM finance.verified_transaction_mat_view
-    WHERE value_date >= _date_from AND value_date <= _date_to
-    AND office_id IN (SELECT * FROM core.get_office_ids(_office_id))
-    AND account_master_id >=20400
-    AND account_master_id <= 20701;
-    
-    SELECT SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
-    INTO _tax_paid
-    FROM finance.verified_transaction_mat_view
-    WHERE value_date >= _date_from AND value_date <= _date_to
-    AND office_id IN (SELECT * FROM core.get_office_ids(_office_id))
-    AND account_master_id =20800;
-    
-    _profit_before_tax := COALESCE(_incomes, 0) - COALESCE(_expenses, 0);
-
-    IF(_no_provison) THEN
-        RETURN (_profit_before_tax - COALESCE(_tax_paid, 0)) / _factor;
-    END IF;
-    
-    _tax_provison      := finance.get_income_tax_provison_amount(_office_id, _profit_before_tax, COALESCE(_tax_paid, 0));
-    
-    RETURN (_profit_before_tax - (COALESCE(_tax_provison, 0) + COALESCE(_tax_paid, 0))) / _factor;
-END
-$$
-LANGUAGE plpgsql;
-
---SELECT * FROM finance.get_net_profit('1-1-2000', '1-1-2020', 1, 1, false);
-
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_new_transaction_counter.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_new_transaction_counter(date);
 
@@ -2453,13 +2113,13 @@ LANGUAGE plpgsql;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_root_account_id.sql --<--<--
-DROP FUNCTION IF EXISTS finance.get_root_account_id(bigint, bigint);
+DROP FUNCTION IF EXISTS finance.get_root_account_id(integer, integer);
 
-CREATE FUNCTION finance.get_root_account_id(_account_id bigint, _parent bigint default 0)
+CREATE FUNCTION finance.get_root_account_id(_account_id integer, _parent integer default 0)
 RETURNS integer
 AS
 $$
-    DECLARE _parent_account_id bigint;
+    DECLARE _parent_account_id integer;
 BEGIN
     SELECT 
         parent_account_id
@@ -2499,11 +2159,11 @@ LANGUAGE plpgsql;
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_second_root_account_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_second_root_account_id(integer, integer);
 
-CREATE FUNCTION finance.get_second_root_account_id(_account_id bigint, _parent bigint default 0)
+CREATE FUNCTION finance.get_second_root_account_id(_account_id integer, _parent bigint default 0)
 RETURNS integer
 AS
 $$
-    DECLARE _parent_account_id bigint;
+    DECLARE _parent_account_id integer;
 BEGIN
     SELECT 
         parent_account_id
@@ -2539,239 +2199,6 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
-
-
-
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_trial_balance.sql --<--<--
-DROP FUNCTION IF EXISTS finance.get_trial_balance
-(
-    _date_from                      date,
-    _date_to                        date,
-    _user_id                        integer,
-    _office_id                      integer,
-    _compact                        boolean,
-    _factor                         decimal(24, 4),
-    _change_side_when_negative      boolean,
-    _include_zero_balance_accounts  boolean
-);
-
-CREATE FUNCTION finance.get_trial_balance
-(
-    _date_from                      date,
-    _date_to                        date,
-    _user_id                        integer,
-    _office_id                      integer,
-    _compact                        boolean,
-    _factor                         decimal(24, 4),
-    _change_side_when_negative      boolean DEFAULT(true),
-    _include_zero_balance_accounts  boolean DEFAULT(true)
-)
-RETURNS TABLE
-(
-    id                      integer,
-    account_id              integer,
-    account_number          text,
-    account                 text,
-    previous_debit          decimal(24, 4),
-    previous_credit         decimal(24, 4),
-    debit                   decimal(24, 4),
-    credit                  decimal(24, 4),
-    closing_debit           decimal(24, 4),
-    closing_credit          decimal(24, 4)
-)
-AS
-$$
-BEGIN
-    IF(_date_from = 'infinity') THEN
-        RAISE EXCEPTION 'Invalid date.'
-        USING ERRCODE='P3008';
-    END IF;
-
-    IF NOT EXISTS
-    (
-        SELECT 0 FROM core.offices
-        WHERE office_id IN 
-        (
-            SELECT * FROM core.get_office_ids(1)
-        )
-        HAVING count(DISTINCT currency_code) = 1
-   ) THEN
-        RAISE EXCEPTION 'Cannot produce trial balance of office(s) having different base currencies.'
-        USING ERRCODE='P8002';
-   END IF;
-
-
-    DROP TABLE IF EXISTS temp_trial_balance;
-    CREATE TEMPORARY TABLE temp_trial_balance
-    (
-        id                      integer,
-        account_id              integer,
-        account_number          text,
-        account                 text,
-        previous_debit          decimal(24, 4),
-        previous_credit         decimal(24, 4),
-        debit                   decimal(24, 4),
-        credit                  decimal(24, 4),
-        closing_debit           decimal(24, 4),
-        closing_credit          decimal(24, 4),
-        root_account_id         integer,
-        normally_debit          boolean
-    ) ON COMMIT DROP;
-
-    INSERT INTO temp_trial_balance(account_id, previous_debit, previous_credit)    
-    SELECT 
-        verified_transaction_mat_view.account_id, 
-        SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE 0 END),
-        SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE 0 END)        
-    FROM finance.verified_transaction_mat_view
-    WHERE value_date < _date_from
-    AND office_id IN (SELECT * FROM core.get_office_ids(_office_id))
-    GROUP BY verified_transaction_mat_view.account_id;
-
-    IF(_date_to = 'infinity') THEN
-        INSERT INTO temp_trial_balance(account_id, debit, credit)    
-        SELECT 
-            verified_transaction_mat_view.account_id, 
-            SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE 0 END),
-            SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE 0 END)        
-        FROM finance.verified_transaction_mat_view
-        WHERE value_date > _date_from
-        AND office_id IN (SELECT * FROM core.get_office_ids(_office_id))
-        GROUP BY verified_transaction_mat_view.account_id;
-    ELSE
-        INSERT INTO temp_trial_balance(account_id, debit, credit)    
-        SELECT 
-            verified_transaction_mat_view.account_id, 
-            SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE 0 END),
-            SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE 0 END)        
-        FROM finance.verified_transaction_mat_view
-        WHERE value_date >= _date_from AND value_date <= _date_to
-        AND office_id IN (SELECT * FROM core.get_office_ids(_office_id))
-        GROUP BY verified_transaction_mat_view.account_id;    
-    END IF;
-
-    UPDATE temp_trial_balance SET root_account_id = finance.get_second_root_account_id(temp_trial_balance.account_id);
-
-
-    DROP TABLE IF EXISTS temp_trial_balance2;
-    
-    IF(_compact) THEN
-        CREATE TEMPORARY TABLE temp_trial_balance2
-        ON COMMIT DROP
-        AS
-        SELECT
-            temp_trial_balance.root_account_id AS account_id,
-            ''::text as account_number,
-            ''::text as account,
-            SUM(temp_trial_balance.previous_debit) AS previous_debit,
-            SUM(temp_trial_balance.previous_credit) AS previous_credit,
-            SUM(temp_trial_balance.debit) AS debit,
-            SUM(temp_trial_balance.credit) as credit,
-            SUM(temp_trial_balance.closing_debit) AS closing_debit,
-            SUM(temp_trial_balance.closing_credit) AS closing_credit,
-            temp_trial_balance.normally_debit
-        FROM temp_trial_balance
-        GROUP BY 
-            temp_trial_balance.root_account_id,
-            temp_trial_balance.normally_debit
-        ORDER BY temp_trial_balance.normally_debit;
-    ELSE
-        CREATE TEMPORARY TABLE temp_trial_balance2
-        ON COMMIT DROP
-        AS
-        SELECT
-            temp_trial_balance.account_id,
-            ''::text as account_number,
-            ''::text as account,
-            SUM(temp_trial_balance.previous_debit) AS previous_debit,
-            SUM(temp_trial_balance.previous_credit) AS previous_credit,
-            SUM(temp_trial_balance.debit) AS debit,
-            SUM(temp_trial_balance.credit) as credit,
-            SUM(temp_trial_balance.closing_debit) AS closing_debit,
-            SUM(temp_trial_balance.closing_credit) AS closing_credit,
-            temp_trial_balance.normally_debit
-        FROM temp_trial_balance
-        GROUP BY 
-            temp_trial_balance.account_id,
-            temp_trial_balance.normally_debit
-        ORDER BY temp_trial_balance.normally_debit;
-    END IF;
-    
-    UPDATE temp_trial_balance2 SET
-        account_number = finance.accounts.account_number,
-        account = finance.accounts.account_name,
-        normally_debit = finance.account_masters.normally_debit
-    FROM finance.accounts
-    INNER JOIN finance.account_masters
-    ON finance.accounts.account_master_id = finance.account_masters.account_master_id
-    WHERE temp_trial_balance2.account_id = finance.accounts.account_id;
-
-    UPDATE temp_trial_balance2 SET 
-        closing_debit = COALESCE(temp_trial_balance2.previous_debit, 0) + COALESCE(temp_trial_balance2.debit, 0),
-        closing_credit = COALESCE(temp_trial_balance2.previous_credit, 0) + COALESCE(temp_trial_balance2.credit, 0);
-        
-
-
-     UPDATE temp_trial_balance2 SET previous_debit = COALESCE(temp_trial_balance2.previous_debit, 0) - COALESCE(temp_trial_balance2.previous_credit, 0), previous_credit = NULL WHERE normally_debit;
-     UPDATE temp_trial_balance2 SET previous_credit = COALESCE(temp_trial_balance2.previous_credit, 0) - COALESCE(temp_trial_balance2.previous_debit, 0), previous_debit = NULL WHERE NOT normally_debit;
- 
-     UPDATE temp_trial_balance2 SET debit = COALESCE(temp_trial_balance2.debit, 0) - COALESCE(temp_trial_balance2.credit, 0), credit = NULL WHERE normally_debit;
-     UPDATE temp_trial_balance2 SET credit = COALESCE(temp_trial_balance2.credit, 0) - COALESCE(temp_trial_balance2.debit, 0), debit = NULL WHERE NOT normally_debit;
- 
-     UPDATE temp_trial_balance2 SET closing_debit = COALESCE(temp_trial_balance2.closing_debit, 0) - COALESCE(temp_trial_balance2.closing_credit, 0), closing_credit = NULL WHERE normally_debit;
-     UPDATE temp_trial_balance2 SET closing_credit = COALESCE(temp_trial_balance2.closing_credit, 0) - COALESCE(temp_trial_balance2.closing_debit, 0), closing_debit = NULL WHERE NOT normally_debit;
-
-
-    IF(NOT _include_zero_balance_accounts) THEN
-        DELETE FROM temp_trial_balance2 WHERE COALESCE(temp_trial_balance2.closing_debit) + COALESCE(temp_trial_balance2.closing_credit) = 0;
-    END IF;
-    
-    IF(_factor > 0) THEN
-        UPDATE temp_trial_balance2 SET previous_debit   = temp_trial_balance2.previous_debit/_factor;
-        UPDATE temp_trial_balance2 SET previous_credit  = temp_trial_balance2.previous_credit/_factor;
-        UPDATE temp_trial_balance2 SET debit            = temp_trial_balance2.debit/_factor;
-        UPDATE temp_trial_balance2 SET credit           = temp_trial_balance2.credit/_factor;
-        UPDATE temp_trial_balance2 SET closing_debit    = temp_trial_balance2.closing_debit/_factor;
-        UPDATE temp_trial_balance2 SET closing_credit   = temp_trial_balance2.closing_credit/_factor;
-    END IF;
-
-    --Remove Zeros
-    UPDATE temp_trial_balance2 SET previous_debit = NULL WHERE temp_trial_balance2.previous_debit = 0;
-    UPDATE temp_trial_balance2 SET previous_credit = NULL WHERE temp_trial_balance2.previous_credit = 0;
-    UPDATE temp_trial_balance2 SET debit = NULL WHERE temp_trial_balance2.debit = 0;
-    UPDATE temp_trial_balance2 SET credit = NULL WHERE temp_trial_balance2.credit = 0;
-    UPDATE temp_trial_balance2 SET closing_debit = NULL WHERE temp_trial_balance2.closing_debit = 0;
-    UPDATE temp_trial_balance2 SET closing_debit = NULL WHERE temp_trial_balance2.closing_credit = 0;
-
-    IF(_change_side_when_negative) THEN
-        UPDATE temp_trial_balance2 SET previous_debit = temp_trial_balance2.previous_credit * -1, previous_credit = NULL WHERE temp_trial_balance2.previous_credit < 0;
-        UPDATE temp_trial_balance2 SET previous_credit = temp_trial_balance2.previous_debit * -1, previous_debit = NULL WHERE temp_trial_balance2.previous_debit < 0;
-
-        UPDATE temp_trial_balance2 SET debit = temp_trial_balance2.credit * -1, credit = NULL WHERE temp_trial_balance2.credit < 0;
-        UPDATE temp_trial_balance2 SET credit = temp_trial_balance2.debit * -1, debit = NULL WHERE temp_trial_balance2.debit < 0;
-
-        UPDATE temp_trial_balance2 SET closing_debit = temp_trial_balance2.closing_credit * -1, closing_credit = NULL WHERE temp_trial_balance2.closing_credit < 0;
-        UPDATE temp_trial_balance2 SET closing_credit = temp_trial_balance2.closing_debit * -1, closing_debit = NULL WHERE temp_trial_balance2.closing_debit < 0;
-    END IF;
-    
-    RETURN QUERY
-    SELECT
-        row_number() OVER(ORDER BY temp_trial_balance2.normally_debit DESC, temp_trial_balance2.account_id)::integer AS id,
-        temp_trial_balance2.account_id,
-        temp_trial_balance2.account_number,
-        temp_trial_balance2.account,
-        temp_trial_balance2.previous_debit,
-        temp_trial_balance2.previous_credit,
-        temp_trial_balance2.debit,
-        temp_trial_balance2.credit,
-        temp_trial_balance2.closing_debit,
-        temp_trial_balance2.closing_credit
-    FROM temp_trial_balance2;
-END
-$$
-LANGUAGE plpgsql;
-
---SELECT * FROM finance.get_trial_balance('12-1-2014','12-31-2014',1,1, false, 1000, false, false);
 
 
 
@@ -3079,9 +2506,9 @@ LANGUAGE plpgsql;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_cash_account_id.sql --<--<--
-DROP FUNCTION IF EXISTS finance.is_cash_account_id(_account_id bigint);
+DROP FUNCTION IF EXISTS finance.is_cash_account_id(_account_id integer);
 
-CREATE FUNCTION finance.is_cash_account_id(_account_id bigint)
+CREATE FUNCTION finance.is_cash_account_id(_account_id integer)
 RETURNS boolean
 AS
 $$
@@ -3155,9 +2582,9 @@ LANGUAGE plpgsql;
 --SELECT * FROM finance.is_new_day_started(1);
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.is_normally_debit.sql --<--<--
-DROP FUNCTION IF EXISTS finance.is_normally_debit(_account_id bigint);
+DROP FUNCTION IF EXISTS finance.is_normally_debit(_account_id integer);
 
-CREATE FUNCTION finance.is_normally_debit(_account_id bigint)
+CREATE FUNCTION finance.is_normally_debit(_account_id integer)
 RETURNS boolean
 AS
 $$
@@ -3181,7 +2608,7 @@ RETURNS boolean
 AS
 $$
 BEGIN
-    --Todo: parameterize
+	--This is overriden by inventory module
     RETURN false;
 END
 $$
@@ -4891,9 +4318,9 @@ AS
 SELECT
     finance.auto_verification_policy.auto_verification_policy_id,
     finance.auto_verification_policy.user_id,
-    account.get_name_by_user_id(finance.auto_verification_policy.user_id),
+    account.get_name_by_user_id(finance.auto_verification_policy.user_id) AS user,
     finance.auto_verification_policy.office_id,
-    core.get_office_name_by_office_id(finance.auto_verification_policy.office_id),
+    core.get_office_name_by_office_id(finance.auto_verification_policy.office_id) AS office,
     finance.auto_verification_policy.effective_from,
     finance.auto_verification_policy.ends_on,
     finance.auto_verification_policy.is_active
@@ -4998,9 +4425,9 @@ AS
 SELECT
     finance.journal_verification_policy.journal_verification_policy_id,
     finance.journal_verification_policy.user_id,
-    account.get_name_by_user_id(finance.journal_verification_policy.user_id),
+    account.get_name_by_user_id(finance.journal_verification_policy.user_id) AS user,
     finance.journal_verification_policy.office_id,
-    core.get_office_name_by_office_id(finance.journal_verification_policy.office_id),
+    core.get_office_name_by_office_id(finance.journal_verification_policy.office_id) AS office,
     finance.journal_verification_policy.can_verify,
     finance.journal_verification_policy.can_self_verify,
     finance.journal_verification_policy.effective_from,

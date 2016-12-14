@@ -1,6 +1,6 @@
-﻿DROP FUNCTION IF EXISTS finance.is_normally_debit(_account_id bigint);
+﻿DROP FUNCTION IF EXISTS finance.is_normally_debit(_account_id integer);
 
-CREATE FUNCTION finance.is_normally_debit(_account_id bigint)
+CREATE FUNCTION finance.is_normally_debit(_account_id integer)
 RETURNS boolean
 AS
 $$

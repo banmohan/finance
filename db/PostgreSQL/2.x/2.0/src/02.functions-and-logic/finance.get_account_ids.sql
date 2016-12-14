@@ -1,6 +1,6 @@
-﻿DROP FUNCTION IF EXISTS finance.get_account_ids(root_account_id bigint);
+﻿DROP FUNCTION IF EXISTS finance.get_account_ids(root_account_id integer);
 
-CREATE FUNCTION finance.get_account_ids(root_account_id bigint)
+CREATE FUNCTION finance.get_account_ids(root_account_id integer)
 RETURNS SETOF bigint
 STABLE
 AS

@@ -5,7 +5,7 @@ RETURNS boolean
 AS
 $$
 BEGIN
-    --Todo: parameterize
+	--This is overriden by inventory module
     RETURN false;
 END
 $$

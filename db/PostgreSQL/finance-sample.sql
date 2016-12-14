@@ -568,6 +568,18 @@ FROM account.users
 CROSS JOIN core.offices
 WHERE account.users.role_id = 9999;
 
+INSERT INTO finance.auto_verification_policy(user_id, office_id, verification_limit, effective_from, ends_on, is_active)
+SELECT
+    account.users.user_id,
+    core.offices.office_id,
+    0,
+    '1-1-2000',
+    '1-1-2100',
+    true
+FROM account.users
+CROSS JOIN core.offices
+WHERE account.users.role_id = 9999;
+
 
 
 INSERT INTO finance.fiscal_year (fiscal_year_code, fiscal_year_name, starts_from, ends_on, office_id) 

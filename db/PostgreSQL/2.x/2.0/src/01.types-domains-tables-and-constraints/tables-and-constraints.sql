@@ -164,10 +164,10 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.accounts
 (
-    account_id                              BIGSERIAL PRIMARY KEY,
+    account_id                              SERIAL PRIMARY KEY,
     account_master_id                       smallint NOT NULL REFERENCES finance.account_masters,
-    account_number                          national character varying(12) NOT NULL,
-    external_code                           national character varying(12) NULL CONSTRAINT accounts_external_code_df DEFAULT(''),
+    account_number                          national character varying(24) NOT NULL,
+    external_code                           national character varying(24) NULL CONSTRAINT accounts_external_code_df DEFAULT(''),
     currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
     account_name                            national character varying(100) NOT NULL,
     description                             national character varying(200) NULL,
@@ -175,7 +175,7 @@ CREATE TABLE finance.accounts
     is_transaction_node                     boolean NOT NULL --Non transaction nodes cannot be used in transaction.
                                             CONSTRAINT accounts_is_transaction_node_df DEFAULT(true),
     sys_type                                boolean NOT NULL CONSTRAINT accounts_sys_type_df DEFAULT(false),
-    parent_account_id                       bigint NULL REFERENCES finance.accounts,
+    parent_account_id                       integer NULL REFERENCES finance.accounts,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
 	deleted									boolean DEFAULT(false)
@@ -222,7 +222,7 @@ WHERE NOT deleted;
 CREATE TABLE finance.bank_accounts
 (
 	bank_account_id							SERIAL PRIMARY KEY,
-    account_id                              bigint REFERENCES finance.accounts,                                            
+    account_id                              integer REFERENCES finance.accounts,                                            
     maintained_by_user_id                   integer NOT NULL REFERENCES account.users,
 	is_merchant_account 					boolean NOT NULL DEFAULT(false),
     office_id                               integer NOT NULL REFERENCES core.offices,
@@ -346,7 +346,7 @@ CREATE TABLE finance.transaction_details
     value_date                              date NOT NULL,
     book_date                              	date NOT NULL,
     tran_type                               national character varying(4) NOT NULL CHECK(tran_type IN ('Dr', 'Cr')),
-    account_id                              bigint NOT NULL REFERENCES finance.accounts,
+    account_id                              integer NOT NULL REFERENCES finance.accounts,
     statement_reference                     text,
     cash_repository_id                      integer REFERENCES finance.cash_repositories,
     currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
@@ -401,11 +401,11 @@ WHERE NOT deleted;
 CREATE TABLE finance.merchant_fee_setup
 (
 	merchant_fee_setup_id               	SERIAL PRIMARY KEY,
-	merchant_account_id                 	bigint NOT NULL REFERENCES finance.bank_accounts,
+	merchant_account_id                 	integer NOT NULL REFERENCES finance.bank_accounts,
 	payment_card_id                     	integer NOT NULL REFERENCES finance.payment_cards,
 	rate                                	public.decimal_strict NOT NULL,
 	customer_pays_fee                   	boolean NOT NULL DEFAULT(false),
-	account_id                          	bigint NOT NULL REFERENCES finance.accounts,
+	account_id                          	integer NOT NULL REFERENCES finance.accounts,
 	statement_reference                 	national character varying(128) NOT NULL DEFAULT(''),
 	audit_user_id                       	integer NULL REFERENCES account.users,            
 	audit_ts                            	TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),

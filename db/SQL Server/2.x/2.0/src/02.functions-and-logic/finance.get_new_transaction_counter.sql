@@ -1,0 +1,32 @@
+﻿IF OBJECT_ID('finance.get_new_transaction_counter') IS NOT NULL
+DROP FUNCTION finance.get_new_transaction_counter;
+
+
+GO
+
+CREATE FUNCTION finance.get_new_transaction_counter(@value_date date)
+RETURNS integer
+AS
+BEGIN
+    DECLARE @ret_val integer;
+
+    SELECT INTO @ret_val
+        COALESCE(MAX(transaction_counter),0)
+    FROM finance.transaction_master
+    WHERE finance.transaction_master.value_date=@value_date
+    AND finance.transaction_master.deleted = 0;
+
+    IF @ret_val IS NULL
+    BEGIN
+        RETURN 1;
+    END
+    ELSE
+    BEGIN
+        RETURN (@ret_val + 1);
+    END;
+END;
+
+
+
+
+GO

@@ -14,7 +14,7 @@ namespace MixERP.Finance.DTO
         public DateTime ValueDate { get; set; }
         public DateTime BookDate { get; set; }
         public string TranType { get; set; }
-        public long AccountId { get; set; }
+        public int AccountId { get; set; }
         public int OfficeId { get; set; }
         public string StatementReference { get; set; }
         public int? CashRepositoryId { get; set; }

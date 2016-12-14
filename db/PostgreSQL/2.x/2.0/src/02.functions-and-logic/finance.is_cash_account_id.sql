@@ -1,6 +1,6 @@
-﻿DROP FUNCTION IF EXISTS finance.is_cash_account_id(_account_id bigint);
+﻿DROP FUNCTION IF EXISTS finance.is_cash_account_id(_account_id integer);
 
-CREATE FUNCTION finance.is_cash_account_id(_account_id bigint)
+CREATE FUNCTION finance.is_cash_account_id(_account_id integer)
 RETURNS boolean
 AS
 $$

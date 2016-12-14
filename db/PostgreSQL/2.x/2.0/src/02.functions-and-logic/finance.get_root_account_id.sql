@@ -1,10 +1,10 @@
-﻿DROP FUNCTION IF EXISTS finance.get_root_account_id(bigint, bigint);
+﻿DROP FUNCTION IF EXISTS finance.get_root_account_id(integer, integer);
 
-CREATE FUNCTION finance.get_root_account_id(_account_id bigint, _parent bigint default 0)
+CREATE FUNCTION finance.get_root_account_id(_account_id integer, _parent integer default 0)
 RETURNS integer
 AS
 $$
-    DECLARE _parent_account_id bigint;
+    DECLARE _parent_account_id integer;
 BEGIN
     SELECT 
         parent_account_id
