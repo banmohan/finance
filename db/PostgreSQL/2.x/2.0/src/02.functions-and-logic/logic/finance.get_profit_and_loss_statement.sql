@@ -24,7 +24,7 @@ $$
     DECLARE _periods                finance.period[];
     DECLARE _json                   json;
     DECLARE this                    RECORD;
-    DECLARE _balance                decimal(24, 4);
+    DECLARE _balance                numeric(30, 6);
     DECLARE _is_periodic            boolean = finance.is_periodic_inventory(_office_id);
 BEGIN    
     DROP TABLE IF EXISTS pl_temp;
@@ -37,7 +37,7 @@ BEGIN
         is_profit                   boolean DEFAULT(false),
         is_summation                boolean DEFAULT(false),
         is_debit                    boolean DEFAULT(false),
-        amount                      decimal(24, 4) DEFAULT(0)
+        amount                      numeric(30, 6) DEFAULT(0)
     ) ON COMMIT DROP;
 
     IF(COALESCE(_factor, 0) = 0) THEN
@@ -53,7 +53,7 @@ BEGIN
 
     SELECT string_agg(dynamic, '') FROM
     (
-            SELECT 'ALTER TABLE pl_temp ADD COLUMN "' || period_name || '" decimal(24, 4) DEFAULT(0);' as dynamic
+            SELECT 'ALTER TABLE pl_temp ADD COLUMN "' || period_name || '" numeric(30, 6) DEFAULT(0);' as dynamic
             FROM explode_array(_periods)
          
     ) periods

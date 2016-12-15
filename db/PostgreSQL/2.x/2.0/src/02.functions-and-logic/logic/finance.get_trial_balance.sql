@@ -5,7 +5,7 @@
     _user_id                        integer,
     _office_id                      integer,
     _compact                        boolean,
-    _factor                         decimal(24, 4),
+    _factor                         numeric(30, 6),
     _change_side_when_negative      boolean,
     _include_zero_balance_accounts  boolean
 );
@@ -17,7 +17,7 @@ CREATE FUNCTION finance.get_trial_balance
     _user_id                        integer,
     _office_id                      integer,
     _compact                        boolean,
-    _factor                         decimal(24, 4),
+    _factor                         numeric(30, 6),
     _change_side_when_negative      boolean DEFAULT(true),
     _include_zero_balance_accounts  boolean DEFAULT(true)
 )
@@ -27,12 +27,12 @@ RETURNS TABLE
     account_id              integer,
     account_number          text,
     account                 text,
-    previous_debit          decimal(24, 4),
-    previous_credit         decimal(24, 4),
-    debit                   decimal(24, 4),
-    credit                  decimal(24, 4),
-    closing_debit           decimal(24, 4),
-    closing_credit          decimal(24, 4)
+    previous_debit          numeric(30, 6),
+    previous_credit         numeric(30, 6),
+    debit                   numeric(30, 6),
+    credit                  numeric(30, 6),
+    closing_debit           numeric(30, 6),
+    closing_credit          numeric(30, 6)
 )
 AS
 $$
@@ -63,12 +63,12 @@ BEGIN
         account_id              integer,
         account_number          text,
         account                 text,
-        previous_debit          decimal(24, 4),
-        previous_credit         decimal(24, 4),
-        debit                   decimal(24, 4),
-        credit                  decimal(24, 4),
-        closing_debit           decimal(24, 4),
-        closing_credit          decimal(24, 4),
+        previous_debit          numeric(30, 6),
+        previous_credit         numeric(30, 6),
+        debit                   numeric(30, 6),
+        credit                  numeric(30, 6),
+        closing_debit           numeric(30, 6),
+        closing_credit          numeric(30, 6),
         root_account_id         integer,
         normally_debit          boolean
     ) ON COMMIT DROP;
@@ -178,7 +178,7 @@ BEGIN
 
 
     IF(NOT _include_zero_balance_accounts) THEN
-        DELETE FROM temp_trial_balance2 WHERE COALESCE(temp_trial_balance2.closing_debit) + COALESCE(temp_trial_balance2.closing_credit) = 0;
+        DELETE FROM temp_trial_balance2 WHERE COALESCE(temp_trial_balance2.closing_debit, 0) + COALESCE(temp_trial_balance2.closing_credit, 0) = 0;
     END IF;
     
     IF(_factor > 0) THEN

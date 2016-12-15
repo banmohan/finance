@@ -3,7 +3,7 @@ DROP FUNCTION finance.is_new_day_started;
 
 GO
 
-CREATE or replace FUNCTION finance.is_new_day_started(@office_id integer)
+CREATE FUNCTION finance.is_new_day_started(@office_id integer)
 RETURNS bit
 AS
 
@@ -20,9 +20,6 @@ BEGIN
 
     RETURN 0;
 END;
-
-
-
 
 --SELECT * FROM finance.is_new_day_started(1);
 

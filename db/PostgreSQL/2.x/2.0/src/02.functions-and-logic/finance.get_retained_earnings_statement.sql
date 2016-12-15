@@ -17,9 +17,9 @@ RETURNS TABLE
     value_date                      date,
     tran_code                       text,
     statement_reference             text,
-    debit                           decimal(24, 4),
-    credit                          decimal(24, 4),
-    balance                         decimal(24, 4),
+    debit                           numeric(30, 6),
+    credit                          numeric(30, 6),
+    balance                         numeric(30, 6),
     office                          text,
     book                            text,
     account_id                      integer,
@@ -34,9 +34,9 @@ AS
 $$
     DECLARE _accounts               integer[];
     DECLARE _date_from              date;
-    DECLARE _net_profit             decimal(24, 4)  = 0;
+    DECLARE _net_profit             numeric(30, 6)  = 0;
     DECLARE _income_tax_rate        real            = 0;
-    DECLARE _itp                    decimal(24, 4)  = 0;
+    DECLARE _itp                    numeric(30, 6)  = 0;
 BEGIN
     _date_from                      := finance.get_fiscal_year_start_date(_office_id);
     _net_profit                     := finance.get_net_profit(_date_from, _date_to, _office_id, _factor);
@@ -57,9 +57,9 @@ BEGIN
         value_date                  date,
         tran_code                   text,
         statement_reference         text,
-        debit                       decimal(24, 4),
-        credit                      decimal(24, 4),
-        balance                     decimal(24, 4),
+        debit                       numeric(30, 6),
+        credit                      numeric(30, 6),
+        balance                     numeric(30, 6),
         office                      text,
         book                        text,
         account_id                  integer,

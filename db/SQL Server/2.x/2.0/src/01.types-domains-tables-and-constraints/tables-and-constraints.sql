@@ -15,7 +15,7 @@ CREATE TABLE finance.verification_statuses
 
 CREATE TABLE finance.frequencies
 (
-    frequency_id                            integer IDENTITY PRIMARY KEY,
+    frequency_id                            integer PRIMARY KEY,
     frequency_code                          national character varying(12) NOT NULL,
     frequency_name                          national character varying(50) NOT NULL,
     audit_user_id                           integer REFERENCES account.users,

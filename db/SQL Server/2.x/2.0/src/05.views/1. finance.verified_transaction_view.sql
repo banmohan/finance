@@ -1,5 +1,5 @@
-﻿IF OBJECT_ID('finance.verified_transaction_view CASCADE') IS NOT NULL
-DROP VIEW finance.verified_transaction_view CASCADE;
+﻿IF OBJECT_ID('finance.verified_transaction_view') IS NOT NULL
+DROP VIEW finance.verified_transaction_view --CASCADE;
 
 GO
 

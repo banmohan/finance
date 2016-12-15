@@ -19,8 +19,8 @@ RETURNS TABLE
 (
     id                              bigint,
     item                            text,
-    previous_period                 decimal(24, 4),
-    current_period                  decimal(24, 4),
+    previous_period                 numeric(30, 6),
+    current_period                  numeric(30, 6),
     account_id                      integer,
     account_number                  text,
     is_retained_earning             boolean
@@ -46,8 +46,8 @@ BEGIN
         child_accounts              integer[],
         parent_item_id              integer REFERENCES bs_temp(item_id),
         is_debit                    boolean DEFAULT(false),
-        previous_period             decimal(24, 4) DEFAULT(0),
-        current_period              decimal(24, 4) DEFAULT(0),
+        previous_period             numeric(30, 6) DEFAULT(0),
+        current_period              numeric(30, 6) DEFAULT(0),
         sort                        int,
         skip                        boolean DEFAULT(false),
         is_retained_earning         boolean DEFAULT(false)
@@ -55,7 +55,7 @@ BEGIN
     
     --BS structure setup start
     INSERT INTO bs_temp(item_id, item, parent_item_id)
-    SELECT  1,       'Assets',                              NULL::numeric   UNION ALL
+    SELECT  1,       'Assets',                              NULL::numeric(30, 6)   UNION ALL
     SELECT  10100,   'Current Assets',                      1               UNION ALL
     SELECT  10101,   'Cash A/C',                            1               UNION ALL
     SELECT  10102,   'Bank A/C',                            1               UNION ALL

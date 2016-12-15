@@ -1,5 +1,5 @@
-﻿IF OBJECT_ID('finance.merchant_fee_setup_scrud_view CASCADE') IS NOT NULL
-DROP VIEW finance.merchant_fee_setup_scrud_view CASCADE;
+﻿IF OBJECT_ID('finance.merchant_fee_setup_scrud_view') IS NOT NULL
+DROP VIEW finance.merchant_fee_setup_scrud_view --CASCADE;
 
 GO
 

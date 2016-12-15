@@ -6,17 +6,15 @@ GO
 CREATE FUNCTION finance.has_child_accounts(@account_id integer)
 RETURNS bit
 AS
-
 BEGIN
-    IF EXISTS(SELECT 0 FROM finance.accounts WHERE parent_account_id=@account_id LIMIT 1)
+	DECLARE @has_child bit = 0;
+
+    IF EXISTS(SELECT TOP 1 0 FROM finance.accounts WHERE parent_account_id=@account_id)
     BEGIN
-        RETURN 1;
+        SET @has_child = 1;
     END;
 
-    RETURN 0;
+    RETURN @has_child;
 END;
-
-
-
 
 GO

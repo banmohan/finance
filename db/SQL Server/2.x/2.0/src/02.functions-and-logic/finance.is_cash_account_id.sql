@@ -12,7 +12,7 @@ BEGIN
     (
         SELECT 1 FROM finance.accounts 
         WHERE account_master_id IN(10101)
-        AND account_id=_account_id
+        AND account_id=@account_id
     )
     BEGIN
         RETURN 1;
@@ -20,9 +20,5 @@ BEGIN
     RETURN 0;
 END;
 
-
-
-
-
-
 GO
+

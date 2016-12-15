@@ -3,37 +3,45 @@ DROP FUNCTION finance.get_value_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_value_date(@office_id integer)
+CREATE FUNCTION finance.get_value_date(@office_id integer)
 RETURNS date
 AS
 BEGIN
-    DECLARE this            RECORD;
-    DECLARE @value_date     date;
+    DECLARE @day_id                         bigint;
+    DECLARE @completed                      bit;
+    DECLARE @value_date                     date;
+    DECLARE @day_operation_value_date       date;
 
-    SELECT * FROM finance.day_operation
+    SELECT
+        @day_id                     = finance.day_operation.day_id,
+        @completed                  = finance.day_operation.completed,
+        @day_operation_value_date   = finance.day_operation.value_date  
+    FROM finance.day_operation
     WHERE office_id = @office_id
     AND value_date =
     (
         SELECT MAX(value_date)
         FROM finance.day_operation
         WHERE office_id = @office_id
-    ) INTO this;
+    );
 
-    IF(this.day_id IS NOT NULL)
+    IF(@day_id IS NOT NULL)
     BEGIN
-        IF(this.completed)
+        IF(@completed = 1)
         BEGIN
-            @value_date  = this.value_date + interval '1' day;
+            SET @value_date  = DATEADD(day, 1, @day_operation_value_date);
         END
         ELSE
         BEGIN
-            @value_date  = this.value_date;    
+            SET @value_date  = @day_operation_value_date;    
         END;
     END;
 
     IF(@value_date IS NULL)
     BEGIN
-        @value_date = GETDATE() AT time zone config.get_server_timezone();
+        --SET @value_date = GETDATE() AT time zone config.get_server_timezone();
+        --Todo: validate the date and time produced by the following function
+        SET @value_date = CAST(SYSDATETIMEOFFSET() AS date);
     END;
     
     RETURN @value_date;
@@ -46,15 +54,23 @@ DROP FUNCTION finance.get_month_end_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_month_end_date(@office_id integer)
+IF OBJECT_ID('finance.get_month_end_date') IS NOT NULL
+DROP FUNCTION finance.get_month_end_date;
+
+GO
+
+CREATE FUNCTION finance.get_month_end_date(@office_id integer)
 RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND finance.frequency_setups.office_id = @office_id;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND finance.frequency_setups.office_id = @office_id
+    );
 END;
 
 GO
@@ -64,14 +80,13 @@ DROP FUNCTION finance.get_month_start_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_month_start_date(@office_id integer)
+CREATE FUNCTION finance.get_month_start_date(@office_id integer)
 RETURNS date
 AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1
-    INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date))
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -83,8 +98,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from 
-        INTO @date
+        SELECT @date = starts_from 
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.office_id = @office_id;
     END;
@@ -100,16 +114,19 @@ DROP FUNCTION finance.get_quarter_end_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_quarter_end_date(@office_id integer)
+CREATE FUNCTION finance.get_quarter_end_date(@office_id integer)
 RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 2
-    AND finance.frequency_setups.office_id = @office_id;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 2
+        AND finance.frequency_setups.office_id = @office_id
+    );
 END;
 
 
@@ -121,14 +138,13 @@ DROP FUNCTION finance.get_quarter_start_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_quarter_start_date(@office_id integer)
+CREATE FUNCTION finance.get_quarter_start_date(@office_id integer)
 RETURNS date
 AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1
-    INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date))
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -141,7 +157,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from INTO @date
+        SELECT @date = starts_from
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.office_id = @office_id;
     END;
@@ -156,16 +172,19 @@ DROP FUNCTION finance.get_fiscal_half_end_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_fiscal_half_end_date(@office_id integer)
+CREATE FUNCTION finance.get_fiscal_half_end_date(@office_id integer)
 RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 3
-    AND finance.frequency_setups.office_id = @office_id;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 3
+        AND finance.frequency_setups.office_id = @office_id
+    );
 END;
 
 
@@ -177,13 +196,13 @@ DROP FUNCTION finance.get_fiscal_half_start_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_fiscal_half_start_date(@office_id integer)
+CREATE FUNCTION finance.get_fiscal_half_start_date(@office_id integer)
 RETURNS date
 AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1 INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date)) 
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -196,7 +215,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from INTO @date
+        SELECT @date = starts_from
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.office_id = @office_id;
     END;
@@ -212,16 +231,19 @@ DROP FUNCTION finance.get_fiscal_year_end_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_fiscal_year_end_date(@office_id integer)
+CREATE FUNCTION finance.get_fiscal_year_end_date(@office_id integer)
 RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 4
-    AND finance.frequency_setups.office_id = @office_id;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 4
+        AND finance.frequency_setups.office_id = @office_id
+    );
 END;
 
 
@@ -233,13 +255,13 @@ DROP FUNCTION finance.get_fiscal_year_start_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_fiscal_year_start_date(@office_id integer)
+CREATE FUNCTION finance.get_fiscal_year_start_date(@office_id integer)
 RETURNS date
 AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT starts_from INTO @date
+    SELECT @date = starts_from
     FROM finance.fiscal_year
     WHERE finance.fiscal_year.office_id = @office_id;
 

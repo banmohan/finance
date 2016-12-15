@@ -1162,9 +1162,9 @@ RETURNS TABLE
     tran_code               text,
     reference_number        text,
     statement_reference     text,
-    debit                   decimal(24, 4),
-    credit                  decimal(24, 4),
-    balance                 decimal(24, 4),
+    debit                   numeric(30, 6),
+    credit                  numeric(30, 6),
+    balance                 numeric(30, 6),
     office                  text,
     book                    text,
     account_id              integer,
@@ -1193,9 +1193,9 @@ BEGIN
         tran_code               text,
         reference_number        text,
         statement_reference     text,
-        debit                   decimal(24, 4),
-        credit                  decimal(24, 4),
-        balance                 decimal(24, 4),
+        debit                   numeric(30, 6),
+        credit                  numeric(30, 6),
+        balance                 numeric(30, 6),
         office                  text,
         book                    text,
         account_id              integer,
@@ -1675,10 +1675,10 @@ $$
 LANGUAGE plpgsql;
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_income_tax_provison_amount.sql --<--<--
-DROP FUNCTION IF EXISTS finance.get_income_tax_provison_amount(_office_id integer, _profit  decimal(24, 4), _balance  decimal(24, 4));
+DROP FUNCTION IF EXISTS finance.get_income_tax_provison_amount(_office_id integer, _profit  numeric(30, 6), _balance  numeric(30, 6));
 
-CREATE FUNCTION finance.get_income_tax_provison_amount(_office_id integer, _profit decimal(24, 4), _balance decimal(24, 4))
-RETURNS  decimal(24, 4)
+CREATE FUNCTION finance.get_income_tax_provison_amount(_office_id integer, _profit numeric(30, 6), _balance numeric(30, 6))
+RETURNS  numeric(30, 6)
 AS
 $$
     DECLARE _rate real;
@@ -1928,9 +1928,9 @@ RETURNS TABLE
     value_date                      date,
     tran_code                       text,
     statement_reference             text,
-    debit                           decimal(24, 4),
-    credit                          decimal(24, 4),
-    balance                         decimal(24, 4),
+    debit                           numeric(30, 6),
+    credit                          numeric(30, 6),
+    balance                         numeric(30, 6),
     office                          text,
     book                            text,
     account_id                      integer,
@@ -1945,9 +1945,9 @@ AS
 $$
     DECLARE _accounts               integer[];
     DECLARE _date_from              date;
-    DECLARE _net_profit             decimal(24, 4)  = 0;
+    DECLARE _net_profit             numeric(30, 6)  = 0;
     DECLARE _income_tax_rate        real            = 0;
-    DECLARE _itp                    decimal(24, 4)  = 0;
+    DECLARE _itp                    numeric(30, 6)  = 0;
 BEGIN
     _date_from                      := finance.get_fiscal_year_start_date(_office_id);
     _net_profit                     := finance.get_net_profit(_date_from, _date_to, _office_id, _factor);
@@ -1968,9 +1968,9 @@ BEGIN
         value_date                  date,
         tran_code                   text,
         statement_reference         text,
-        debit                       decimal(24, 4),
-        credit                      decimal(24, 4),
-        balance                     decimal(24, 4),
+        debit                       numeric(30, 6),
+        credit                      numeric(30, 6),
+        balance                     numeric(30, 6),
         office                      text,
         book                        text,
         account_id                  integer,
@@ -3012,8 +3012,8 @@ RETURNS TABLE
 (
     id                              bigint,
     item                            text,
-    previous_period                 decimal(24, 4),
-    current_period                  decimal(24, 4),
+    previous_period                 numeric(30, 6),
+    current_period                  numeric(30, 6),
     account_id                      integer,
     account_number                  text,
     is_retained_earning             boolean
@@ -3039,8 +3039,8 @@ BEGIN
         child_accounts              integer[],
         parent_item_id              integer REFERENCES bs_temp(item_id),
         is_debit                    boolean DEFAULT(false),
-        previous_period             decimal(24, 4) DEFAULT(0),
-        current_period              decimal(24, 4) DEFAULT(0),
+        previous_period             numeric(30, 6) DEFAULT(0),
+        current_period              numeric(30, 6) DEFAULT(0),
         sort                        int,
         skip                        boolean DEFAULT(false),
         is_retained_earning         boolean DEFAULT(false)
@@ -3048,7 +3048,7 @@ BEGIN
     
     --BS structure setup start
     INSERT INTO bs_temp(item_id, item, parent_item_id)
-    SELECT  1,       'Assets',                              NULL::numeric   UNION ALL
+    SELECT  1,       'Assets',                              NULL::numeric(30, 6)   UNION ALL
     SELECT  10100,   'Current Assets',                      1               UNION ALL
     SELECT  10101,   'Cash A/C',                            1               UNION ALL
     SELECT  10102,   'Bank A/C',                            1               UNION ALL
@@ -3261,7 +3261,7 @@ $$
     DECLARE _periods                finance.period[];
     DECLARE _json                   json;
     DECLARE this                    RECORD;
-    DECLARE _balance                decimal(24, 4);
+    DECLARE _balance                numeric(30, 6);
     DECLARE _is_periodic            boolean = finance.is_periodic_inventory(_office_id);
 BEGIN    
     --We cannot divide by zero.
@@ -3295,7 +3295,7 @@ BEGIN
     **************************************************************************************************************************************************************************************/
     SELECT string_agg(dynamic, '') FROM
     (
-            SELECT 'ALTER TABLE cf_temp ADD COLUMN "' || period_name || '" decimal(24, 4) DEFAULT(0);' as dynamic
+            SELECT 'ALTER TABLE cf_temp ADD COLUMN "' || period_name || '" numeric(30, 6) DEFAULT(0);' as dynamic
             FROM explode_array(_periods)
          
     ) periods
@@ -3531,14 +3531,14 @@ CREATE FUNCTION finance.get_net_profit
     _factor                         integer,
     _no_provison                    boolean DEFAULT false
 )
-RETURNS decimal(24, 4)
+RETURNS numeric(30, 6)
 AS
 $$
-    DECLARE _incomes                decimal(24, 4) = 0;
-    DECLARE _expenses               decimal(24, 4) = 0;
-    DECLARE _profit_before_tax      decimal(24, 4) = 0;
-    DECLARE _tax_paid               decimal(24, 4) = 0;
-    DECLARE _tax_provison           decimal(24, 4) = 0;
+    DECLARE _incomes                numeric(30, 6) = 0;
+    DECLARE _expenses               numeric(30, 6) = 0;
+    DECLARE _profit_before_tax      numeric(30, 6) = 0;
+    DECLARE _tax_paid               numeric(30, 6) = 0;
+    DECLARE _tax_provison           numeric(30, 6) = 0;
 BEGIN
     SELECT SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
     INTO _incomes
@@ -3604,7 +3604,7 @@ $$
     DECLARE _periods                finance.period[];
     DECLARE _json                   json;
     DECLARE this                    RECORD;
-    DECLARE _balance                decimal(24, 4);
+    DECLARE _balance                numeric(30, 6);
     DECLARE _is_periodic            boolean = finance.is_periodic_inventory(_office_id);
 BEGIN    
     DROP TABLE IF EXISTS pl_temp;
@@ -3617,7 +3617,7 @@ BEGIN
         is_profit                   boolean DEFAULT(false),
         is_summation                boolean DEFAULT(false),
         is_debit                    boolean DEFAULT(false),
-        amount                      decimal(24, 4) DEFAULT(0)
+        amount                      numeric(30, 6) DEFAULT(0)
     ) ON COMMIT DROP;
 
     IF(COALESCE(_factor, 0) = 0) THEN
@@ -3633,7 +3633,7 @@ BEGIN
 
     SELECT string_agg(dynamic, '') FROM
     (
-            SELECT 'ALTER TABLE pl_temp ADD COLUMN "' || period_name || '" decimal(24, 4) DEFAULT(0);' as dynamic
+            SELECT 'ALTER TABLE pl_temp ADD COLUMN "' || period_name || '" numeric(30, 6) DEFAULT(0);' as dynamic
             FROM explode_array(_periods)
          
     ) periods
@@ -3921,12 +3921,12 @@ CREATE FUNCTION finance.get_retained_earnings
     _office_id                      integer,
     _factor                         integer
 )
-RETURNS decimal(24, 4)
+RETURNS numeric(30, 6)
 AS
 $$
     DECLARE     _date_from              date;
-    DECLARE     _net_profit             decimal(24, 4);
-    DECLARE     _paid_dividends         decimal(24, 4);
+    DECLARE     _net_profit             numeric(30, 6);
+    DECLARE     _paid_dividends         numeric(30, 6);
 BEGIN
     IF(COALESCE(_factor, 0) = 0) THEN
         _factor := 1;
@@ -3957,7 +3957,7 @@ DROP FUNCTION IF EXISTS finance.get_trial_balance
     _user_id                        integer,
     _office_id                      integer,
     _compact                        boolean,
-    _factor                         decimal(24, 4),
+    _factor                         numeric(30, 6),
     _change_side_when_negative      boolean,
     _include_zero_balance_accounts  boolean
 );
@@ -3969,7 +3969,7 @@ CREATE FUNCTION finance.get_trial_balance
     _user_id                        integer,
     _office_id                      integer,
     _compact                        boolean,
-    _factor                         decimal(24, 4),
+    _factor                         numeric(30, 6),
     _change_side_when_negative      boolean DEFAULT(true),
     _include_zero_balance_accounts  boolean DEFAULT(true)
 )
@@ -3979,12 +3979,12 @@ RETURNS TABLE
     account_id              integer,
     account_number          text,
     account                 text,
-    previous_debit          decimal(24, 4),
-    previous_credit         decimal(24, 4),
-    debit                   decimal(24, 4),
-    credit                  decimal(24, 4),
-    closing_debit           decimal(24, 4),
-    closing_credit          decimal(24, 4)
+    previous_debit          numeric(30, 6),
+    previous_credit         numeric(30, 6),
+    debit                   numeric(30, 6),
+    credit                  numeric(30, 6),
+    closing_debit           numeric(30, 6),
+    closing_credit          numeric(30, 6)
 )
 AS
 $$
@@ -4015,12 +4015,12 @@ BEGIN
         account_id              integer,
         account_number          text,
         account                 text,
-        previous_debit          decimal(24, 4),
-        previous_credit         decimal(24, 4),
-        debit                   decimal(24, 4),
-        credit                  decimal(24, 4),
-        closing_debit           decimal(24, 4),
-        closing_credit          decimal(24, 4),
+        previous_debit          numeric(30, 6),
+        previous_credit         numeric(30, 6),
+        debit                   numeric(30, 6),
+        credit                  numeric(30, 6),
+        closing_debit           numeric(30, 6),
+        closing_credit          numeric(30, 6),
         root_account_id         integer,
         normally_debit          boolean
     ) ON COMMIT DROP;
@@ -4130,7 +4130,7 @@ BEGIN
 
 
     IF(NOT _include_zero_balance_accounts) THEN
-        DELETE FROM temp_trial_balance2 WHERE COALESCE(temp_trial_balance2.closing_debit) + COALESCE(temp_trial_balance2.closing_credit) = 0;
+        DELETE FROM temp_trial_balance2 WHERE COALESCE(temp_trial_balance2.closing_debit, 0) + COALESCE(temp_trial_balance2.closing_credit, 0) = 0;
     END IF;
     
     IF(_factor > 0) THEN
@@ -4318,7 +4318,7 @@ AS
 SELECT
     finance.auto_verification_policy.auto_verification_policy_id,
     finance.auto_verification_policy.user_id,
-    account.get_name_by_user_id(finance.auto_verification_policy.user_id) AS user,
+    account.get_name_by_user_id(finance.auto_verification_policy.user_id) AS "user",
     finance.auto_verification_policy.office_id,
     core.get_office_name_by_office_id(finance.auto_verification_policy.office_id) AS office,
     finance.auto_verification_policy.effective_from,
@@ -4425,7 +4425,7 @@ AS
 SELECT
     finance.journal_verification_policy.journal_verification_policy_id,
     finance.journal_verification_policy.user_id,
-    account.get_name_by_user_id(finance.journal_verification_policy.user_id) AS user,
+    account.get_name_by_user_id(finance.journal_verification_policy.user_id) AS "user",
     finance.journal_verification_policy.office_id,
     core.get_office_name_by_office_id(finance.journal_verification_policy.office_id) AS office,
     finance.journal_verification_policy.can_verify,

@@ -1,4 +1,6 @@
-﻿IF OBJECT_ID('finance.get_cash_repository_balance') IS NOT NULL
+﻿
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_cash_repository_balance.sql --<--<--
+IF OBJECT_ID('finance.get_cash_repository_balance') IS NOT NULL
 DROP FUNCTION finance.get_cash_repository_balance;
 
 GO
@@ -10,13 +12,13 @@ BEGIN
     DECLARE @debit dbo.money_strict2;
     DECLARE @credit dbo.money_strict2;
 
-    SELECT COALESCE(SUM(amount_in_currency), 0) INTO @debit
+    SELECT @debit = COALESCE(SUM(amount_in_currency), 0)
     FROM finance.verified_transaction_view
     WHERE cash_repository_id=@cash_repository_id
     AND currency_code=@currency_code
     AND tran_type='Dr';
 
-    SELECT COALESCE(SUM(amount_in_currency), 0) INTO @credit
+    SELECT @credit = COALESCE(SUM(amount_in_currency), 0)
     FROM finance.verified_transaction_view
     WHERE cash_repository_id=@cash_repository_id
     AND currency_code=@currency_code

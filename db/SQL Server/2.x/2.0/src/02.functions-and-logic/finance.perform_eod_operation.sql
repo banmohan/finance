@@ -1,6 +1,7 @@
 ﻿IF OBJECT_ID('finance.perform_eod_operation') IS NOT NULL
 DROP PROCEDURE finance.perform_eod_operation;
 
+GO
 
 CREATE PROCEDURE finance.perform_eod_operation(@user_id integer, @login_id bigint, @office_id integer, @value_date date)
 AS
@@ -11,6 +12,8 @@ BEGIN
     DECLARE @is_error           bit= 0;
     DECLARE @notice             national character varying(1000);
     DECLARE @office_code        national character varying(50);
+    DECLARE @completed          bit;
+    DECLARE @completed_on       DATETIMEOFFSET;
     DECLARE @this               TABLE
     (
         routine_id              integer,
@@ -25,7 +28,7 @@ BEGIN
         RAISERROR('Invalid date.', 10, 1);
     END;
 
-    IF(NOT account.is_admin(@user_id))
+    IF(account.is_admin(@user_id) = 0)
     BEGIN
         RAISERROR('Access is denied.', 10, 1);
     END;
@@ -35,20 +38,23 @@ BEGIN
         RAISERROR('Invalid value date.', 10, 1);
     END;
 
-    SELECT * FROM finance.day_operation
-    WHERE value_date=_value_date 
-    AND office_id = @office_id INTO this;
+    SELECT 
+        @completed      = finance.day_operation.completed,
+        @completed_on   = finance.day_operation.completed_on
+    FROM finance.day_operation
+    WHERE value_date=@value_date 
+    AND office_id = @office_id;
 
-    IF(this IS NULL)
+    IF(@completed IS NULL)
     BEGIN
         RAISERROR('Invalid value date.', 10, 1);
     END
     ELSE
     BEGIN    
-        IF(this.completed OR this.completed_on IS NOT NULL)
+        IF(@completed = 1 OR @completed_on IS NOT NULL)
         BEGIN
             RAISERROR('End of day operation was already performed.', 10, 1);
-            @is_error        = 1;
+            SET @is_error        = 1;
         END;
     END;
 
@@ -60,7 +66,7 @@ BEGIN
     )
     BEGIN
         RAISERROR('Past dated transactions in verification queue.', 10, 1);
-        @is_error        = 1;
+        SET @is_error        = 1;
     END;
 
     IF EXISTS
@@ -71,10 +77,10 @@ BEGIN
     )
     BEGIN
         RAISERROR('Please verify transactions before performing end of day operation.', 10, 1);
-        @is_error        = 1;
+        SET @is_error        = 1;
     END;
     
-    IF(NOT @is_error)
+    IF(@is_error = 0)
     BEGIN
         INSERT INTO @this
         SELECT routine_id, routine_name 
@@ -82,8 +88,8 @@ BEGIN
         WHERE status = 1
         ORDER BY "order" ASC;
 
-        @office_code        = core.get_office_code_by_office_id(@office_id);
-        @notice             = 'EOD started.';
+        SET @office_code        = core.get_office_code_by_office_id(@office_id);
+        SET @notice             = 'EOD started.';
         PRINT @notice;
 
         SELECT @total_rows=MAX(routine_id) FROM @this;
@@ -108,17 +114,17 @@ BEGIN
                 BREAK;
             END;
 
-            @sql                    = FORMATMESSAGE('EXECUTE %s @user_id, @login_id, @office_id, @value_date;', @routine);
+            SET @sql                    = FORMATMESSAGE('EXECUTE %s @user_id, @login_id, @office_id, @value_date;', @routine);
 
             PRINT @sql;
 
-            @notice             = 'Performing ' + @routine + '.';
+            SET @notice             = 'Performing ' + @routine + '.';
             PRINT @notice;
 
             WAITFOR DELAY '00:00:02';
-            EXECUTE @sql USING @user_id, @login_id, @office_id, @value_date;
+            EXECUTE sp_executesql @sql, '@user_id integer, @login_id bigint, @office_id integer, @value_date date', @login_id, @office_id, @value_date;
 
-            @notice             = 'Completed  ' + @routine + '.';
+            SET @notice             = 'Completed  ' + @routine + '.';
             PRINT @notice;
             
             WAITFOR DELAY '00:00:02';
@@ -131,13 +137,13 @@ BEGIN
             completed_on = GETDATE(), 
             completed_by = @user_id,
             completed = 1
-        WHERE value_date=_value_date
+        WHERE value_date=@value_date
         AND office_id = @office_id;
 
-        @notice             = 'EOD of ' + @office_code + ' for ' + CAST(@value_date AS varchar(24)) + ' completed without errors.';
+        SET @notice             = 'EOD of ' + @office_code + ' for ' + CAST(@value_date AS varchar(24)) + ' completed without errors.';
         PRINT @notice;
 
-        @notice             = 'OK';
+        SET @notice             = 'OK';
         PRINT @notice;
 
         SELECT 1;
@@ -152,3 +158,5 @@ END;
 
 
 GO
+
+

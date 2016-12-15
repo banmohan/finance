@@ -11,12 +11,12 @@ CREATE FUNCTION finance.get_retained_earnings
     _office_id                      integer,
     _factor                         integer
 )
-RETURNS decimal(24, 4)
+RETURNS numeric(30, 6)
 AS
 $$
     DECLARE     _date_from              date;
-    DECLARE     _net_profit             decimal(24, 4);
-    DECLARE     _paid_dividends         decimal(24, 4);
+    DECLARE     _net_profit             numeric(30, 6);
+    DECLARE     _paid_dividends         numeric(30, 6);
 BEGIN
     IF(COALESCE(_factor, 0) = 0) THEN
         _factor := 1;

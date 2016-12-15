@@ -1,6 +1,9 @@
-﻿DROP MATERIALIZED VIEW IF EXISTS finance.verified_cash_transaction_mat_view;
+﻿IF OBJECT_ID('finance.verified_cash_transaction_mat_view') IS NOT NULL
+DROP VIEW finance.verified_cash_transaction_mat_view;
 
-CREATE MATERIALIZED VIEW finance.verified_cash_transaction_mat_view
+GO
+
+CREATE VIEW finance.verified_cash_transaction_mat_view
 AS
 SELECT * FROM finance.verified_transaction_mat_view
 WHERE finance.verified_transaction_mat_view.transaction_master_id
@@ -10,9 +13,5 @@ IN
     FROM finance.verified_transaction_mat_view
     WHERE account_master_id IN(10101, 10102) --Cash and Bank A/C
 );
-
-ALTER MATERIALIZED VIEW finance.verified_cash_transaction_mat_view
-OWNER TO frapid_db_user;
-
 
 GO

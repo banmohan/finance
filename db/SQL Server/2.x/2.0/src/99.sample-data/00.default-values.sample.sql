@@ -1,11 +1,15 @@
-﻿/*
+﻿SET NOCOUNT ON;
+
+/*
 IMPORTANT:
 The table account_masters must only be translated, but not changed.        
 */
 UPDATE core.offices
 SET allow_transaction_posting = 1;
 
-INSERT INTO finance.verification_statuses
+
+
+INSERT INTO finance.verification_statuses(verification_status_id, verification_status_name)
 SELECT -3,  'Rejected'                              UNION ALL
 SELECT -2,  'Closed'                                UNION ALL
 SELECT -1,  'Withdrawn'                             UNION ALL
@@ -106,8 +110,12 @@ SELECT finance.get_cash_flow_heading_id_by_cash_flow_heading_code('SUS'), financ
 SELECT finance.get_cash_flow_heading_id_by_cash_flow_heading_code('SUS'), finance.get_account_master_id_by_account_master_code('ORX') UNION ALL --Against Suspense Accounts/Operating Expenses
 SELECT finance.get_cash_flow_heading_id_by_cash_flow_heading_code('SUS'), finance.get_account_master_id_by_account_master_code('FIX');          --Against Suspense Accounts/Financial Expenses
 
+GO
+
 ALTER TABLE finance.accounts
-ALTER column currency_code DROP NOT NULL;
+ALTER column currency_code national character varying(12) NULL;
+
+GO
 
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 1,     '10000', 'Assets',                                                      1,  finance.get_account_id_by_account_name('Balance Sheet A/C');
@@ -534,9 +542,12 @@ SELECT 20600,  '44100', 'Gain/Loss on Sale of Assets',                          
 UPDATE finance.accounts
 SET currency_code='USD';
 
+GO
 
 ALTER TABLE finance.accounts
-ALTER column currency_code SET NOT NULL;
+ALTER column currency_code national character varying(12) NOT NULL;
+
+GO
 
 INSERT INTO finance.cost_centers(cost_center_code, cost_center_name)
 SELECT 'DEF', 'Default'                             UNION ALL
@@ -607,3 +618,4 @@ FROM core.offices;
 
 
 GO
+

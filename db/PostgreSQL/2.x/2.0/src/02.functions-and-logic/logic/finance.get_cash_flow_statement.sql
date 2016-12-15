@@ -22,7 +22,7 @@ $$
     DECLARE _periods                finance.period[];
     DECLARE _json                   json;
     DECLARE this                    RECORD;
-    DECLARE _balance                decimal(24, 4);
+    DECLARE _balance                numeric(30, 6);
     DECLARE _is_periodic            boolean = finance.is_periodic_inventory(_office_id);
 BEGIN    
     --We cannot divide by zero.
@@ -56,7 +56,7 @@ BEGIN
     **************************************************************************************************************************************************************************************/
     SELECT string_agg(dynamic, '') FROM
     (
-            SELECT 'ALTER TABLE cf_temp ADD COLUMN "' || period_name || '" decimal(24, 4) DEFAULT(0);' as dynamic
+            SELECT 'ALTER TABLE cf_temp ADD COLUMN "' || period_name || '" numeric(30, 6) DEFAULT(0);' as dynamic
             FROM explode_array(_periods)
          
     ) periods

@@ -1,5 +1,5 @@
-﻿IF OBJECT_ID('finance.account_scrud_view CASCADE') IS NOT NULL
-DROP VIEW finance.account_scrud_view CASCADE;
+﻿IF OBJECT_ID('finance.account_scrud_view') IS NOT NULL
+DROP VIEW finance.account_scrud_view --CASCADE;
 
 GO
 

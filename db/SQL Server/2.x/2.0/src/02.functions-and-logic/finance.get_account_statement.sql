@@ -1,4 +1,5 @@
-﻿IF OBJECT_ID('finance.get_account_statement') IS NOT NULL
+﻿-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_account_statement.sql --<--<--
+IF OBJECT_ID('finance.get_account_statement') IS NOT NULL
 DROP FUNCTION finance.get_account_statement;
 
 GO
@@ -19,9 +20,9 @@ RETURNS @result TABLE
     tran_code               national character varying(50),
     reference_number        national character varying(24),
     statement_reference     national character varying(2000),
-    debit                   decimal(24, 4),
-    credit                  decimal(24, 4),
-    balance                 decimal(24, 4),
+    debit                   numeric(30, 6),
+    credit                  numeric(30, 6),
+    balance                 numeric(30, 6),
     office national character varying(1000),
     book                    national character varying(50),
     account_id              integer,
@@ -36,9 +37,7 @@ RETURNS @result TABLE
 )
 AS
 BEGIN
-    DECLARE @normally_debit bit;
-
-    @normally_debit             = finance.is_normally_debit(@account_id);
+    DECLARE @normally_debit bit = finance.is_normally_debit(@account_id);
 
     INSERT INTO @result(value_date, book_date, tran_code, reference_number, statement_reference, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
     SELECT
@@ -118,9 +117,10 @@ BEGIN
 
 
 
-    UPDATE @result
+    UPDATE result
     SET balance = c.balance
-    FROM
+    FROM @result AS result
+    INNER JOIN
     (
         SELECT
             temp_account_statement.id, 
@@ -131,16 +131,16 @@ BEGIN
         LEFT JOIN @result AS c 
             ON (c.id <= temp_account_statement.id)
         GROUP BY temp_account_statement.id
-        ORDER BY temp_account_statement.id
     ) AS c
-    WHERE id = c.id;
+    ON result.id = c.id;
 
 
-    UPDATE @result SET 
+    UPDATE result SET 
         account_number = finance.accounts.account_number,
         account = finance.accounts.account_name
-    FROM finance.accounts
-    WHERE account_id = finance.accounts.account_id;
+    FROM @result AS result
+    INNER JOIN finance.accounts
+    ON result.account_id = finance.accounts.account_id;
 
 
 --     UPDATE temp_account_statement SET
@@ -148,7 +148,7 @@ BEGIN
 --         flag_fg = core.get_flag_foreground_color(core.get_flag_type_id(@user_id, 'account_statement', 'transaction_code', temp_account_statement.tran_code));
 
 
-    IF(@normally_debit)
+    IF(@normally_debit = 1)
     BEGIN
         UPDATE @result SET balance = balance * -1;
     END;

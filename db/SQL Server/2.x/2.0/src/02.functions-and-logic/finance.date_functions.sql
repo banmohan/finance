@@ -23,10 +23,13 @@ RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND finance.frequency_setups.deleted = 0;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND finance.frequency_setups.deleted = 0
+    );
 END;
 
 
@@ -45,8 +48,7 @@ AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1
-    INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date))
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -59,8 +61,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from 
-        INTO @date
+        SELECT @date = starts_from
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.deleted = 0;
     END;
@@ -82,11 +83,14 @@ RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 2
-    AND finance.frequency_setups.deleted = 0;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 2
+        AND finance.frequency_setups.deleted = 0
+    );
 END;
 
 
@@ -94,8 +98,8 @@ END;
 
 GO
 
-IF OBJECT_ID('finance.get_quarter_start_date(@office_id') IS NOT NULL
-DROP FUNCTION finance.get_quarter_start_date(@office_id;
+IF OBJECT_ID('finance.get_quarter_start_date') IS NOT NULL
+DROP FUNCTION finance.get_quarter_start_date;
 
 GO
 
@@ -105,8 +109,7 @@ AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1
-    INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date))
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -120,8 +123,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from 
-        INTO @date
+        SELECT @date = starts_from
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.deleted = 0;
     END;
@@ -143,11 +145,14 @@ RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 3
-    AND finance.frequency_setups.deleted = 0;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 3
+        AND finance.frequency_setups.deleted = 0
+    );
 END;
 
 
@@ -166,8 +171,7 @@ AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1
-    INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date))
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -181,8 +185,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from 
-        INTO @date
+        SELECT @date = starts_from
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.deleted = 0;
     END;
@@ -204,19 +207,22 @@ RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 4
-    AND finance.frequency_setups.deleted = 0;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 4
+        AND finance.frequency_setups.deleted = 0
+    );
 END;
 
 
 
 GO
 
-IF OBJECT_ID('') IS NOT NULL
-DROP FUNCTION;
+IF OBJECT_ID('finance.get_fiscal_year_start_date') IS NOT NULL
+DROP FUNCTION finance.get_fiscal_year_start_date;
 
 GO
 
@@ -226,8 +232,7 @@ AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT starts_from 
-    INTO @date
+    SELECT @date = starts_from
     FROM finance.fiscal_year
     WHERE finance.fiscal_year.deleted = 0;
 

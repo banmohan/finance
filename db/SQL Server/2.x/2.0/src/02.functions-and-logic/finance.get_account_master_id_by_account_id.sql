@@ -16,7 +16,7 @@ BEGIN
     );
 END;
 
-
+GO
 
 ALTER TABLE finance.bank_accounts
 ADD CONSTRAINT bank_accounts_account_id_chk 

@@ -11,7 +11,7 @@ AS
 SELECT
     finance.journal_verification_policy.journal_verification_policy_id,
     finance.journal_verification_policy.user_id,
-    account.get_name_by_user_id(finance.journal_verification_policy.user_id) AS user,
+    account.get_name_by_user_id(finance.journal_verification_policy.user_id) AS "user",
     finance.journal_verification_policy.office_id,
     core.get_office_name_by_office_id(finance.journal_verification_policy.office_id) AS office,
     finance.journal_verification_policy.can_verify,

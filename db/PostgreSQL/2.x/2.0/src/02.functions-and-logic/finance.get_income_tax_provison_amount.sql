@@ -1,7 +1,7 @@
-﻿DROP FUNCTION IF EXISTS finance.get_income_tax_provison_amount(_office_id integer, _profit  decimal(24, 4), _balance  decimal(24, 4));
+﻿DROP FUNCTION IF EXISTS finance.get_income_tax_provison_amount(_office_id integer, _profit  numeric(30, 6), _balance  numeric(30, 6));
 
-CREATE FUNCTION finance.get_income_tax_provison_amount(_office_id integer, _profit decimal(24, 4), _balance decimal(24, 4))
-RETURNS  decimal(24, 4)
+CREATE FUNCTION finance.get_income_tax_provison_amount(_office_id integer, _profit numeric(30, 6), _balance numeric(30, 6))
+RETURNS  numeric(30, 6)
 AS
 $$
     DECLARE _rate real;

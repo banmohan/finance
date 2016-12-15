@@ -6,14 +6,12 @@ GO
 CREATE PROCEDURE finance.initialize_eod_operation(@user_id integer, @office_id integer, @value_date date)
 AS
 BEGIN
-    DECLARE this            RECORD;    
-
     IF(@value_date IS NULL)
     BEGIN
         RAISERROR('Invalid date.', 10, 1);
     END;
 
-    IF(NOT account.is_admin(@user_id))
+    IF(account.is_admin(@user_id) = 0)
     BEGIN
         RAISERROR('Access is denied.', 10, 1);
     END;
@@ -23,11 +21,13 @@ BEGIN
         RAISERROR('Invalid value date.', 10, 1);
     END;
 
-    SELECT * FROM finance.day_operation
-    WHERE value_date=_value_date 
-    AND office_id = @office_id INTO this;
 
-    IF(this IS NULL)
+    IF NOT EXISTS
+    (
+        SELECT * FROM finance.day_operation
+        WHERE value_date=@value_date
+        AND office_id = @office_id
+    )
     BEGIN
         INSERT INTO finance.day_operation(office_id, value_date, started_on, started_by)
         SELECT @office_id, @value_date, GETDATE(), @user_id;
@@ -50,3 +50,4 @@ END;
 
 
 GO
+

@@ -11,9 +11,6 @@ SELECT
     finance.account_scrud_view.account_id AS receivable_account_id,
     finance.account_scrud_view.account_name AS receivable_account_name
 FROM finance.account_scrud_view
-WHERE account_master_id = 10110
-ORDER BY account_id;
-
-
+WHERE account_master_id = 10110;
 
 GO

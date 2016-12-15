@@ -16,7 +16,7 @@ CREATE TABLE finance.verification_statuses
 
 CREATE TABLE finance.frequencies
 (
-    frequency_id                            integer IDENTITY PRIMARY KEY,
+    frequency_id                            integer PRIMARY KEY,
     frequency_code                          national character varying(12) NOT NULL,
     frequency_name                          national character varying(50) NOT NULL,
     audit_user_id                           integer REFERENCES account.users,
@@ -806,10 +806,13 @@ RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND finance.frequency_setups.deleted = 0;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND finance.frequency_setups.deleted = 0
+    );
 END;
 
 
@@ -828,8 +831,7 @@ AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1
-    INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date))
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -842,8 +844,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from 
-        INTO @date
+        SELECT @date = starts_from
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.deleted = 0;
     END;
@@ -865,11 +866,14 @@ RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 2
-    AND finance.frequency_setups.deleted = 0;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 2
+        AND finance.frequency_setups.deleted = 0
+    );
 END;
 
 
@@ -877,8 +881,8 @@ END;
 
 GO
 
-IF OBJECT_ID('finance.get_quarter_start_date(@office_id') IS NOT NULL
-DROP FUNCTION finance.get_quarter_start_date(@office_id;
+IF OBJECT_ID('finance.get_quarter_start_date') IS NOT NULL
+DROP FUNCTION finance.get_quarter_start_date;
 
 GO
 
@@ -888,8 +892,7 @@ AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1
-    INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date))
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -903,8 +906,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from 
-        INTO @date
+        SELECT @date = starts_from
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.deleted = 0;
     END;
@@ -926,11 +928,14 @@ RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 3
-    AND finance.frequency_setups.deleted = 0;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 3
+        AND finance.frequency_setups.deleted = 0
+    );
 END;
 
 
@@ -949,8 +954,7 @@ AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1
-    INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date))
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -964,8 +968,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from 
-        INTO @date
+        SELECT @date = starts_from
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.deleted = 0;
     END;
@@ -987,19 +990,22 @@ RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 4
-    AND finance.frequency_setups.deleted = 0;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 4
+        AND finance.frequency_setups.deleted = 0
+    );
 END;
 
 
 
 GO
 
-IF OBJECT_ID('') IS NOT NULL
-DROP FUNCTION;
+IF OBJECT_ID('finance.get_fiscal_year_start_date') IS NOT NULL
+DROP FUNCTION finance.get_fiscal_year_start_date;
 
 GO
 
@@ -1009,8 +1015,7 @@ AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT starts_from 
-    INTO @date
+    SELECT @date = starts_from
     FROM finance.fiscal_year
     WHERE finance.fiscal_year.deleted = 0;
 
@@ -1102,35 +1107,31 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_account_ids.sql --<--<--
-IF OBJECT_ID('finance.get_account_ids') IS NOT NULL
-DROP FUNCTION finance.get_account_ids;
 
-GO
-
-CREATE FUNCTION finance.get_account_ids(root_account_id integer)
+CREATE FUNCTION finance.get_account_ids(@root_account_id integer)
 RETURNS @result TABLE
 (
     account_id              integer
 )
 AS
 BEGIN
-    INSERT INTO @result
-    (
-        WITH account_cte(account_id, path) AS (
-         SELECT
-            tn.account_id,  tn.account_id AS path
+        WITH account_cte(account_id, path) AS 
+        (
+            SELECT
+                tn.account_id,  tn.account_id AS path
             FROM finance.accounts AS tn 
             WHERE tn.account_id = @root_account_id
             AND tn.deleted = 0
-        UNION ALL
-         SELECT
-            c.account_id, (p.path + '->' + c.account_id
+
+            UNION ALL
+
+            SELECT
+                c.account_id, (p.path + '->' + c.account_id)
             FROM account_cte AS p, finance.accounts AS c WHERE parent_account_id = p.account_id
         )
 
-        SELECT account_id FROM account_cte
-    );
-
+    INSERT INTO @result
+    SELECT account_id FROM account_cte
     RETURN;
 END;
 
@@ -1159,7 +1160,7 @@ BEGIN
     );
 END;
 
-
+GO
 
 ALTER TABLE finance.bank_accounts
 ADD CONSTRAINT bank_accounts_account_id_chk 
@@ -1223,6 +1224,7 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_account_statement.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_account_statement.sql --<--<--
 IF OBJECT_ID('finance.get_account_statement') IS NOT NULL
 DROP FUNCTION finance.get_account_statement;
 
@@ -1244,9 +1246,9 @@ RETURNS @result TABLE
     tran_code               national character varying(50),
     reference_number        national character varying(24),
     statement_reference     national character varying(2000),
-    debit                   decimal(24, 4),
-    credit                  decimal(24, 4),
-    balance                 decimal(24, 4),
+    debit                   numeric(30, 6),
+    credit                  numeric(30, 6),
+    balance                 numeric(30, 6),
     office national character varying(1000),
     book                    national character varying(50),
     account_id              integer,
@@ -1261,9 +1263,7 @@ RETURNS @result TABLE
 )
 AS
 BEGIN
-    DECLARE @normally_debit bit;
-
-    @normally_debit             = finance.is_normally_debit(@account_id);
+    DECLARE @normally_debit bit = finance.is_normally_debit(@account_id);
 
     INSERT INTO @result(value_date, book_date, tran_code, reference_number, statement_reference, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
     SELECT
@@ -1343,9 +1343,10 @@ BEGIN
 
 
 
-    UPDATE @result
+    UPDATE result
     SET balance = c.balance
-    FROM
+    FROM @result AS result
+    INNER JOIN
     (
         SELECT
             temp_account_statement.id, 
@@ -1356,16 +1357,16 @@ BEGIN
         LEFT JOIN @result AS c 
             ON (c.id <= temp_account_statement.id)
         GROUP BY temp_account_statement.id
-        ORDER BY temp_account_statement.id
     ) AS c
-    WHERE id = c.id;
+    ON result.id = c.id;
 
 
-    UPDATE @result SET 
+    UPDATE result SET 
         account_number = finance.accounts.account_number,
         account = finance.accounts.account_name
-    FROM finance.accounts
-    WHERE account_id = finance.accounts.account_id;
+    FROM @result AS result
+    INNER JOIN finance.accounts
+    ON result.account_id = finance.accounts.account_id;
 
 
 --     UPDATE temp_account_statement SET
@@ -1373,7 +1374,7 @@ BEGIN
 --         flag_fg = core.get_flag_foreground_color(core.get_flag_type_id(@user_id, 'account_statement', 'transaction_code', temp_account_statement.tran_code));
 
 
-    IF(@normally_debit)
+    IF(@normally_debit = 1)
     BEGIN
         UPDATE @result SET balance = balance * -1;
     END;
@@ -1416,6 +1417,8 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_cash_repository_balance.sql --<--<--
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_cash_repository_balance.sql --<--<--
 IF OBJECT_ID('finance.get_cash_repository_balance') IS NOT NULL
 DROP FUNCTION finance.get_cash_repository_balance;
 
@@ -1428,13 +1431,13 @@ BEGIN
     DECLARE @debit dbo.money_strict2;
     DECLARE @credit dbo.money_strict2;
 
-    SELECT COALESCE(SUM(amount_in_currency), 0) INTO @debit
+    SELECT @debit = COALESCE(SUM(amount_in_currency), 0)
     FROM finance.verified_transaction_view
     WHERE cash_repository_id=@cash_repository_id
     AND currency_code=@currency_code
     AND tran_type='Dr';
 
-    SELECT COALESCE(SUM(amount_in_currency), 0) INTO @credit
+    SELECT @credit = COALESCE(SUM(amount_in_currency), 0)
     FROM finance.verified_transaction_view
     WHERE cash_repository_id=@cash_repository_id
     AND currency_code=@currency_code
@@ -1590,8 +1593,7 @@ BEGIN
     DECLARE @unit                       dbo.integer_strict2 = 0;
     DECLARE @exchange_rate              dbo.decimal_strict2 = 0;
 
-    SELECT core.offices.currency_code
-    INTO @local_currency_code
+    SELECT @local_currency_code = core.offices.currency_code
     FROM core.offices
     WHERE core.offices.office_id=@office_id
     AND core.offices.deleted = 0;
@@ -1601,8 +1603,9 @@ BEGIN
         RETURN 1;
     END;
 
-    SELECT unit, exchange_rate
-    INTO @unit, @exchange_rate
+    SELECT 
+        @unit = unit, 
+        @exchange_rate = exchange_rate
     FROM finance.exchange_rate_details
     INNER JOIN finance.exchange_rates
     ON finance.exchange_rate_details.exchange_rate_id = finance.exchange_rates.exchange_rate_id
@@ -1614,8 +1617,10 @@ BEGIN
         RETURN 0;
     END;
     
-    RETURN @exchange_rate/_unit;    
+    RETURN @exchange_rate/@unit;    
 END;
+
+GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_frequencies.sql --<--<--
@@ -1684,8 +1689,7 @@ AS
 BEGIN
     DECLARE @end_date date;
 
-    SELECT MIN(value_date)
-    INTO @end_date
+    SELECT @end_date = MIN(value_date)
     FROM finance.frequency_setups
     WHERE value_date > @value_date
     AND frequency_id IN(SELECT finance.get_frequencies(@frequency_id));
@@ -1757,8 +1761,7 @@ AS
 BEGIN
     DECLARE @start_date date;
 
-    SELECT MAX(value_date) + 1 
-    INTO @start_date
+    SELECT @start_date = DATEADD(day, 1, MAX(value_date)) 
     FROM finance.frequency_setups
     WHERE finance.frequency_setups.value_date < 
     (
@@ -1771,8 +1774,7 @@ BEGIN
 
     IF(@start_date IS NULL)
     BEGIN
-        SELECT starts_from 
-        INTO @start_date
+        SELECT @start_date = starts_from 
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.deleted = 0;
     END;
@@ -1781,6 +1783,7 @@ BEGIN
 END;
 
 GO
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_setup_start_date_frequency_setup_id.sql --<--<--
@@ -1795,8 +1798,7 @@ AS
 BEGIN
     DECLARE @start_date date;
 
-    SELECT MAX(value_date) + 1 
-    INTO @start_date
+    SELECT @start_date = DATEADD(day, 1, MAX(value_date)) 
     FROM finance.frequency_setups
     WHERE finance.frequency_setups.value_date < 
     (
@@ -1809,8 +1811,7 @@ BEGIN
 
     IF(@start_date IS NULL)
     BEGIN
-        SELECT starts_from 
-        INTO @start_date
+        SELECT @start_date = starts_from 
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.deleted = 0;
     END;
@@ -1827,13 +1828,11 @@ DROP FUNCTION finance.get_income_tax_provison_amount;
 
 GO
 
-CREATE FUNCTION finance.get_income_tax_provison_amount(@office_id integer, @profit decimal(24, 4), @balance decimal(24, 4))
-RETURNS  decimal(24, 4)
+CREATE FUNCTION finance.get_income_tax_provison_amount(@office_id integer, @profit numeric(30, 6), @balance numeric(30, 6))
+RETURNS  numeric(30, 6)
 AS
 BEGIN
-    DECLARE @rate real;
-
-    @rate = finance.get_income_tax_rate(@office_id);
+    DECLARE @rate real = finance.get_income_tax_rate(@office_id);
 
     RETURN
     (
@@ -1841,11 +1840,7 @@ BEGIN
     );
 END;
 
-
-
-
 GO
-
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_income_tax_rate.sql --<--<--
 IF OBJECT_ID('finance.get_income_tax_rate') IS NOT NULL
@@ -1978,7 +1973,6 @@ GO
 IF OBJECT_ID('finance.get_new_transaction_counter') IS NOT NULL
 DROP FUNCTION finance.get_new_transaction_counter;
 
-
 GO
 
 CREATE FUNCTION finance.get_new_transaction_counter(@value_date date)
@@ -1987,24 +1981,22 @@ AS
 BEGIN
     DECLARE @ret_val integer;
 
-    SELECT INTO @ret_val
-        COALESCE(MAX(transaction_counter),0)
+    SELECT @ret_val = COALESCE(MAX(transaction_counter),0)
     FROM finance.transaction_master
     WHERE finance.transaction_master.value_date=@value_date
     AND finance.transaction_master.deleted = 0;
 
     IF @ret_val IS NULL
     BEGIN
-        RETURN 1;
+        SET @ret_val = 1;
     END
     ELSE
     BEGIN
-        RETURN (@ret_val + 1);
+        SET @ret_val = @ret_val + 1;
     END;
+
+    RETURN @ret_val;
 END;
-
-
-
 
 GO
 
@@ -2084,6 +2076,7 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_retained_earnings_statement.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_retained_earnings_statement.sql --<--<--
 IF OBJECT_ID('finance.get_retained_earnings_statement') IS NOT NULL
 DROP FUNCTION finance.get_retained_earnings_statement;
 
@@ -2099,15 +2092,15 @@ RETURNS @result TABLE
 (
     id                              integer,
     value_date                      date,
-    tran_code national character varying(50),
+    tran_code                       national character varying(50),
     statement_reference             national character varying(2000),
-    debit                           decimal(24, 4),
-    credit                          decimal(24, 4),
-    balance                         decimal(24, 4),
-    office national character varying(1000),
-    book                    national character varying(50),
+    debit                           numeric(30, 6),
+    credit                          numeric(30, 6),
+    balance                         numeric(30, 6),
+    office                          national character varying(1000),
+    book                            national character varying(50),
     account_id                      integer,
-    account_number national character varying(24),
+    account_number                  national character varying(24),
     account                         national character varying(1000),
     posted_on                       DATETIMEOFFSET,
     posted_by                       national character varying(1000),
@@ -2122,37 +2115,37 @@ BEGIN
     );
 
     DECLARE @date_from              date;
-    DECLARE @net_profit             decimal(24, 4) = 0;
+    DECLARE @net_profit             numeric(30, 6) = 0;
     DECLARE @income_tax_rate        real           = 0;
-    DECLARE @itp                    decimal(24, 4) = 0;
+    DECLARE @itp                    numeric(30, 6) = 0;
 
-    @date_from                      = finance.get_fiscal_year_start_date(@office_id);
-    @net_profit                     = finance.get_net_profit(@date_from, @date_to, @office_id, @factor);
-    @income_tax_rate                = finance.get_income_tax_rate(@office_id);
+    SET @date_from                      = finance.get_fiscal_year_start_date(@office_id);
+    SET @net_profit                     = finance.get_net_profit(@date_from, @date_to, @office_id, @factor);
+    SET @income_tax_rate                = finance.get_income_tax_rate(@office_id);
 
     IF(COALESCE(@factor , 0) = 0)
     BEGIN
-        @factor                        = 1;
+        SET @factor                        = 1;
     END; 
 
     IF(@income_tax_rate != 0)
     BEGIN
-        @itp                            = (@net_profit * @income_tax_rate) / (100 - @income_tax_rate);
+        SET @itp                        = (@net_profit * @income_tax_rate) / (100 - @income_tax_rate);
     END;
 
     DECLARE @retained_earnings TABLE
     (
         id                          integer IDENTITY,
         value_date                  date,
-        tran_code national character varying(50),
+        tran_code                   national character varying(50),
         statement_reference         national character varying(2000),
-        debit                       decimal(24, 4),
-        credit                      decimal(24, 4),
-        balance                     decimal(24, 4),
-        office national character varying(1000),
+        debit                       numeric(30, 6),
+        credit                      numeric(30, 6),
+        balance                     numeric(30, 6),
+        office                      national character varying(1000),
         book                        national character varying(50),
         account_id                  integer,
-        account_number national character varying(24),
+        account_number              national character varying(24),
         account                     national character varying(1000),
         posted_on                   DATETIMEOFFSET,
         posted_by                   national character varying(1000),
@@ -2209,9 +2202,9 @@ BEGIN
     
 
     UPDATE @retained_earnings SET 
-    debit = @retained_earnings.credit * -1,
+    debit = credit * -1,
     credit = 0
-    WHERE @retained_earnings.credit < 0;
+    WHERE credit < 0;
 
 
     INSERT INTO @retained_earnings(value_date, tran_code, statement_reference, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
@@ -2252,30 +2245,32 @@ BEGIN
 
     UPDATE @retained_earnings
     SET balance = c.balance
-    FROM
+    FROM @retained_earnings AS retained_earnings
+    INNER JOIN
     (
         SELECT
-            @retained_earnings.id, 
+            retained_earnings.id, 
             SUM(COALESCE(c.credit, 0)) 
             - 
             SUM(COALESCE(c.debit,0)) As balance
-        FROM @retained_earnings
+        FROM @retained_earnings AS retained_earnings
         LEFT JOIN @retained_earnings AS c 
-            ON (c.id <= @retained_earnings.id)
-        GROUP BY @retained_earnings.id
-        ORDER BY @retained_earnings.id
+            ON (c.id <= retained_earnings.id)
+        GROUP BY retained_earnings.id
     ) AS c
-    WHERE @retained_earnings.id = c.id;
+    ON retained_earnings.id = c.id;
 
-    UPDATE @retained_earnings SET 
+    UPDATE @retained_earnings 
+    SET 
         account_number = finance.accounts.account_number,
         account = finance.accounts.account_name
-    FROM finance.accounts
-    WHERE @retained_earnings.account_id = finance.accounts.account_id;
+    FROM @retained_earnings AS retained_earnings 
+    INNER JOIN finance.accounts
+    ON retained_earnings.account_id = finance.accounts.account_id;
 
 
-    UPDATE @retained_earnings SET debit = NULL WHERE @retained_earnings.debit = 0;
-    UPDATE @retained_earnings SET credit = NULL WHERE @retained_earnings.credit = 0;
+    UPDATE @retained_earnings SET debit = NULL WHERE debit = 0;
+    UPDATE @retained_earnings SET credit = NULL WHERE credit = 0;
 
     INSERT INTO @result
     SELECT * FROM @retained_earnings
@@ -2297,20 +2292,20 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_root_account_id.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_root_account_id.sql --<--<--
 IF OBJECT_ID('finance.get_root_account_id') IS NOT NULL
 DROP FUNCTION finance.get_root_account_id;
 
 GO
 
-CREATE FUNCTION finance.get_root_account_id(@account_id integer, @parent bigint default 0)
+CREATE FUNCTION finance.get_root_account_id(@account_id integer, @parent bigint)
 RETURNS integer
 AS
 BEGIN
     DECLARE @parent_account_id integer;
+    DECLARE @root_account_id integer;
 
-    SELECT 
-        parent_account_id
-        INTO @parent_account_id
+    SELECT @parent_account_id =  parent_account_id
     FROM finance.accounts
     WHERE finance.accounts.account_id=@account_id
     AND finance.accounts.deleted = 0;
@@ -2319,15 +2314,15 @@ BEGIN
 
     IF(@parent_account_id IS NULL)
     BEGIN
-        RETURN @account_id;
+        SET @root_account_id = @account_id;
+    END
     ELSE
     BEGIN
-        RETURN finance.get_root_account_id(@parent_account_id, @account_id);
-    END; 
+        SET @root_account_id = finance.get_root_account_id(@parent_account_id, @account_id);
+    END;
+
+    RETURN @root_account_id;
 END;
-
-
-
 
 GO
 
@@ -2358,36 +2353,34 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_second_root_account_id.sql --<--<--
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_second_root_account_id.sql --<--<--
 IF OBJECT_ID('finance.get_second_root_account_id') IS NOT NULL
 DROP FUNCTION finance.get_second_root_account_id;
 
 GO
 
-CREATE FUNCTION finance.get_second_root_account_id(@account_id integer, @parent bigint default 0)
+CREATE FUNCTION finance.get_second_root_account_id(@account_id integer, @parent bigint)
 RETURNS integer
 AS
 BEGIN
     DECLARE @parent_account_id integer;
+    DECLARE @root_account_id integer;
 
-    SELECT 
-        parent_account_id
-        INTO @parent_account_id
+    SELECT @parent_account_id =  parent_account_id
     FROM finance.accounts
     WHERE account_id=@account_id;
 
     IF(@parent_account_id IS NULL)
     BEGIN
-        RETURN @parent;
+        SET @root_account_id =  @parent;
     END
     ELSE
     BEGIN
-        RETURN finance.get_second_root_account_id(@parent_account_id, @account_id);
-    END; 
+        SET @root_account_id = finance.get_second_root_account_id(@parent_account_id, @account_id);
+    END;
+
+    RETURN @root_account_id;
 END;
-
-
-
-
 
 GO
 
@@ -2403,13 +2396,15 @@ AS
 BEGIN
     DECLARE @ret_val national character varying(1000);  
 
-    @ret_val= finance.get_new_transaction_counter(@value_date) + '-' + CONVERT(varchar(10), @value_date, 120) + '-' + CAST(@office_id varchar(100)) + '-' + CAST(@user_id varchar(100)) + '-' + CAST(@login_id varchar(100))   + '-' +  CONVERT(VARCHAR(10), GETDATE(), 108);
+    SET @ret_val =	CAST(finance.get_new_transaction_counter(@value_date) AS varchar(24)) + '-' + 
+					CONVERT(varchar(10), @value_date, 120) + '-' + 
+					CAST(@office_id AS varchar(100)) + '-' + 
+					CAST(@user_id AS varchar(100)) + '-' + 
+					CAST(@login_id AS varchar(100))   + '-' +  
+					CONVERT(VARCHAR(10), GETDATE(), 108);
+
     RETURN @ret_val;
 END;
-
-
-
-
 
 GO
 
@@ -2420,37 +2415,45 @@ DROP FUNCTION finance.get_value_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_value_date(@office_id integer)
+CREATE FUNCTION finance.get_value_date(@office_id integer)
 RETURNS date
 AS
 BEGIN
-    DECLARE this            RECORD;
-    DECLARE @value_date     date;
+    DECLARE @day_id                         bigint;
+    DECLARE @completed                      bit;
+    DECLARE @value_date                     date;
+    DECLARE @day_operation_value_date       date;
 
-    SELECT * FROM finance.day_operation
+    SELECT
+        @day_id                     = finance.day_operation.day_id,
+        @completed                  = finance.day_operation.completed,
+        @day_operation_value_date   = finance.day_operation.value_date  
+    FROM finance.day_operation
     WHERE office_id = @office_id
     AND value_date =
     (
         SELECT MAX(value_date)
         FROM finance.day_operation
         WHERE office_id = @office_id
-    ) INTO this;
+    );
 
-    IF(this.day_id IS NOT NULL)
+    IF(@day_id IS NOT NULL)
     BEGIN
-        IF(this.completed)
+        IF(@completed = 1)
         BEGIN
-            @value_date  = this.value_date + interval '1' day;
+            SET @value_date  = DATEADD(day, 1, @day_operation_value_date);
         END
         ELSE
         BEGIN
-            @value_date  = this.value_date;    
+            SET @value_date  = @day_operation_value_date;    
         END;
     END;
 
     IF(@value_date IS NULL)
     BEGIN
-        @value_date = GETDATE() AT time zone config.get_server_timezone();
+        --SET @value_date = GETDATE() AT time zone config.get_server_timezone();
+        --Todo: validate the date and time produced by the following function
+        SET @value_date = CAST(SYSDATETIMEOFFSET() AS date);
     END;
     
     RETURN @value_date;
@@ -2463,15 +2466,23 @@ DROP FUNCTION finance.get_month_end_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_month_end_date(@office_id integer)
+IF OBJECT_ID('finance.get_month_end_date') IS NOT NULL
+DROP FUNCTION finance.get_month_end_date;
+
+GO
+
+CREATE FUNCTION finance.get_month_end_date(@office_id integer)
 RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND finance.frequency_setups.office_id = @office_id;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND finance.frequency_setups.office_id = @office_id
+    );
 END;
 
 GO
@@ -2481,14 +2492,13 @@ DROP FUNCTION finance.get_month_start_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_month_start_date(@office_id integer)
+CREATE FUNCTION finance.get_month_start_date(@office_id integer)
 RETURNS date
 AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1
-    INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date))
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -2500,8 +2510,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from 
-        INTO @date
+        SELECT @date = starts_from 
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.office_id = @office_id;
     END;
@@ -2517,16 +2526,19 @@ DROP FUNCTION finance.get_quarter_end_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_quarter_end_date(@office_id integer)
+CREATE FUNCTION finance.get_quarter_end_date(@office_id integer)
 RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 2
-    AND finance.frequency_setups.office_id = @office_id;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 2
+        AND finance.frequency_setups.office_id = @office_id
+    );
 END;
 
 
@@ -2538,14 +2550,13 @@ DROP FUNCTION finance.get_quarter_start_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_quarter_start_date(@office_id integer)
+CREATE FUNCTION finance.get_quarter_start_date(@office_id integer)
 RETURNS date
 AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1
-    INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date))
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -2558,7 +2569,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from INTO @date
+        SELECT @date = starts_from
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.office_id = @office_id;
     END;
@@ -2573,16 +2584,19 @@ DROP FUNCTION finance.get_fiscal_half_end_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_fiscal_half_end_date(@office_id integer)
+CREATE FUNCTION finance.get_fiscal_half_end_date(@office_id integer)
 RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 3
-    AND finance.frequency_setups.office_id = @office_id;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 3
+        AND finance.frequency_setups.office_id = @office_id
+    );
 END;
 
 
@@ -2594,13 +2608,13 @@ DROP FUNCTION finance.get_fiscal_half_start_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_fiscal_half_start_date(@office_id integer)
+CREATE FUNCTION finance.get_fiscal_half_start_date(@office_id integer)
 RETURNS date
 AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT MAX(value_date) + 1 INTO @date
+    SELECT @date = DATEADD(day, 1, MAX(value_date)) 
     FROM finance.frequency_setups
     WHERE value_date < 
     (
@@ -2613,7 +2627,7 @@ BEGIN
 
     IF(@date IS NULL)
     BEGIN
-        SELECT starts_from INTO @date
+        SELECT @date = starts_from
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.office_id = @office_id;
     END;
@@ -2629,16 +2643,19 @@ DROP FUNCTION finance.get_fiscal_year_end_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_fiscal_year_end_date(@office_id integer)
+CREATE FUNCTION finance.get_fiscal_year_end_date(@office_id integer)
 RETURNS date
 AS
 
 BEGIN
-    RETURN MIN(value_date) 
-    FROM finance.frequency_setups
-    WHERE value_date >= finance.get_value_date(@office_id)
-    AND frequency_id > 4
-    AND finance.frequency_setups.office_id = @office_id;
+    RETURN
+    (
+        SELECT MIN(value_date) 
+        FROM finance.frequency_setups
+        WHERE value_date >= finance.get_value_date(@office_id)
+        AND frequency_id > 4
+        AND finance.frequency_setups.office_id = @office_id
+    );
 END;
 
 
@@ -2650,13 +2667,13 @@ DROP FUNCTION finance.get_fiscal_year_start_date;
 
 GO
 
-CREATE OR REPLACE FUNCTION finance.get_fiscal_year_start_date(@office_id integer)
+CREATE FUNCTION finance.get_fiscal_year_start_date(@office_id integer)
 RETURNS date
 AS
 BEGIN
     DECLARE @date               date;
 
-    SELECT starts_from INTO @date
+    SELECT @date = starts_from
     FROM finance.fiscal_year
     WHERE finance.fiscal_year.office_id = @office_id;
 
@@ -2707,18 +2724,16 @@ GO
 CREATE FUNCTION finance.has_child_accounts(@account_id integer)
 RETURNS bit
 AS
-
 BEGIN
-    IF EXISTS(SELECT 0 FROM finance.accounts WHERE parent_account_id=@account_id LIMIT 1)
+	DECLARE @has_child bit = 0;
+
+    IF EXISTS(SELECT TOP 1 0 FROM finance.accounts WHERE parent_account_id=@account_id)
     BEGIN
-        RETURN 1;
+        SET @has_child = 1;
     END;
 
-    RETURN 0;
+    RETURN @has_child;
 END;
-
-
-
 
 GO
 
@@ -2732,14 +2747,12 @@ GO
 CREATE PROCEDURE finance.initialize_eod_operation(@user_id integer, @office_id integer, @value_date date)
 AS
 BEGIN
-    DECLARE this            RECORD;    
-
     IF(@value_date IS NULL)
     BEGIN
         RAISERROR('Invalid date.', 10, 1);
     END;
 
-    IF(NOT account.is_admin(@user_id))
+    IF(account.is_admin(@user_id) = 0)
     BEGIN
         RAISERROR('Access is denied.', 10, 1);
     END;
@@ -2749,11 +2762,13 @@ BEGIN
         RAISERROR('Invalid value date.', 10, 1);
     END;
 
-    SELECT * FROM finance.day_operation
-    WHERE value_date=_value_date 
-    AND office_id = @office_id INTO this;
 
-    IF(this IS NULL)
+    IF NOT EXISTS
+    (
+        SELECT * FROM finance.day_operation
+        WHERE value_date=@value_date
+        AND office_id = @office_id
+    )
     BEGIN
         INSERT INTO finance.day_operation(office_id, value_date, started_on, started_by)
         SELECT @office_id, @value_date, GETDATE(), @user_id;
@@ -2778,6 +2793,7 @@ END;
 GO
 
 
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.is_cash_account_id.sql --<--<--
 IF OBJECT_ID('finance.is_cash_account_id') IS NOT NULL
 DROP FUNCTION finance.is_cash_account_id;
@@ -2793,7 +2809,7 @@ BEGIN
     (
         SELECT 1 FROM finance.accounts 
         WHERE account_master_id IN(10101)
-        AND account_id=_account_id
+        AND account_id=@account_id
     )
     BEGIN
         RETURN 1;
@@ -2801,12 +2817,8 @@ BEGIN
     RETURN 0;
 END;
 
-
-
-
-
-
 GO
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.is_eod_initialized.sql --<--<--
@@ -2848,7 +2860,7 @@ DROP FUNCTION finance.is_new_day_started;
 
 GO
 
-CREATE or replace FUNCTION finance.is_new_day_started(@office_id integer)
+CREATE FUNCTION finance.is_new_day_started(@office_id integer)
 RETURNS bit
 AS
 
@@ -2865,9 +2877,6 @@ BEGIN
 
     RETURN 0;
 END;
-
-
-
 
 --SELECT * FROM finance.is_new_day_started(1);
 
@@ -2980,6 +2989,7 @@ GO
 IF OBJECT_ID('finance.perform_eod_operation') IS NOT NULL
 DROP PROCEDURE finance.perform_eod_operation;
 
+GO
 
 CREATE PROCEDURE finance.perform_eod_operation(@user_id integer, @login_id bigint, @office_id integer, @value_date date)
 AS
@@ -2990,6 +3000,8 @@ BEGIN
     DECLARE @is_error           bit= 0;
     DECLARE @notice             national character varying(1000);
     DECLARE @office_code        national character varying(50);
+    DECLARE @completed          bit;
+    DECLARE @completed_on       DATETIMEOFFSET;
     DECLARE @this               TABLE
     (
         routine_id              integer,
@@ -3004,7 +3016,7 @@ BEGIN
         RAISERROR('Invalid date.', 10, 1);
     END;
 
-    IF(NOT account.is_admin(@user_id))
+    IF(account.is_admin(@user_id) = 0)
     BEGIN
         RAISERROR('Access is denied.', 10, 1);
     END;
@@ -3014,20 +3026,23 @@ BEGIN
         RAISERROR('Invalid value date.', 10, 1);
     END;
 
-    SELECT * FROM finance.day_operation
-    WHERE value_date=_value_date 
-    AND office_id = @office_id INTO this;
+    SELECT 
+        @completed      = finance.day_operation.completed,
+        @completed_on   = finance.day_operation.completed_on
+    FROM finance.day_operation
+    WHERE value_date=@value_date 
+    AND office_id = @office_id;
 
-    IF(this IS NULL)
+    IF(@completed IS NULL)
     BEGIN
         RAISERROR('Invalid value date.', 10, 1);
     END
     ELSE
     BEGIN    
-        IF(this.completed OR this.completed_on IS NOT NULL)
+        IF(@completed = 1 OR @completed_on IS NOT NULL)
         BEGIN
             RAISERROR('End of day operation was already performed.', 10, 1);
-            @is_error        = 1;
+            SET @is_error        = 1;
         END;
     END;
 
@@ -3039,7 +3054,7 @@ BEGIN
     )
     BEGIN
         RAISERROR('Past dated transactions in verification queue.', 10, 1);
-        @is_error        = 1;
+        SET @is_error        = 1;
     END;
 
     IF EXISTS
@@ -3050,10 +3065,10 @@ BEGIN
     )
     BEGIN
         RAISERROR('Please verify transactions before performing end of day operation.', 10, 1);
-        @is_error        = 1;
+        SET @is_error        = 1;
     END;
     
-    IF(NOT @is_error)
+    IF(@is_error = 0)
     BEGIN
         INSERT INTO @this
         SELECT routine_id, routine_name 
@@ -3061,8 +3076,8 @@ BEGIN
         WHERE status = 1
         ORDER BY "order" ASC;
 
-        @office_code        = core.get_office_code_by_office_id(@office_id);
-        @notice             = 'EOD started.';
+        SET @office_code        = core.get_office_code_by_office_id(@office_id);
+        SET @notice             = 'EOD started.';
         PRINT @notice;
 
         SELECT @total_rows=MAX(routine_id) FROM @this;
@@ -3087,17 +3102,17 @@ BEGIN
                 BREAK;
             END;
 
-            @sql                    = FORMATMESSAGE('EXECUTE %s @user_id, @login_id, @office_id, @value_date;', @routine);
+            SET @sql                    = FORMATMESSAGE('EXECUTE %s @user_id, @login_id, @office_id, @value_date;', @routine);
 
             PRINT @sql;
 
-            @notice             = 'Performing ' + @routine + '.';
+            SET @notice             = 'Performing ' + @routine + '.';
             PRINT @notice;
 
             WAITFOR DELAY '00:00:02';
-            EXECUTE @sql USING @user_id, @login_id, @office_id, @value_date;
+            EXECUTE sp_executesql @sql, '@user_id integer, @login_id bigint, @office_id integer, @value_date date', @login_id, @office_id, @value_date;
 
-            @notice             = 'Completed  ' + @routine + '.';
+            SET @notice             = 'Completed  ' + @routine + '.';
             PRINT @notice;
             
             WAITFOR DELAY '00:00:02';
@@ -3110,13 +3125,13 @@ BEGIN
             completed_on = GETDATE(), 
             completed_by = @user_id,
             completed = 1
-        WHERE value_date=_value_date
+        WHERE value_date=@value_date
         AND office_id = @office_id;
 
-        @notice             = 'EOD of ' + @office_code + ' for ' + CAST(@value_date AS varchar(24)) + ' completed without errors.';
+        SET @notice             = 'EOD of ' + @office_code + ' for ' + CAST(@value_date AS varchar(24)) + ' completed without errors.';
         PRINT @notice;
 
-        @notice             = 'OK';
+        SET @notice             = 'OK';
         PRINT @notice;
 
         SELECT 1;
@@ -3133,6 +3148,9 @@ END;
 GO
 
 
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--
 IF OBJECT_ID('finance.verify_transaction') IS NOT NULL
 DROP PROCEDURE finance.verify_transaction;
@@ -3163,18 +3181,13 @@ BEGIN
     DECLARE @cascading_tran_id              bigint;
 
     SELECT
-        finance.transaction_master.book,
-        finance.transaction_master.value_date,
-        finance.transaction_master.office_id,
-        finance.transaction_master.user_id
-    INTO
-        @book,
-        @journal_date,
-        @journal_office_id,
-        @transaction_posted_by  
+        @book                   = finance.transaction_master.book,
+        @journal_date           = finance.transaction_master.value_date,
+        @journal_office_id      = finance.transaction_master.office_id,
+        @transaction_posted_by  = finance.transaction_master.user_id          
     FROM
     finance.transaction_master
-    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id
+    WHERE finance.transaction_master.transaction_master_id=@transaction_master_id
     AND finance.transaction_master.deleted = 0;
 
 
@@ -3183,71 +3196,60 @@ BEGIN
         RAISERROR('Access is denied. You cannot verify a transaction of another office.', 10, 1);
     END;
         
-    SELECT
-        SUM(amount_in_local_currency)
-    INTO
-        @posted_amount
+    SELECT @posted_amount = SUM(amount_in_local_currency)
     FROM finance.transaction_details
     WHERE finance.transaction_details.transaction_master_id = @transaction_master_id
     AND finance.transaction_details.tran_type='Cr';
 
 
     SELECT
-        1,
-        can_verify,
-        verification_limit,
-        can_self_verify,
-        self_verification_limit
-    INTO
-        @has_policy,
-        @can_verify,
-        @verification_limit,
-        @can_self_verify,
-        @self_verification_limit
+        @has_policy                 = 1,
+        @can_verify                 = can_verify,
+        @verification_limit         = verification_limit,
+        @can_self_verify            = can_self_verify,
+        @self_verification_limit    = self_verification_limit
     FROM finance.journal_verification_policy
-    WHERE finance.journal_verification_policy.user_id=_user_id
+    WHERE finance.journal_verification_policy.user_id=@user_id
     AND finance.journal_verification_policy.office_id = @office_id
     AND finance.journal_verification_policy.is_active= 1
     AND GETDATE() >= effective_from
     AND GETDATE() <= ends_on
     AND finance.journal_verification_policy.deleted = 0;
 
-    IF(NOT @can_self_verify AND @user_id = @transaction_posted_by)
+    IF(@can_self_verify = 0 AND @user_id = @transaction_posted_by)
     BEGIN
-        @can_verify = 0;
+        SET @can_verify = 0;
     END;
 
-    IF(@has_policy)
+    IF(@has_policy = 1)
     BEGIN
-        IF(@can_verify)
+        IF(@can_verify = 1)
         BEGIN
         
-            SELECT cascading_tran_id
-            INTO @cascading_tran_id
+            SELECT @cascading_tran_id = cascading_tran_id
             FROM finance.transaction_master
-            WHERE finance.transaction_master.transaction_master_id=_transaction_master_id
+            WHERE finance.transaction_master.transaction_master_id=@transaction_master_id
             AND finance.transaction_master.deleted = 0;
             
             UPDATE finance.transaction_master
             SET 
                 last_verified_on = GETDATE(),
-                verified_by_user_id=_user_id,
-                verification_status_id=_verification_status_id,
-                verification_reason=_reason
+                verified_by_user_id=@user_id,
+                verification_status_id=@verification_status_id,
+                verification_reason=@reason
             WHERE
-                finance.transaction_master.transaction_master_id=_transaction_master_id
+                finance.transaction_master.transaction_master_id=@transaction_master_id
             OR 
-                finance.transaction_master.cascading_tran_id =_transaction_master_id
+                finance.transaction_master.cascading_tran_id =@transaction_master_id
             OR
             finance.transaction_master.transaction_master_id = @cascading_tran_id;
 
 
             IF(COALESCE(@cascading_tran_id, 0) = 0)
             BEGIN
-                SELECT transaction_master_id
-                INTO @cascading_tran_id
+                SELECT @cascading_tran_id = transaction_master_id
                 FROM finance.transaction_master
-                WHERE finance.transaction_master.cascading_tran_id=_transaction_master_id
+                WHERE finance.transaction_master.cascading_tran_id=@transaction_master_id
                 AND finance.transaction_master.deleted = 0;
             END;
             
@@ -3258,6 +3260,7 @@ BEGIN
         BEGIN
             RAISERROR('Please ask someone else to verify your transaction.', 10, 1);
         END;
+    END
     ELSE
     BEGIN
         RAISERROR('No verification policy found for this user.', 10, 1);
@@ -3266,10 +3269,6 @@ BEGIN
     SELECT 0;
     RETURN;
 END;
-
-
-
---SELECT * FROM finance.verify_transaction(1, 1, 1, 6, 2, 'OK');
 
 GO
 
@@ -3333,227 +3332,238 @@ RETURNS @result TABLE
 (
     id                              bigint,
     item                            national character varying(1000),
-    previous_period                 decimal(24, 4),
-    current_period                  decimal(24, 4),
+    previous_period                 numeric(30, 6),
+    current_period                  numeric(30, 6),
     account_id                      integer,
     account_number national character varying(24),
     is_retained_earning             bit
 )
 AS
 BEGIN
-    DECLARE this                    RECORD;
-    DECLARE @date_from              date;
+ --   DECLARE @date_from              date = finance.get_fiscal_year_start_date(@office_id);
 
-    @date_from = finance.get_fiscal_year_start_date(@office_id);
+ --   IF(COALESCE(@factor, 0) = 0)
+ --   BEGIN
+ --       SET @factor = 1;
+ --   END;
 
-    IF(COALESCE(@factor, 0) = 0)
-    BEGIN
-        @factor = 1;
-    END;
-
-    DECLARE @balance_sheet TABLE
-    (
-        item_id                     integer PRIMARY KEY,
-        item                        national character varying(1000),
-        account_number              national character varying(24),
-        account_id                  integer,
-        child_accounts              national character varying(MAX),
-        parent_item_id              integer REFERENCES @balance_sheet(item_id),
-        is_debit                    bit DEFAULT(0),
-        previous_period             decimal(24, 4) DEFAULT(0),
-        current_period              decimal(24, 4) DEFAULT(0),
-        sort                        int,
-        skip                        bit DEFAULT(0),
-        is_retained_earning         bit DEFAULT(0)
-    );
+ --   DECLARE @balance_sheet TABLE
+ --   (
+ --       item_id                     integer PRIMARY KEY,
+ --       item                        national character varying(1000),
+ --       account_number              national character varying(24),
+ --       account_id                  integer,
+ --       child_accounts              national character varying(MAX),
+ --       parent_item_id              integer,
+ --       is_debit                    bit DEFAULT(0),
+ --       previous_period             numeric(30, 6) DEFAULT(0),
+ --       current_period              numeric(30, 6) DEFAULT(0),
+ --       sort                        int,
+ --       skip                        bit DEFAULT(0),
+ --       is_retained_earning         bit DEFAULT(0)
+ --   );
     
-    --BS structure setup start
-    INSERT INTO @balance_sheet(item_id, item, parent_item_id)
-    SELECT  1,       'Assets',                              NULL            UNION ALL
-    SELECT  10100,   'Current Assets',                      1               UNION ALL
-    SELECT  10101,   'Cash A/C',                            1               UNION ALL
-    SELECT  10102,   'Bank A/C',                            1               UNION ALL
-    SELECT  10110,   'Accounts Receivable',                 10100           UNION ALL
-    SELECT  10200,   'Fixed Assets',                        1               UNION ALL
-    SELECT  10201,   'Property, Plants, and Equipments',    10201           UNION ALL
-    SELECT  10300,   'Other Assets',                        1               UNION ALL
-    SELECT  14900,   'Liabilities & Shareholders'' Equity', NULL            UNION ALL
-    SELECT  15000,   'Current Liabilities',                 14900           UNION ALL
-    SELECT  15010,   'Accounts Payable',                    15000           UNION ALL
-    SELECT  15011,   'Salary Payable',                      15000           UNION ALL
-    SELECT  15100,   'Long-Term Liabilities',               14900           UNION ALL
-    SELECT  15200,   'Shareholders'' Equity',               14900           UNION ALL
-    SELECT  15300,   'Retained Earnings',                   15200;
+ --   --BS structure setup start
+ --   INSERT INTO @balance_sheet(item_id, item, parent_item_id)
+ --   SELECT  1,       'Assets',                              NULL            UNION ALL
+ --   SELECT  10100,   'Current Assets',                      1               UNION ALL
+ --   SELECT  10101,   'Cash A/C',                            1               UNION ALL
+ --   SELECT  10102,   'Bank A/C',                            1               UNION ALL
+ --   SELECT  10110,   'Accounts Receivable',                 10100           UNION ALL
+ --   SELECT  10200,   'Fixed Assets',                        1               UNION ALL
+ --   SELECT  10201,   'Property, Plants, and Equipments',    10201           UNION ALL
+ --   SELECT  10300,   'Other Assets',                        1               UNION ALL
+ --   SELECT  14900,   'Liabilities & Shareholders'' Equity', NULL            UNION ALL
+ --   SELECT  15000,   'Current Liabilities',                 14900           UNION ALL
+ --   SELECT  15010,   'Accounts Payable',                    15000           UNION ALL
+ --   SELECT  15011,   'Salary Payable',                      15000           UNION ALL
+ --   SELECT  15100,   'Long-Term Liabilities',               14900           UNION ALL
+ --   SELECT  15200,   'Shareholders'' Equity',               14900           UNION ALL
+ --   SELECT  15300,   'Retained Earnings',                   15200;
 
-    UPDATE @balance_sheet SET is_debit = 1 WHERE @balance_sheet.item_id <= 10300;
-    UPDATE @balance_sheet SET is_retained_earning = 1 WHERE @balance_sheet.item_id = 15300;
+ --   UPDATE @balance_sheet SET is_debit = 1 WHERE @balance_sheet.item_id <= 10300;
+ --   UPDATE @balance_sheet SET is_retained_earning = 1 WHERE @balance_sheet.item_id = 15300;
     
-    INSERT INTO @balance_sheet(item_id, account_id, account_number, parent_item_id, item, is_debit, child_accounts)
-    SELECT 
-        row_number() OVER(ORDER BY finance.accounts.account_master_id) + (finance.accounts.account_master_id * 100) AS id,
-        finance.accounts.account_id,
-        finance.accounts.account_number,
-        finance.accounts.account_master_id,
-        finance.accounts.account_name,
-        finance.account_masters.normally_debit,
-        array_agg(agg)
-    FROM finance.accounts
-    INNER JOIN finance.account_masters
-    ON finance.accounts.account_master_id = finance.account_masters.account_master_id,
-    finance.get_account_ids(finance.accounts.account_id) as agg
-    WHERE parent_account_id IN
-    (
-        SELECT finance.accounts.account_id
-        FROM finance.accounts
-        WHERE finance.accounts.sys_type
-        AND finance.accounts.account_master_id BETWEEN 10100 AND 15200
-    )
-    AND finance.accounts.account_master_id BETWEEN 10100 AND 15200
-    GROUP BY finance.accounts.account_id, finance.account_masters.normally_debit
-    ORDER BY account_master_id;
+ --   INSERT INTO @balance_sheet(item_id, account_id, account_number, parent_item_id, item, is_debit, child_accounts)
+ --   SELECT 
+ --       row_number() OVER(ORDER BY finance.accounts.account_master_id) + (finance.accounts.account_master_id * 100) AS id,
+ --       finance.accounts.account_id,
+ --       finance.accounts.account_number,
+ --       finance.accounts.account_master_id,
+ --       finance.accounts.account_name,
+ --       finance.account_masters.normally_debit,
+ --       array_agg(agg)
+ --   FROM finance.accounts
+ --   INNER JOIN finance.account_masters
+ --   ON finance.accounts.account_master_id = finance.account_masters.account_master_id,
+ --   finance.get_account_ids(finance.accounts.account_id) as agg
+ --   WHERE parent_account_id IN
+ --   (
+ --       SELECT finance.accounts.account_id
+ --       FROM finance.accounts
+ --       WHERE finance.accounts.sys_type = 1
+ --       AND finance.accounts.account_master_id BETWEEN 10100 AND 15200
+ --   )
+ --   AND finance.accounts.account_master_id BETWEEN 10100 AND 15200
+ --   GROUP BY finance.accounts.account_id, finance.account_masters.normally_debit
+ --   ORDER BY account_master_id;
 
 
-    --Updating credit balances of individual GL accounts.
-    UPDATE @balance_sheet SET previous_period = tran.previous_period
-    FROM
-    (
-        SELECT 
-            @balance_sheet.account_id,         
-            SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END) AS previous_period
-        FROM @balance_sheet
-        INNER JOIN finance.verified_transaction_mat_view
-        ON finance.verified_transaction_mat_view.account_id IN(SELECT * FROM @balance_sheet.child_accounts)
-        WHERE value_date <=_previous_period
-        AND office_id IN (SELECT * FROM core.get_office_ids(@office_id))
-        GROUP BY @balance_sheet.account_id
-    ) AS tran
-    WHERE @balance_sheet.account_id = tran.account_id;
+ --   --Updating credit balances of individual GL accounts.
+ --   UPDATE @balance_sheet 
+    --SET previous_period = trans.previous_period
+    --FROM @balance_sheet AS balance_sheet
+    --INNER JOIN
+ --   (
+ --       SELECT 
+ --           @balance_sheet.account_id,         
+ --           SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END) AS previous_period
+ --       FROM @balance_sheet
+ --       INNER JOIN finance.verified_transaction_mat_view
+ --       ON finance.verified_transaction_mat_view.account_id IN
+    --  (
+    --      SELECT * FROM balance_sheet.child_accounts
+    --  )
+ --       WHERE value_date <=_previous_period
+ --       AND office_id IN (SELECT * FROM core.get_office_ids(@office_id))
+ --       GROUP BY balance_sheet.account_id
+ --   ) AS trans
+ --   ON balance_sheet.account_id = trans.account_id;
 
-    --Updating credit balances of individual GL accounts.
-    UPDATE @balance_sheet SET current_period = tran.current_period
-    FROM
-    (
-        SELECT 
-            @balance_sheet.account_id,         
-            SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END) AS current_period
-        FROM @balance_sheet
-        INNER JOIN finance.verified_transaction_mat_view
-        ON finance.verified_transaction_mat_view.account_id IN(SELECT * FROM @balance_sheet.child_accounts)
-        WHERE value_date <=_current_period
-        AND office_id IN (SELECT * FROM core.get_office_ids(@office_id))
-        GROUP BY @balance_sheet.account_id
-    ) AS tran
-    WHERE @balance_sheet.account_id = tran.account_id;
-
-
-    --Dividing by the factor.
-    UPDATE @balance_sheet SET 
-        previous_period = @balance_sheet.previous_period / @factor,
-        current_period = @balance_sheet.current_period / @factor;
-
-    --Upading balance of retained earnings
-    UPDATE @balance_sheet SET 
-        previous_period = finance.get_retained_earnings(@previous_period, @office_id, @factor),
-        current_period = finance.get_retained_earnings(@current_period, @office_id, @factor)
-    WHERE @balance_sheet.item_id = 15300;
-
-    --Reversing assets to debit balance.
-    UPDATE @balance_sheet SET 
-        previous_period=@balance_sheet.previous_period*-1,
-        current_period=@balance_sheet.current_period*-1 
-    WHERE @balance_sheet.is_debit;
+ --   --Updating credit balances of individual GL accounts.
+ --   UPDATE @balance_sheet 
+    --SET current_period = trans.current_period
+ --   FROM @balance_sheet AS balance_sheet
+    --INNER JOIN
+ --   (
+ --       SELECT 
+ --           @balance_sheet.account_id,         
+ --           SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END) AS current_period
+ --       FROM @balance_sheet
+ --       INNER JOIN finance.verified_transaction_mat_view
+ --       ON finance.verified_transaction_mat_view.account_id IN
+    --  (
+    --      SELECT * FROM balance_sheet.child_accounts
+    --  )
+ --       WHERE value_date <=@current_period
+ --       AND office_id IN 
+    --  (
+    --      SELECT * FROM core.get_office_ids(@office_id)
+    --  )
+ --       GROUP BY @balance_sheet.account_id
+ --   ) AS trans
+ --   ON balance_sheet.account_id = trans.account_id;
 
 
+ --   --Dividing by the factor.
+ --   UPDATE @balance_sheet SET 
+ --       previous_period = @balance_sheet.previous_period / @factor,
+ --       current_period = @balance_sheet.current_period / @factor;
 
-    FOR this IN 
-    SELECT * FROM @balance_sheet 
-    WHERE COALESCE(@balance_sheet.previous_period, 0) + COALESCE(@balance_sheet.current_period, 0) != 0 
-    AND @balance_sheet.account_id IS NOT NULL
-    LOOP
-        UPDATE @balance_sheet SET skip = 1 WHERE this.account_id IN(SELECT * FROM @balance_sheet.child_accounts)
-        AND @balance_sheet.account_id != this.account_id;
-    END LOOP;
+ --   --Upading balance of retained earnings
+ --   UPDATE @balance_sheet SET 
+ --       previous_period = finance.get_retained_earnings(@previous_period, @office_id, @factor),
+ --       current_period = finance.get_retained_earnings(@current_period, @office_id, @factor)
+ --   WHERE @balance_sheet.item_id = 15300;
 
-    --Updating current period amount on GL parent item by the sum of their respective child balances.
-    WITH running_totals AS
-    (
-        SELECT @balance_sheet.parent_item_id,
-        SUM(COALESCE(@balance_sheet.previous_period, 0)) AS previous_period,
-        SUM(COALESCE(@balance_sheet.current_period, 0)) AS current_period
-        FROM @balance_sheet
-        WHERE skip = 0
-        AND parent_item_id IS NOT NULL
-        GROUP BY @balance_sheet.parent_item_id
-    )
-    UPDATE @balance_sheet SET 
-        previous_period = running_totals.previous_period,
-        current_period = running_totals.current_period
-    FROM running_totals
-    WHERE running_totals.parent_item_id = @balance_sheet.item_id
-    AND @balance_sheet.item_id
-    IN
-    (
-        SELECT parent_item_id FROM running_totals
-    );
+ --   --Reversing assets to debit balance.
+ --   UPDATE @balance_sheet SET 
+ --       previous_period=@balance_sheet.previous_period*-1,
+ --       current_period=@balance_sheet.current_period*-1 
+ --   WHERE @balance_sheet.is_debit = 1;
 
 
-    --Updating sum amount on parent item by the sum of their respective child balances.
-    UPDATE @balance_sheet SET 
-        previous_period = tran.previous_period,
-        current_period = tran.current_period
-    FROM 
-    (
-        SELECT @balance_sheet.parent_item_id,
-        SUM(@balance_sheet.previous_period) AS previous_period,
-        SUM(@balance_sheet.current_period) AS current_period
-        FROM @balance_sheet
-        WHERE @balance_sheet.parent_item_id IS NOT NULL
-        GROUP BY @balance_sheet.parent_item_id
-    ) 
-    AS tran 
-    WHERE tran.parent_item_id = @balance_sheet.item_id
-    AND tran.parent_item_id IS NOT NULL;
+
+ --   FOR this IN 
+ --   SELECT * FROM @balance_sheet 
+ --   WHERE COALESCE(@balance_sheet.previous_period, 0) + COALESCE(@balance_sheet.current_period, 0) != 0 
+ --   AND @balance_sheet.account_id IS NOT NULL
+ --   LOOP
+ --       UPDATE @balance_sheet SET skip = 1 
+    --  WHERE this.account_id IN(SELECT * FROM @balance_sheet.child_accounts)
+ --       AND @balance_sheet.account_id != this.account_id;
+ --   END LOOP;
+
+ --   --Updating current period amount on GL parent item by the sum of their respective child balances.
+ --   WITH running_totals AS
+ --   (
+ --       SELECT @balance_sheet.parent_item_id,
+ --       SUM(COALESCE(@balance_sheet.previous_period, 0)) AS previous_period,
+ --       SUM(COALESCE(@balance_sheet.current_period, 0)) AS current_period
+ --       FROM @balance_sheet
+ --       WHERE skip = 0
+ --       AND parent_item_id IS NOT NULL
+ --       GROUP BY @balance_sheet.parent_item_id
+ --   )
+ --   UPDATE @balance_sheet SET 
+ --       previous_period = running_totals.previous_period,
+ --       current_period = running_totals.current_period
+ --   FROM running_totals
+ --   WHERE running_totals.parent_item_id = @balance_sheet.item_id
+ --   AND @balance_sheet.item_id
+ --   IN
+ --   (
+ --       SELECT parent_item_id FROM running_totals
+ --   );
 
 
-    --Updating sum amount on grandparents.
-    UPDATE @balance_sheet SET 
-        previous_period = tran.previous_period,
-        current_period = tran.current_period
-    FROM 
-    (
-        SELECT @balance_sheet.parent_item_id,
-        SUM(@balance_sheet.previous_period) AS previous_period,
-        SUM(@balance_sheet.current_period) AS current_period
-        FROM @balance_sheet
-        WHERE @balance_sheet.parent_item_id IS NOT NULL
-        GROUP BY @balance_sheet.parent_item_id
-    ) 
-    AS tran 
-    WHERE tran.parent_item_id = @balance_sheet.item_id;
+ --   --Updating sum amount on parent item by the sum of their respective child balances.
+ --   UPDATE @balance_sheet SET 
+ --       previous_period = tran.previous_period,
+ --       current_period = tran.current_period
+ --   FROM 
+ --   (
+ --       SELECT @balance_sheet.parent_item_id,
+ --       SUM(@balance_sheet.previous_period) AS previous_period,
+ --       SUM(@balance_sheet.current_period) AS current_period
+ --       FROM @balance_sheet
+ --       WHERE @balance_sheet.parent_item_id IS NOT NULL
+ --       GROUP BY @balance_sheet.parent_item_id
+ --   ) 
+ --   AS tran 
+ --   WHERE tran.parent_item_id = @balance_sheet.item_id
+ --   AND tran.parent_item_id IS NOT NULL;
 
-    --Removing ledgers having zero balances
-    DELETE FROM @balance_sheet
-    WHERE COALESCE(@balance_sheet.previous_period, 0) + COALESCE(@balance_sheet.current_period, 0) = 0
-    AND @balance_sheet.account_id IS NOT NULL;
 
-    --Converting 0's to NULLS.
-    UPDATE @balance_sheet SET previous_period = CASE WHEN @balance_sheet.previous_period = 0 THEN NULL ELSE @balance_sheet.previous_period END;
-    UPDATE @balance_sheet SET current_period = CASE WHEN @balance_sheet.current_period = 0 THEN NULL ELSE @balance_sheet.current_period END;
+ --   --Updating sum amount on grandparents.
+ --   UPDATE @balance_sheet SET 
+ --       previous_period = tran.previous_period,
+ --       current_period = tran.current_period
+ --   FROM 
+ --   (
+ --       SELECT @balance_sheet.parent_item_id,
+ --       SUM(@balance_sheet.previous_period) AS previous_period,
+ --       SUM(@balance_sheet.current_period) AS current_period
+ --       FROM @balance_sheet
+ --       WHERE @balance_sheet.parent_item_id IS NOT NULL
+ --       GROUP BY @balance_sheet.parent_item_id
+ --   ) 
+ --   AS tran 
+ --   WHERE tran.parent_item_id = @balance_sheet.item_id;
+
+ --   --Removing ledgers having zero balances
+ --   DELETE FROM @balance_sheet
+ --   WHERE COALESCE(@balance_sheet.previous_period, 0) + COALESCE(@balance_sheet.current_period, 0) = 0
+ --   AND @balance_sheet.account_id IS NOT NULL;
+
+ --   --Converting 0's to NULLS.
+ --   UPDATE @balance_sheet SET previous_period = CASE WHEN @balance_sheet.previous_period = 0 THEN NULL ELSE @balance_sheet.previous_period END;
+ --   UPDATE @balance_sheet SET current_period = CASE WHEN @balance_sheet.current_period = 0 THEN NULL ELSE @balance_sheet.current_period END;
     
-    UPDATE @balance_sheet SET sort = @balance_sheet.item_id WHERE @balance_sheet.item_id < 15400;
-    UPDATE @balance_sheet SET sort = @balance_sheet.parent_item_id WHERE @balance_sheet.item_id >= 15400;
+ --   UPDATE @balance_sheet SET sort = @balance_sheet.item_id WHERE @balance_sheet.item_id < 15400;
+ --   UPDATE @balance_sheet SET sort = @balance_sheet.parent_item_id WHERE @balance_sheet.item_id >= 15400;
 
-    INSERT INTO @result
-    SELECT
-        row_number() OVER(order by @balance_sheet.sort, @balance_sheet.item_id) AS id,
-        @balance_sheet.item,
-        @balance_sheet.previous_period,
-        @balance_sheet.current_period,
-        @balance_sheet.account_id,
-        @balance_sheet.account_number,
-        @balance_sheet.is_retained_earning
-    FROM @balance_sheet;
-
+ --   INSERT INTO @result
+ --   SELECT
+ --       row_number() OVER(order by @balance_sheet.sort, @balance_sheet.item_id) AS id,
+ --       @balance_sheet.item,
+ --       @balance_sheet.previous_period,
+ --       @balance_sheet.current_period,
+ --       @balance_sheet.account_id,
+ --       @balance_sheet.account_number,
+ --       @balance_sheet.is_retained_earning
+ --   FROM @balance_sheet;
+    --TODO
     RETURN;
 END;
 
@@ -3562,6 +3572,9 @@ END;
 GO
 
 
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_cash_flow_statement.sql --<--<--
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_cash_flow_statement.sql --<--<--
 IF OBJECT_ID('finance.get_cash_flow_statement') IS NOT NULL
 DROP PROCEDURE finance.get_cash_flow_statement;
@@ -3578,268 +3591,267 @@ CREATE PROCEDURE finance.get_cash_flow_statement
 )
 AS
 BEGIN    
-    DECLARE @sql                    national character varying(1000);
-    DECLARE @periods                finance.period;
-    DECLARE @json                   json;
-    DECLARE this                    RECORD;
-    DECLARE @balance                decimal(24, 4);
-    DECLARE @is_periodic            bit = finance.is_periodic_inventory(@office_id);
+    --DECLARE @sql                    national character varying(1000);
+    --DECLARE @periods                finance.period;
+    --DECLARE @json                   json;
+    --DECLARE this                    RECORD;
+    --DECLARE @balance                numeric(30, 6);
+    --DECLARE @is_periodic            bit = finance.is_periodic_inventory(@office_id);
 
-    --We cannot divide by zero.
-    IF(COALESCE(@factor, 0) = 0)
-    BEGIN
-        @factor = 1;
-    END;
+    ----We cannot divide by zero.
+    --IF(COALESCE(@factor, 0) = 0)
+    --BEGIN
+    --    @factor = 1;
+    --END;
 
-    CREATE TABLE #cf_temp
-    (
-        item_id                     integer PRIMARY KEY,
-        item                        national character varying(1000),
-        account_master_id           integer,
-        parent_item_id              integer REFERENCES #cf_temp(item_id),
-        is_summation                bit DEFAULT(0),
-        is_debit                    bit DEFAULT(0),
-        is_sales                    bit DEFAULT(0),
-        is_purchase                 bit DEFAULT(0)
-    ) ;
+    --CREATE TABLE #cf_temp
+    --(
+    --    item_id                     integer PRIMARY KEY,
+    --    item                        national character varying(1000),
+    --    account_master_id           integer,
+    --    parent_item_id              integer REFERENCES #cf_temp(item_id),
+    --    is_summation                bit DEFAULT(0),
+    --    is_debit                    bit DEFAULT(0),
+    --    is_sales                    bit DEFAULT(0),
+    --    is_purchase                 bit DEFAULT(0)
+    --) ;
 
 
-    INSERT INTO @periods
-    SELECT * FROM finance.get_periods(@date_from, @date_to);
+    --INSERT INTO @periods
+    --SELECT * FROM finance.get_periods(@date_from, @date_to);
 
-    IF NOT EXISTS(SELECT * FROM @periods)
-    BEGIN
-        RAISERROR('Invalid period specified.', 10, 1);
-    END;
+    --IF NOT EXISTS(SELECT * FROM @periods)
+    --BEGIN
+    --    RAISERROR('Invalid period specified.', 10, 1);
+    --END;
 
-    /**************************************************************************************************************************************************************************************
-        CREATING PERIODS
-    **************************************************************************************************************************************************************************************/
-    SELECT string_agg(dynamic, '') FROM
-    (
-        SELECT 'ALTER TABLE #cf_temp ADD COLUMN "' + period_name + '" decimal(24, 4) DEFAULT(0);' as dynamic
-        FROM @periods         
-    ) periods
-    INTO @sql;
+    --/**************************************************************************************************************************************************************************************
+    --    CREATING PERIODS
+    --**************************************************************************************************************************************************************************************/
+    --SELECT string_agg(dynamic, '') FROM
+    --(
+    --    SELECT 'ALTER TABLE #cf_temp ADD COLUMN "' + period_name + '" numeric(30, 6) DEFAULT(0);' as dynamic
+    --    FROM @periods         
+    --) periods
+    --INTO @sql;
     
-    EXECUTE @sql;
+    --EXECUTE @sql;
 
-    /**************************************************************************************************************************************************************************************
-        CASHFLOW TABLE STRUCTURE START
-    **************************************************************************************************************************************************************************************/
-    INSERT INTO #cf_temp(item_id, item, is_summation, is_debit)
-    SELECT  10000,  'Cash and cash equivalents, beginning of period',   0,  1    UNION ALL    
-    SELECT  20000,  'Cash flows from operating activities',             1,   0   UNION ALL    
-    SELECT  30000,  'Cash flows from investing activities',             1,   0   UNION ALL
-    SELECT  40000,  'Cash flows from financing acticities',             1,   0   UNION ALL    
-    SELECT  50000,  'Net increase in cash and cash equivalents',        0,  0   UNION ALL    
-    SELECT  60000,  'Cash and cash equivalents, end of period',         0,  1;    
+    --/**************************************************************************************************************************************************************************************
+    --    CASHFLOW TABLE STRUCTURE START
+    --**************************************************************************************************************************************************************************************/
+    --INSERT INTO #cf_temp(item_id, item, is_summation, is_debit)
+    --SELECT  10000,  'Cash and cash equivalents, beginning of period',   0,  1    UNION ALL    
+    --SELECT  20000,  'Cash flows from operating activities',             1,   0   UNION ALL    
+    --SELECT  30000,  'Cash flows from investing activities',             1,   0   UNION ALL
+    --SELECT  40000,  'Cash flows from financing acticities',             1,   0   UNION ALL    
+    --SELECT  50000,  'Net increase in cash and cash equivalents',        0,  0   UNION ALL    
+    --SELECT  60000,  'Cash and cash equivalents, end of period',         0,  1;    
 
-    INSERT INTO #cf_temp(item_id, item, parent_item_id, is_debit, is_sales, is_purchase)
-    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 20000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'O' UNION ALL
-    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 30000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'I' UNION ALL 
-    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 40000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'F';
+    --INSERT INTO #cf_temp(item_id, item, parent_item_id, is_debit, is_sales, is_purchase)
+    --SELECT  cash_flow_heading_id,   cash_flow_heading_name, 20000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'O' UNION ALL
+    --SELECT  cash_flow_heading_id,   cash_flow_heading_name, 30000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'I' UNION ALL 
+    --SELECT  cash_flow_heading_id,   cash_flow_heading_name, 40000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'F';
 
-    INSERT INTO #cf_temp(item_id, item, parent_item_id, is_debit, account_master_id)
-    SELECT core.account_masters.account_master_id + 50000, core.account_masters.account_master_name,  core.cash_flow_setup.cash_flow_heading_id, core.cash_flow_headings.is_debit, core.account_masters.account_master_id
-    FROM core.cash_flow_setup
-    INNER JOIN core.account_masters
-    ON core.cash_flow_setup.account_master_id = core.account_masters.account_master_id
-    INNER JOIN core.cash_flow_headings
-    ON core.cash_flow_setup.cash_flow_heading_id = core.cash_flow_headings.cash_flow_heading_id;
+    --INSERT INTO #cf_temp(item_id, item, parent_item_id, is_debit, account_master_id)
+    --SELECT core.account_masters.account_master_id + 50000, core.account_masters.account_master_name,  core.cash_flow_setup.cash_flow_heading_id, core.cash_flow_headings.is_debit, core.account_masters.account_master_id
+    --FROM core.cash_flow_setup
+    --INNER JOIN core.account_masters
+    --ON core.cash_flow_setup.account_master_id = core.account_masters.account_master_id
+    --INNER JOIN core.cash_flow_headings
+    --ON core.cash_flow_setup.cash_flow_heading_id = core.cash_flow_headings.cash_flow_heading_id;
 
-    /**************************************************************************************************************************************************************************************
-        CASHFLOW TABLE STRUCTURE END
-    **************************************************************************************************************************************************************************************/
+    --/**************************************************************************************************************************************************************************************
+    --    CASHFLOW TABLE STRUCTURE END
+    --**************************************************************************************************************************************************************************************/
 
 
-    /**************************************************************************************************************************************************************************************
-        ITERATING THROUGH PERIODS TO UPDATE TRANSACTION BALANCES
-    **************************************************************************************************************************************************************************************/
-    FOR this IN 
-    SELECT * 
-    FROM @periods 
-    ORDER BY date_from ASC
-    LOOP
-        --
-        --
-        --Opening cash balance.
-        --
-        --
-        @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=
-            (
-                SELECT
-                SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
-                SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
-            FROM finance.verified_cash_transaction_mat_view
-            WHERE account_master_id IN(10101, 10102) 
-            AND value_date <''' + CAST(this.date_from AS varchar(24)) +
-            ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-            )
-        WHERE #cf_temp.item_id = 10000;';
+    --/**************************************************************************************************************************************************************************************
+    --    ITERATING THROUGH PERIODS TO UPDATE TRANSACTION BALANCES
+    --**************************************************************************************************************************************************************************************/
+    --FOR this IN 
+    --SELECT * 
+    --FROM @periods 
+    --ORDER BY date_from ASC
+    --LOOP
+    --    --
+    --    --
+    --    --Opening cash balance.
+    --    --
+    --    --
+    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=
+    --        (
+    --            SELECT
+    --            SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
+    --            SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
+    --        FROM finance.verified_cash_transaction_mat_view
+    --        WHERE account_master_id IN(10101, 10102) 
+    --        AND value_date <''' + CAST(this.date_from AS varchar(24)) +
+    --        ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
+    --        )
+    --    WHERE #cf_temp.item_id = 10000;';
 
-        EXECUTE @sql;
+    --    EXECUTE @sql;
 
-        --
-        --
-        --Updating debit balances of mapped account master heads.
-        --
-        --
-        @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=tran.total_amount
-        FROM
-        (
-            SELECT finance.verified_cash_transaction_mat_view.account_master_id,
-            SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) - 
-            SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
-        FROM finance.verified_cash_transaction_mat_view
-        WHERE finance.verified_cash_transaction_mat_view.book NOT IN (''Sales.Direct'', ''Sales.Receipt'', ''Sales.Delivery'', ''Purchase.Direct'', ''Purchase.Receipt'')
-        AND account_master_id NOT IN(10101, 10102) 
-        AND value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
-        ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-        GROUP BY finance.verified_cash_transaction_mat_view.account_master_id
-        ) AS tran
-        WHERE tran.account_master_id = #cf_temp.account_master_id';
-        EXECUTE @sql;
+    --    --
+    --    --
+    --    --Updating debit balances of mapped account master heads.
+    --    --
+    --    --
+    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=tran.total_amount
+    --    FROM
+    --    (
+    --        SELECT finance.verified_cash_transaction_mat_view.account_master_id,
+    --        SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) - 
+    --        SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
+    --    FROM finance.verified_cash_transaction_mat_view
+    --    WHERE finance.verified_cash_transaction_mat_view.book NOT IN (''Sales.Direct'', ''Sales.Receipt'', ''Sales.Delivery'', ''Purchase.Direct'', ''Purchase.Receipt'')
+    --    AND account_master_id NOT IN(10101, 10102) 
+    --    AND value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
+    --    ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
+    --    GROUP BY finance.verified_cash_transaction_mat_view.account_master_id
+    --    ) AS tran
+    --    WHERE tran.account_master_id = #cf_temp.account_master_id';
+    --    EXECUTE @sql;
 
-        --
-        --
-        --Updating cash paid to suppliers.
-        --
-        --
-        @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=
+    --    --
+    --    --
+    --    --Updating cash paid to suppliers.
+    --    --
+    --    --
+    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=
         
-        (
-            SELECT
-            SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) - 
-            SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) 
-        FROM finance.verified_cash_transaction_mat_view
-        WHERE finance.verified_cash_transaction_mat_view.book IN (''Purchase.Direct'', ''Purchase.Receipt'', ''Purchase.Payment'')
-        AND account_master_id NOT IN(10101, 10102) 
-        AND value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
-        ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-        )
-        WHERE #cf_temp.is_purchase;';
-        EXECUTE @sql;
+    --    (
+    --        SELECT
+    --        SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) - 
+    --        SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) 
+    --    FROM finance.verified_cash_transaction_mat_view
+    --    WHERE finance.verified_cash_transaction_mat_view.book IN (''Purchase.Direct'', ''Purchase.Receipt'', ''Purchase.Payment'')
+    --    AND account_master_id NOT IN(10101, 10102) 
+    --    AND value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
+    --    ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
+    --    )
+    --    WHERE #cf_temp.is_purchase;';
+    --    EXECUTE @sql;
 
-        --
-        --
-        --Updating cash received from customers.
-        --
-        --
-        @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=
+    --    --
+    --    --
+    --    --Updating cash received from customers.
+    --    --
+    --    --
+    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=
         
-        (
-            SELECT
-            SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
-            SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) 
-        FROM finance.verified_cash_transaction_mat_view
-        WHERE finance.verified_cash_transaction_mat_view.book IN (''Sales.Direct'', ''Sales.Receipt'', ''Sales.Delivery'')
-        AND account_master_id IN(10101, 10102) 
-        AND value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
-        ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-        )
-        WHERE #cf_temp.is_sales;';
-        PRINT @SQL;
-        EXECUTE @sql;
+    --    (
+    --        SELECT
+    --        SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
+    --        SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) 
+    --    FROM finance.verified_cash_transaction_mat_view
+    --    WHERE finance.verified_cash_transaction_mat_view.book IN (''Sales.Direct'', ''Sales.Receipt'', ''Sales.Delivery'')
+    --    AND account_master_id IN(10101, 10102) 
+    --    AND value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
+    --    ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
+    --    )
+    --    WHERE #cf_temp.is_sales;';
+    --    PRINT @SQL;
+    --    EXECUTE @sql;
 
-        --Closing cash balance.
-        @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"
-        =
-        (
-            SELECT
-            SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
-            SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
-        FROM finance.verified_cash_transaction_mat_view
-        WHERE account_master_id IN(10101, 10102) 
-        AND value_date <''' + CAST(this.date_to AS varchar(24)) +
-        ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-        ) 
-        WHERE #cf_temp.item_id = 60000;';
+    --    --Closing cash balance.
+    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"
+    --    =
+    --    (
+    --        SELECT
+    --        SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
+    --        SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
+    --    FROM finance.verified_cash_transaction_mat_view
+    --    WHERE account_master_id IN(10101, 10102) 
+    --    AND value_date <''' + CAST(this.date_to AS varchar(24)) +
+    --    ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
+    --    ) 
+    --    WHERE #cf_temp.item_id = 60000;';
 
-        EXECUTE @sql;
+    --    EXECUTE @sql;
 
-        --Reversing to debit balance for associated headings.
-        @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"="' + this.period_name + '"*-1 WHERE is_debit= 1;';
-        EXECUTE @sql;
-    END LOOP;
-
-
-
-    --Updating periodic balances on parent item by the sum of their respective child balances.
-    SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"' + '=#cf_temp."' + period_name + '" + tran."' + period_name + '"'), ',') + 
-    ' FROM 
-    (
-        SELECT parent_item_id, '
-        + array_to_string(array_agg('SUM("' + period_name + '") AS "' + period_name + '"'), ',') + '
-         FROM #cf_temp
-        GROUP BY parent_item_id
-    ) 
-    AS tran
-        WHERE tran.parent_item_id = #cf_temp.item_id
-        AND #cf_temp.item_id NOT IN (10000, 60000);'
-    INTO @sql
-    FROM @periods;
-
-    PRINT @SQL;
-    EXECUTE @sql;
+    --    --Reversing to debit balance for associated headings.
+    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"="' + this.period_name + '"*-1 WHERE is_debit= 1;';
+    --    EXECUTE @sql;
+    --END LOOP;
 
 
-    SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    + ' FROM 
-    (
-        SELECT
-            #cf_temp.parent_item_id,'
-        + array_to_string(array_agg('SUM(CASE is_debit WHEN 1 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"'), ',') +
-    '
-         FROM #cf_temp
-         GROUP BY #cf_temp.parent_item_id
-    ) 
-    AS tran
-    WHERE #cf_temp.item_id = tran.parent_item_id
-    AND #cf_temp.parent_item_id IS NULL;'
-    INTO @sql
-    FROM @periods;
 
-    EXECUTE @sql;
+    ----Updating periodic balances on parent item by the sum of their respective child balances.
+    --SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"' + '=#cf_temp."' + period_name + '" + tran."' + period_name + '"'), ',') + 
+    --' FROM 
+    --(
+    --    SELECT parent_item_id, '
+    --    + array_to_string(array_agg('SUM("' + period_name + '") AS "' + period_name + '"'), ',') + '
+    --     FROM #cf_temp
+    --    GROUP BY parent_item_id
+    --) 
+    --AS tran
+    --    WHERE tran.parent_item_id = #cf_temp.item_id
+    --    AND #cf_temp.item_id NOT IN (10000, 60000);'
+    --INTO @sql
+    --FROM @periods;
 
-
-    --Dividing by the factor.
-    SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"="' + period_name + '"/' + CAST(@factor AS varchar(100))), ',') + ';'
-    INTO @sql
-    FROM @periods;
-    EXECUTE @sql;
+    --PRINT @SQL;
+    --EXECUTE @sql;
 
 
-    --Converting 0's to NULLS.
-    SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"= CASE WHEN "' + period_name + '" = 0 THEN NULL ELSE "' + period_name + '" END'), ',') + ';'
-    INTO @sql
-    FROM @periods;
+    --SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
+    --+ ' FROM 
+    --(
+    --    SELECT
+    --        #cf_temp.parent_item_id,'
+    --    + array_to_string(array_agg('SUM(CASE is_debit WHEN 1 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"'), ',') +
+    --'
+    --     FROM #cf_temp
+    --     GROUP BY #cf_temp.parent_item_id
+    --) 
+    --AS tran
+    --WHERE #cf_temp.item_id = tran.parent_item_id
+    --AND #cf_temp.parent_item_id IS NULL;'
+    --INTO @sql
+    --FROM @periods;
 
-    EXECUTE @sql;
+    --EXECUTE @sql;
 
-    SELECT 
-    'SELECT array_to_json(array_agg(row_to_json(report)))
-    FROM
-    (
-        SELECT item, '
-        + array_to_string(array_agg('"' + period_name + '"'), ',') +
-        ', is_summation FROM #cf_temp
-        WHERE account_master_id IS NULL
-        ORDER BY item_id
-    ) AS report;'
-    INTO @sql
-    FROM @periods;
 
-    EXECUTE @sql INTO @json ;
+    ----Dividing by the factor.
+    --SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"="' + period_name + '"/' + CAST(@factor AS varchar(100))), ',') + ';'
+    --INTO @sql
+    --FROM @periods;
+    --EXECUTE @sql;
 
-    SELECT @json;
+
+    ----Converting 0's to NULLS.
+    --SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"= CASE WHEN "' + period_name + '" = 0 THEN NULL ELSE "' + period_name + '" END'), ',') + ';'
+    --INTO @sql
+    --FROM @periods;
+
+    --EXECUTE @sql;
+
+    --SELECT 
+    --'SELECT array_to_json(array_agg(row_to_json(report)))
+    --FROM
+    --(
+    --    SELECT item, '
+    --    + array_to_string(array_agg('"' + period_name + '"'), ',') +
+    --    ', is_summation FROM #cf_temp
+    --    WHERE account_master_id IS NULL
+    --    ORDER BY item_id
+    --) AS report;'
+    --INTO @sql
+    --FROM @periods;
+
+    --EXECUTE @sql INTO @json ;
+    --TODO
+    --SELECT @json;
+    RETURN;
 END
-
-
 
 GO
 
-
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_net_profit.sql --<--<--
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_net_profit.sql --<--<--
 IF OBJECT_ID('finance.get_net_profit') IS NOT NULL
 DROP FUNCTION finance.get_net_profit;
@@ -3852,48 +3864,45 @@ CREATE FUNCTION finance.get_net_profit
     @date_to                        date,
     @office_id                      integer,
     @factor                         integer,
-    @no_provison                    bit DEFAULT 0
+    @no_provison                    bit
 )
-RETURNS decimal(24, 4)
+RETURNS numeric(30, 6)
 AS
 BEGIN
-    DECLARE @incomes                decimal(24, 4) = 0;
-    DECLARE @expenses               decimal(24, 4) = 0;
-    DECLARE @profit_before_tax      decimal(24, 4) = 0;
-    DECLARE @tax_paid               decimal(24, 4) = 0;
-    DECLARE @tax_provison           decimal(24, 4) = 0;
+    DECLARE @incomes                numeric(30, 6) = 0;
+    DECLARE @expenses               numeric(30, 6) = 0;
+    DECLARE @profit_before_tax      numeric(30, 6) = 0;
+    DECLARE @tax_paid               numeric(30, 6) = 0;
+    DECLARE @tax_provison           numeric(30, 6) = 0;
 
-    SELECT SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
-    INTO @incomes
+    SELECT @incomes = SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
     FROM finance.verified_transaction_mat_view
     WHERE value_date >= @date_from AND value_date <= @date_to
     AND office_id IN (SELECT * FROM core.get_office_ids(@office_id))
     AND account_master_id >=20100
     AND account_master_id <= 20300;
     
-    SELECT SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
-    INTO @expenses
+    SELECT @expenses = SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
     FROM finance.verified_transaction_mat_view
     WHERE value_date >= @date_from AND value_date <= @date_to
     AND office_id IN (SELECT * FROM core.get_office_ids(@office_id))
     AND account_master_id >=20400
     AND account_master_id <= 20701;
     
-    SELECT SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
-    INTO @tax_paid
+    SELECT @tax_paid = SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
     FROM finance.verified_transaction_mat_view
     WHERE value_date >= @date_from AND value_date <= @date_to
     AND office_id IN (SELECT * FROM core.get_office_ids(@office_id))
     AND account_master_id =20800;
     
-    @profit_before_tax = COALESCE(@incomes, 0) - COALESCE(@expenses, 0);
+    SET @profit_before_tax = COALESCE(@incomes, 0) - COALESCE(@expenses, 0);
 
-    IF(@no_provison)
+    IF(@no_provison = 1)
     BEGIN
         RETURN (@profit_before_tax - COALESCE(@tax_paid, 0)) / @factor;
     END;
     
-    @tax_provison      = core.get_income_tax_provison_amount(@office_id, @profit_before_tax, COALESCE(@tax_paid, 0));
+    SET @tax_provison      = core.get_income_tax_provison_amount(@office_id, @profit_before_tax, COALESCE(@tax_paid, 0));
     
     RETURN (@profit_before_tax - (COALESCE(@tax_provison, 0) + COALESCE(@tax_paid, 0))) / @factor;
 END;
@@ -3904,6 +3913,7 @@ END;
 GO
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_profit_and_loss_statement.sql --<--<--
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_profit_and_loss_statement.sql --<--<--
 IF OBJECT_ID('finance.get_profit_and_loss_statement') IS NOT NULL
 DROP PROCEDURE finance.get_profit_and_loss_statement;
@@ -3917,327 +3927,327 @@ CREATE PROCEDURE finance.get_profit_and_loss_statement
     @user_id                        integer,
     @office_id                      integer,
     @factor                         integer,
-    @compact                        bit DEFAULT(1)
+    @compact                        bit
 )
 AS
 BEGIN    
-    DECLARE @sql                    national character varying(1000);
-    DECLARE @periods                finance.period;
-    DECLARE @json                   json;
-    DECLARE this                    RECORD;
-    DECLARE @balance                decimal(24, 4);
-    DECLARE @is_periodic            bit = finance.is_periodic_inventory(@office_id);
+    --DECLARE @sql                    national character varying(1000);
+    --DECLARE @periods                finance.period;
+    --DECLARE @json                   json;
+    --DECLARE this                    RECORD;
+    --DECLARE @balance                numeric(30, 6);
+    --DECLARE @is_periodic            bit = finance.is_periodic_inventory(@office_id);
 
-    CREATE TABLE #pl_temp
-    (
-        item_id                     integer PRIMARY KEY,
-        item                        national character varying(1000),
-        account_id                  integer,
-        parent_item_id              integer,
-        is_profit                   bit DEFAULT(0),
-        is_summation                bit DEFAULT(0),
-        is_debit                    bit DEFAULT(0),
-        amount                      decimal(24, 4) DEFAULT(0)
-    );
+    --CREATE TABLE #pl_temp
+    --(
+    --    item_id                     integer PRIMARY KEY,
+    --    item                        national character varying(1000),
+    --    account_id                  integer,
+    --    parent_item_id              integer,
+    --    is_profit                   bit DEFAULT(0),
+    --    is_summation                bit DEFAULT(0),
+    --    is_debit                    bit DEFAULT(0),
+    --    amount                      numeric(30, 6) DEFAULT(0)
+    --);
 
-    IF(COALESCE(@factor, 0) = 0)
-    BEGIN
-        @factor = 1;
-    END;
+    --IF(COALESCE(@factor, 0) = 0)
+    --BEGIN
+    --    @factor = 1;
+    --END;
 
-    INSERT INTO @periods
-    SELECT * FROM finance.get_periods(@date_from, @date_to);
+    --INSERT INTO @periods
+    --SELECT * FROM finance.get_periods(@date_from, @date_to);
 
-    IF NOT EXISTS(SELECT * FROM @periods)
-    BEGIN
-        RAISERROR('Invalid period specified.', 10, 1);
-    END;
+    --IF NOT EXISTS(SELECT * FROM @periods)
+    --BEGIN
+    --    RAISERROR('Invalid period specified.', 10, 1);
+    --END;
 
-    SELECT string_agg(dynamic, '') FROM
-    (
-            SELECT 'ALTER TABLE #pl_temp ADD COLUMN "' + period_name + '" decimal(24, 4) DEFAULT(0);' as dynamic
-            FROM @periods
+    --SELECT string_agg(dynamic, '') FROM
+    --(
+    --        SELECT 'ALTER TABLE #pl_temp ADD COLUMN "' + period_name + '" numeric(30, 6) DEFAULT(0);' as dynamic
+    --        FROM @periods
          
-    ) periods
-    INTO @sql;
+    --) periods
+    --INTO @sql;
     
-    EXECUTE @sql;
+    --EXECUTE @sql;
 
-    --PL structure setup start
-    INSERT INTO #pl_temp(item_id, item, is_summation, parent_item_id)
-    SELECT 1000,   'Revenue',                      1,   NULL     UNION ALL
-    SELECT 2000,   'Cost of Sales',                1,   NULL     UNION ALL
-    SELECT 2001,   'Opening Stock',                0,  1000     UNION ALL
-    SELECT 3000,   'Purchases',                    0,  1000     UNION ALL
-    SELECT 4000,   'Closing Stock',                0,  1000     UNION ALL
-    SELECT 5000,   'Direct Costs',                 1,   NULL     UNION ALL
-    SELECT 6000,   'Gross Profit',                 0,  NULL     UNION ALL
-    SELECT 7000,   'Operating Expenses',           1,   NULL     UNION ALL
-    SELECT 8000,   'Operating Profit',             0,  NULL     UNION ALL
-    SELECT 9000,   'Nonoperating Incomes',         1,   NULL     UNION ALL
-    SELECT 10000,  'Financial Incomes',            1,   NULL     UNION ALL
-    SELECT 11000,  'Financial Expenses',           1,   NULL     UNION ALL
-    SELECT 11100,  'Interest Expenses',            1,   11000    UNION ALL
-    SELECT 12000,  'Profit Before Income Taxes',   0,  NULL     UNION ALL
-    SELECT 13000,  'Income Taxes',                 1,   NULL     UNION ALL
-    SELECT 13001,  'Income Tax Provison',          0,  13000    UNION ALL
-    SELECT 14000,  'Net Profit',                   1,   NULL;
+    ----PL structure setup start
+    --INSERT INTO #pl_temp(item_id, item, is_summation, parent_item_id)
+    --SELECT 1000,   'Revenue',                      1,   NULL     UNION ALL
+    --SELECT 2000,   'Cost of Sales',                1,   NULL     UNION ALL
+    --SELECT 2001,   'Opening Stock',                0,  1000     UNION ALL
+    --SELECT 3000,   'Purchases',                    0,  1000     UNION ALL
+    --SELECT 4000,   'Closing Stock',                0,  1000     UNION ALL
+    --SELECT 5000,   'Direct Costs',                 1,   NULL     UNION ALL
+    --SELECT 6000,   'Gross Profit',                 0,  NULL     UNION ALL
+    --SELECT 7000,   'Operating Expenses',           1,   NULL     UNION ALL
+    --SELECT 8000,   'Operating Profit',             0,  NULL     UNION ALL
+    --SELECT 9000,   'Nonoperating Incomes',         1,   NULL     UNION ALL
+    --SELECT 10000,  'Financial Incomes',            1,   NULL     UNION ALL
+    --SELECT 11000,  'Financial Expenses',           1,   NULL     UNION ALL
+    --SELECT 11100,  'Interest Expenses',            1,   11000    UNION ALL
+    --SELECT 12000,  'Profit Before Income Taxes',   0,  NULL     UNION ALL
+    --SELECT 13000,  'Income Taxes',                 1,   NULL     UNION ALL
+    --SELECT 13001,  'Income Tax Provison',          0,  13000    UNION ALL
+    --SELECT 14000,  'Net Profit',                   1,   NULL;
 
-    UPDATE #pl_temp SET is_debit = 1 WHERE item_id IN(2001, 3000, 4000);
-    UPDATE #pl_temp SET is_profit = 1 WHERE item_id IN(6000,8000, 12000, 14000);
+    --UPDATE #pl_temp SET is_debit = 1 WHERE item_id IN(2001, 3000, 4000);
+    --UPDATE #pl_temp SET is_profit = 1 WHERE item_id IN(6000,8000, 12000, 14000);
     
-    INSERT INTO #pl_temp(item_id, account_id, item, parent_item_id, is_debit)
-    SELECT id, account_id, account_name, 1000 as parent_item_id, 0 as is_debit FROM core.get_account_view_by_account_master_id(20100, 1000) UNION ALL--Sales Accounts
-    SELECT id, account_id, account_name, 2000 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20400, 2001) UNION ALL--COGS Accounts
-    SELECT id, account_id, account_name, 5000 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20500, 5000) UNION ALL--Direct Cost
-    SELECT id, account_id, account_name, 7000 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20600, 7000) UNION ALL--Operating Expenses
-    SELECT id, account_id, account_name, 9000 as parent_item_id, 0 as is_debit FROM core.get_account_view_by_account_master_id(20200, 9000) UNION ALL--Nonoperating Incomes
-    SELECT id, account_id, account_name, 10000 as parent_item_id, 0 as is_debit FROM core.get_account_view_by_account_master_id(20300, 10000) UNION ALL--Financial Incomes
-    SELECT id, account_id, account_name, 11000 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20700, 11000) UNION ALL--Financial Expenses
-    SELECT id, account_id, account_name, 11100 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20701, 11100) UNION ALL--Interest Expenses
-    SELECT id, account_id, account_name, 13000 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20800, 13001);--Income Tax Expenses
+    --INSERT INTO #pl_temp(item_id, account_id, item, parent_item_id, is_debit)
+    --SELECT id, account_id, account_name, 1000 as parent_item_id, 0 as is_debit FROM core.get_account_view_by_account_master_id(20100, 1000) UNION ALL--Sales Accounts
+    --SELECT id, account_id, account_name, 2000 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20400, 2001) UNION ALL--COGS Accounts
+    --SELECT id, account_id, account_name, 5000 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20500, 5000) UNION ALL--Direct Cost
+    --SELECT id, account_id, account_name, 7000 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20600, 7000) UNION ALL--Operating Expenses
+    --SELECT id, account_id, account_name, 9000 as parent_item_id, 0 as is_debit FROM core.get_account_view_by_account_master_id(20200, 9000) UNION ALL--Nonoperating Incomes
+    --SELECT id, account_id, account_name, 10000 as parent_item_id, 0 as is_debit FROM core.get_account_view_by_account_master_id(20300, 10000) UNION ALL--Financial Incomes
+    --SELECT id, account_id, account_name, 11000 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20700, 11000) UNION ALL--Financial Expenses
+    --SELECT id, account_id, account_name, 11100 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20701, 11100) UNION ALL--Interest Expenses
+    --SELECT id, account_id, account_name, 13000 as parent_item_id, 1 as is_debit FROM core.get_account_view_by_account_master_id(20800, 13001);--Income Tax Expenses
 
-    IF(NOT @is_periodic)
-    BEGIN
-        DELETE FROM #pl_temp WHERE item_id IN(2001, 3000, 4000);
-    END;
-    --PL structure setup END;
-
-
-    FOR this IN 
-    SELECT * FROM @periods 
-    ORDER BY date_from ASC
-    LOOP
-        --Updating credit balances of individual GL accounts.
-        @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=tran.total_amount
-        FROM
-        (
-            SELECT finance.verified_transaction_mat_view.account_id,
-            SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
-            SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
-        FROM finance.verified_transaction_mat_view
-        WHERE value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
-        ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-        GROUP BY finance.verified_transaction_mat_view.account_id
-        ) AS tran
-        WHERE tran.account_id = #pl_temp.account_id';
-        EXECUTE @sql;
-
-        --Reversing to debit balance for expense headings.
-        @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"="' + this.period_name + '"*-1 WHERE is_debit;';
-        EXECUTE @sql;
-
-        --Getting purchase and stock balances if this is a periodic inventory system.
-        --In perpetual accounting system, one would not need to include these headings 
-        --because the COGS A/C would be automatically updated on each transaction.
-        IF(@is_periodic)
-        BEGIN
-            @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=finance.get_closing_stock(''' + CAST(DATEADD(day,-1,this.date_from) AS varchar(24)) +  ''', ' + CAST(@office_id AS varchar(100)) + ') WHERE item_id=2001;';
-            EXECUTE @sql;
-
-            @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=finance.get_purchase(''' + CAST(this.date_from AS varchar(24)) +  ''', ''' + CAST(this.date_to AS varchar(24)) + ''', ' + CAST(@office_id AS varchar(100)) + ') *-1 WHERE item_id=3000;';
-            EXECUTE @sql;
-
-            @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=finance.get_closing_stock(''' + CAST(this.date_from AS varchar(24)) +  ''', ' + CAST(@office_id AS varchar(100)) + ') WHERE item_id=4000;';
-            EXECUTE @sql;
-        END;
-    END LOOP;
-
-    --Updating the column "amount" on each row by the sum of all periods.
-    SELECT 'UPDATE #pl_temp SET amount = ' + array_to_string(array_agg('COALESCE("' + period_name + '", 0)'), ' +') + ';' INTO @sql
-    FROM @periods;
-
-    EXECUTE @sql;
-
-    --Updating amount and periodic balances on parent item by the sum of their respective child balances.
-    SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') + 
-    ' FROM 
-    (
-        SELECT parent_item_id,
-        SUM(amount) AS amount, '
-        + array_to_string(array_agg('SUM("' + period_name + '") AS "' + period_name + '"'), ',') + '
-         FROM #pl_temp
-        GROUP BY parent_item_id
-    ) 
-    AS tran
-        WHERE tran.parent_item_id = #pl_temp.item_id;'
-    INTO @sql
-    FROM @periods;
-    EXECUTE @sql;
-
-    --Updating Gross Profit.
-    --Gross Profit = Revenue - (Cost of Sales + Direct Costs)
-    SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    + ' FROM 
-    (
-        SELECT
-        SUM(CASE item_id WHEN 1000 THEN amount ELSE amount * -1 END) AS amount, '
-        + array_to_string(array_agg('SUM(CASE item_id WHEN 1000 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"'), ',') +
-    '
-         FROM #pl_temp
-         WHERE item_id IN
-         (
-             1000,2000,5000
-         )
-    ) 
-    AS tran
-    WHERE item_id = 6000;'
-    INTO @sql
-    FROM @periods;
-
-    EXECUTE @sql;
+    --IF(NOT @is_periodic)
+    --BEGIN
+    --    DELETE FROM #pl_temp WHERE item_id IN(2001, 3000, 4000);
+    --END;
+    ----PL structure setup END;
 
 
-    --Updating Operating Profit.
-    --Operating Profit = Gross Profit - Operating Expenses
-    SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    + ' FROM 
-    (
-        SELECT
-        SUM(CASE item_id WHEN 6000 THEN amount ELSE amount * -1 END) AS amount, '
-        + array_to_string(array_agg('SUM(CASE item_id WHEN 6000 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"'), ',') +
-    '
-         FROM #pl_temp
-         WHERE item_id IN
-         (
-             6000, 7000
-         )
-    ) 
-    AS tran
-    WHERE item_id = 8000;'
-    INTO @sql
-    FROM @periods;
+    --FOR this IN 
+    --SELECT * FROM @periods 
+    --ORDER BY date_from ASC
+    --LOOP
+    --    --Updating credit balances of individual GL accounts.
+    --    @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=tran.total_amount
+    --    FROM
+    --    (
+    --        SELECT finance.verified_transaction_mat_view.account_id,
+    --        SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
+    --        SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
+    --    FROM finance.verified_transaction_mat_view
+    --    WHERE value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
+    --    ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
+    --    GROUP BY finance.verified_transaction_mat_view.account_id
+    --    ) AS tran
+    --    WHERE tran.account_id = #pl_temp.account_id';
+    --    EXECUTE @sql;
 
-    EXECUTE @sql;
+    --    --Reversing to debit balance for expense headings.
+    --    @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"="' + this.period_name + '"*-1 WHERE is_debit;';
+    --    EXECUTE @sql;
 
-    --Updating Profit Before Income Taxes.
-    --Profit Before Income Taxes = Operating Profit + Nonoperating Incomes + Financial Incomes - Financial Expenses
-    SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    + ' FROM 
-    (
-        SELECT
-        SUM(CASE WHEN item_id IN(11000, 11100) THEN amount *-1 ELSE amount END) AS amount, '
-        + array_to_string(array_agg('SUM(CASE WHEN item_id IN(11000, 11100) THEN "' + period_name + '"*-1  ELSE "' + period_name + '" END) AS "' + period_name + '"'), ',') +
-    '
-         FROM #pl_temp
-         WHERE item_id IN
-         (
-             8000, 9000, 10000, 11000, 11100
-         )
-    ) 
-    AS tran
-    WHERE item_id = 12000;'
-    INTO @sql
-    FROM @periods;
+    --    --Getting purchase and stock balances if this is a periodic inventory system.
+    --    --In perpetual accounting system, one would not need to include these headings 
+    --    --because the COGS A/C would be automatically updated on each transaction.
+    --    IF(@is_periodic)
+    --    BEGIN
+    --        @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=finance.get_closing_stock(''' + CAST(DATEADD(day,-1,this.date_from) AS varchar(24)) +  ''', ' + CAST(@office_id AS varchar(100)) + ') WHERE item_id=2001;';
+    --        EXECUTE @sql;
 
-    EXECUTE @sql;
+    --        @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=finance.get_purchase(''' + CAST(this.date_from AS varchar(24)) +  ''', ''' + CAST(this.date_to AS varchar(24)) + ''', ' + CAST(@office_id AS varchar(100)) + ') *-1 WHERE item_id=3000;';
+    --        EXECUTE @sql;
 
-    --Updating Income Tax Provison.
-    --Income Tax Provison = Profit Before Income Taxes * Income Tax Rate - Paid Income Taxes
-    SELECT * INTO this FROM #pl_temp WHERE item_id = 12000;
+    --        @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=finance.get_closing_stock(''' + CAST(this.date_from AS varchar(24)) +  ''', ' + CAST(@office_id AS varchar(100)) + ') WHERE item_id=4000;';
+    --        EXECUTE @sql;
+    --    END;
+    --END LOOP;
+
+    ----Updating the column "amount" on each row by the sum of all periods.
+    --SELECT 'UPDATE #pl_temp SET amount = ' + array_to_string(array_agg('COALESCE("' + period_name + '", 0)'), ' +') + ';' INTO @sql
+    --FROM @periods;
+
+    --EXECUTE @sql;
+
+    ----Updating amount and periodic balances on parent item by the sum of their respective child balances.
+    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') + 
+    --' FROM 
+    --(
+    --    SELECT parent_item_id,
+    --    SUM(amount) AS amount, '
+    --    + array_to_string(array_agg('SUM("' + period_name + '") AS "' + period_name + '"'), ',') + '
+    --     FROM #pl_temp
+    --    GROUP BY parent_item_id
+    --) 
+    --AS tran
+    --    WHERE tran.parent_item_id = #pl_temp.item_id;'
+    --INTO @sql
+    --FROM @periods;
+    --EXECUTE @sql;
+
+    ----Updating Gross Profit.
+    ----Gross Profit = Revenue - (Cost of Sales + Direct Costs)
+    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
+    --+ ' FROM 
+    --(
+    --    SELECT
+    --    SUM(CASE item_id WHEN 1000 THEN amount ELSE amount * -1 END) AS amount, '
+    --    + array_to_string(array_agg('SUM(CASE item_id WHEN 1000 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"'), ',') +
+    --'
+    --     FROM #pl_temp
+    --     WHERE item_id IN
+    --     (
+    --         1000,2000,5000
+    --     )
+    --) 
+    --AS tran
+    --WHERE item_id = 6000;'
+    --INTO @sql
+    --FROM @periods;
+
+    --EXECUTE @sql;
+
+
+    ----Updating Operating Profit.
+    ----Operating Profit = Gross Profit - Operating Expenses
+    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
+    --+ ' FROM 
+    --(
+    --    SELECT
+    --    SUM(CASE item_id WHEN 6000 THEN amount ELSE amount * -1 END) AS amount, '
+    --    + array_to_string(array_agg('SUM(CASE item_id WHEN 6000 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"'), ',') +
+    --'
+    --     FROM #pl_temp
+    --     WHERE item_id IN
+    --     (
+    --         6000, 7000
+    --     )
+    --) 
+    --AS tran
+    --WHERE item_id = 8000;'
+    --INTO @sql
+    --FROM @periods;
+
+    --EXECUTE @sql;
+
+    ----Updating Profit Before Income Taxes.
+    ----Profit Before Income Taxes = Operating Profit + Nonoperating Incomes + Financial Incomes - Financial Expenses
+    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
+    --+ ' FROM 
+    --(
+    --    SELECT
+    --    SUM(CASE WHEN item_id IN(11000, 11100) THEN amount *-1 ELSE amount END) AS amount, '
+    --    + array_to_string(array_agg('SUM(CASE WHEN item_id IN(11000, 11100) THEN "' + period_name + '"*-1  ELSE "' + period_name + '" END) AS "' + period_name + '"'), ',') +
+    --'
+    --     FROM #pl_temp
+    --     WHERE item_id IN
+    --     (
+    --         8000, 9000, 10000, 11000, 11100
+    --     )
+    --) 
+    --AS tran
+    --WHERE item_id = 12000;'
+    --INTO @sql
+    --FROM @periods;
+
+    --EXECUTE @sql;
+
+    ----Updating Income Tax Provison.
+    ----Income Tax Provison = Profit Before Income Taxes * Income Tax Rate - Paid Income Taxes
+    --SELECT * INTO this FROM #pl_temp WHERE item_id = 12000;
     
-    @sql = 'UPDATE #pl_temp SET amount = core.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + CAST(this.amount AS varchar(100)) + ',(SELECT amount FROM #pl_temp WHERE item_id = 13000)), ' 
-    + array_to_string(array_agg('"' + period_name + '"=core.get_income_tax_provison_amount(' + CAST(@office_id varchar(100)) + ',' + core.get_field(hstore(this.*), period_name) + ', (SELECT "' + period_name + '" FROM #pl_temp WHERE item_id = 13000))'), ',')
-            + ' WHERE item_id = 13001;'
-    FROM @periods;
+    --@sql = 'UPDATE #pl_temp SET amount = core.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + CAST(this.amount AS varchar(100)) + ',(SELECT amount FROM #pl_temp WHERE item_id = 13000)), ' 
+    --+ array_to_string(array_agg('"' + period_name + '"=core.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + core.get_field(hstore(this.*), period_name) + ', (SELECT "' + period_name + '" FROM #pl_temp WHERE item_id = 13000))'), ',')
+    --        + ' WHERE item_id = 13001;'
+    --FROM @periods;
 
-    EXECUTE @sql;
+    --EXECUTE @sql;
 
-    --Updating amount and periodic balances on parent item by the sum of their respective child balances, once again to add the Income Tax Provison to Income Tax Expenses.
-    SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    + ' FROM 
-    (
-        SELECT parent_item_id,
-        SUM(amount) AS amount, '
-        + array_to_string(array_agg('SUM("' + period_name + '") AS "' + period_name + '"'), ',') +
-    '
-         FROM #pl_temp
-        GROUP BY parent_item_id
-    ) 
-    AS tran
-        WHERE tran.parent_item_id = #pl_temp.item_id;'
-    INTO @sql
-    FROM @periods;
-    EXECUTE @sql;
-
-
-    --Updating Net Profit.
-    --Net Profit = Profit Before Income Taxes - Income Tax Expenses
-    SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    + ' FROM 
-    (
-        SELECT
-        SUM(CASE item_id WHEN 13000 THEN amount *-1 ELSE amount END) AS amount, '
-        + array_to_string(array_agg('SUM(CASE item_id WHEN 13000 THEN "' + period_name + '"*-1  ELSE "' + period_name + '" END) AS "' + period_name + '"'), ',') +
-    '
-         FROM #pl_temp
-         WHERE item_id IN
-         (
-             12000, 13000
-         )
-    ) 
-    AS tran
-    WHERE item_id = 14000;'
-    INTO @sql
-    FROM @periods;
-
-    EXECUTE @sql;
-
-    --Removing ledgers having zero balances
-    DELETE FROM #pl_temp
-    WHERE COALESCE(amount, 0) = 0
-    AND account_id IS NOT NULL;
+    ----Updating amount and periodic balances on parent item by the sum of their respective child balances, once again to add the Income Tax Provison to Income Tax Expenses.
+    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
+    --+ ' FROM 
+    --(
+    --    SELECT parent_item_id,
+    --    SUM(amount) AS amount, '
+    --    + array_to_string(array_agg('SUM("' + period_name + '") AS "' + period_name + '"'), ',') +
+    --'
+    --     FROM #pl_temp
+    --    GROUP BY parent_item_id
+    --) 
+    --AS tran
+    --    WHERE tran.parent_item_id = #pl_temp.item_id;'
+    --INTO @sql
+    --FROM @periods;
+    --EXECUTE @sql;
 
 
-    --Dividing by the factor.
-    SELECT 'UPDATE #pl_temp SET amount = amount /' + CAST(@factor varchar(100)) + ',' + array_to_string(array_agg('"' + period_name + '"="' + period_name + '"/' + CAST(@factor varchar(100))), ',') + ';'
-    INTO @sql
-    FROM @periods;
-    EXECUTE @sql;
+    ----Updating Net Profit.
+    ----Net Profit = Profit Before Income Taxes - Income Tax Expenses
+    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
+    --+ ' FROM 
+    --(
+    --    SELECT
+    --    SUM(CASE item_id WHEN 13000 THEN amount *-1 ELSE amount END) AS amount, '
+    --    + array_to_string(array_agg('SUM(CASE item_id WHEN 13000 THEN "' + period_name + '"*-1  ELSE "' + period_name + '" END) AS "' + period_name + '"'), ',') +
+    --'
+    --     FROM #pl_temp
+    --     WHERE item_id IN
+    --     (
+    --         12000, 13000
+    --     )
+    --) 
+    --AS tran
+    --WHERE item_id = 14000;'
+    --INTO @sql
+    --FROM @periods;
+
+    --EXECUTE @sql;
+
+    ----Removing ledgers having zero balances
+    --DELETE FROM #pl_temp
+    --WHERE COALESCE(amount, 0) = 0
+    --AND account_id IS NOT NULL;
 
 
-    --Converting 0's to NULLS.
-    SELECT 'UPDATE #pl_temp SET amount = CASE WHEN amount = 0 THEN NULL ELSE amount END,' + array_to_string(array_agg('"' + period_name + '"= CASE WHEN "' + period_name + '" = 0 THEN NULL ELSE "' + period_name + '" END'), ',') + ';'
-    INTO @sql
-    FROM @periods;
+    ----Dividing by the factor.
+    --SELECT 'UPDATE #pl_temp SET amount = amount /' + CAST(@factor varchar(100)) + ',' + array_to_string(array_agg('"' + period_name + '"="' + period_name + '"/' + CAST(@factor varchar(100))), ',') + ';'
+    --INTO @sql
+    --FROM @periods;
+    --EXECUTE @sql;
 
-    EXECUTE @sql;
 
-    IF(@compact)
-    BEGIN
-        SELECT array_to_json(array_agg(row_to_json(report)))
-        INTO @json
-        FROM
-        (
-            SELECT item, amount, is_profit, is_summation
-            FROM #pl_temp
-            ORDER BY item_id
-        ) AS report;
-    END
-    ELSE
-    BEGIN
-        SELECT 
-        'SELECT array_to_json(array_agg(row_to_json(report)))
-        FROM
-        (
-            SELECT item, amount,'
-            + array_to_string(array_agg('"' + period_name + '"'), ',') +
-            ', is_profit, is_summation FROM #pl_temp
-            ORDER BY item_id
-        ) AS report;'
-        INTO @sql
-        FROM @periods;
+    ----Converting 0's to NULLS.
+    --SELECT 'UPDATE #pl_temp SET amount = CASE WHEN amount = 0 THEN NULL ELSE amount END,' + array_to_string(array_agg('"' + period_name + '"= CASE WHEN "' + period_name + '" = 0 THEN NULL ELSE "' + period_name + '" END'), ',') + ';'
+    --INTO @sql
+    --FROM @periods;
 
-        EXECUTE @sql INTO @json ;
-    END;    
+    --EXECUTE @sql;
 
-    SELECT @json;
+    --IF(@compact)
+    --BEGIN
+    --    SELECT array_to_json(array_agg(row_to_json(report)))
+    --    INTO @json
+    --    FROM
+    --    (
+    --        SELECT item, amount, is_profit, is_summation
+    --        FROM #pl_temp
+    --        ORDER BY item_id
+    --    ) AS report;
+    --END
+    --ELSE
+    --BEGIN
+    --    SELECT 
+    --    'SELECT array_to_json(array_agg(row_to_json(report)))
+    --    FROM
+    --    (
+    --        SELECT item, amount,'
+    --        + array_to_string(array_agg('"' + period_name + '"'), ',') +
+    --        ', is_profit, is_summation FROM #pl_temp
+    --        ORDER BY item_id
+    --    ) AS report;'
+    --    INTO @sql
+    --    FROM @periods;
+
+    --    EXECUTE @sql INTO @json ;
+    --END;    
+
+    --SELECT @json;
+
+    --TODO
+    RETURN;
 END
 
-
-
 GO
-
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_retained_earnings.sql --<--<--
 IF OBJECT_ID('finance.get_retained_earnings') IS NOT NULL
@@ -4251,25 +4261,23 @@ CREATE FUNCTION finance.get_retained_earnings
     @office_id                      integer,
     @factor                         integer
 )
-RETURNS decimal(24, 4)
+RETURNS numeric(30, 6)
 AS
 BEGIN
     DECLARE     @date_from              date;
-    DECLARE     @net_profit             decimal(24, 4);
-    DECLARE     @paid_dividends         decimal(24, 4);
+    DECLARE     @net_profit             numeric(30, 6);
+    DECLARE     @paid_dividends         numeric(30, 6);
 
     IF(COALESCE(@factor, 0) = 0)
     BEGIN
-        @factor = 1;
+        SET @factor = 1;
     END;
     
-    @date_from              = finance.get_fiscal_year_start_date(@office_id);    
-    @net_profit             = finance.get_net_profit(@date_from, @date_to, @office_id, @factor, 1);
+    SET @date_from              = finance.get_fiscal_year_start_date(@office_id);    
+    SET @net_profit             = finance.get_net_profit(@date_from, @date_to, @office_id, @factor, 1);
 
     SELECT 
-        COALESCE(SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END) / @factor, 0)
-    INTO 
-        @paid_dividends
+        @paid_dividends = COALESCE(SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END) / @factor, 0)        
     FROM finance.verified_transaction_mat_view
     WHERE value_date <=_date_to
     AND account_master_id BETWEEN 15300 AND 15400
@@ -4279,11 +4287,10 @@ BEGIN
 END;
 
 
-
-
 GO
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_trial_balance.sql --<--<--
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_trial_balance.sql --<--<--
 IF OBJECT_ID('finance.get_trial_balance') IS NOT NULL
 DROP FUNCTION finance.get_trial_balance;
@@ -4297,9 +4304,9 @@ CREATE FUNCTION finance.get_trial_balance
     @user_id                        integer,
     @office_id                      integer,
     @compact                        bit,
-    @factor                         decimal(24, 4),
-    @change_side_when_negative      bit DEFAULT(1),
-    @include_zero_balance_accounts  bit DEFAULT(1)
+    @factor                         numeric(30, 6),
+    @change_side_when_negative      bit,
+    @include_zero_balance_accounts  bit
 )
 RETURNS @result TABLE
 (
@@ -4307,19 +4314,20 @@ RETURNS @result TABLE
     account_id              integer,
     account_number          national character varying(24),
     account                 national character varying(1000),
-    previous_debit          decimal(24, 4),
-    previous_credit         decimal(24, 4),
-    debit                   decimal(24, 4),
-    credit                  decimal(24, 4),
-    closing_debit           decimal(24, 4),
-    closing_credit          decimal(24, 4)
+    previous_debit          numeric(30, 6),
+    previous_credit         numeric(30, 6),
+    debit                   numeric(30, 6),
+    credit                  numeric(30, 6),
+    closing_debit           numeric(30, 6),
+    closing_credit          numeric(30, 6)
 )
 AS
 
 BEGIN
     IF(@date_from IS NULL)
     BEGIN
-        RAISERROR('Invalid date.', 10, 1);
+        SET @date_from = finance.get_fiscal_year_start_date(@office_id);
+        --RAISERROR('Invalid date.', 10, 1);
     END;
 
     IF NOT EXISTS
@@ -4332,7 +4340,8 @@ BEGIN
         HAVING count(DISTINCT currency_code) = 1
     )
     BEGIN
-        RAISERROR('Cannot produce trial balance of office(s) having different base currencies.', 10, 1);
+        --RAISERROR('Cannot produce trial balance of office(s) having different base currencies.', 10, 1);
+        RETURN;
     END;
 
     DECLARE @trial_balance TABLE
@@ -4341,12 +4350,12 @@ BEGIN
         account_id              integer,
         account_number national character varying(24),
         account                 national character varying(1000),
-        previous_debit          decimal(24, 4),
-        previous_credit         decimal(24, 4),
-        debit                   decimal(24, 4),
-        credit                  decimal(24, 4),
-        closing_debit           decimal(24, 4),
-        closing_credit          decimal(24, 4),
+        previous_debit          numeric(30, 6),
+        previous_credit         numeric(30, 6),
+        debit                   numeric(30, 6),
+        credit                  numeric(30, 6),
+        closing_debit           numeric(30, 6),
+        closing_credit          numeric(30, 6),
         root_account_id         integer,
         normally_debit          bit
     );
@@ -4355,14 +4364,14 @@ BEGIN
     (
         id                      integer,
         account_id              integer,
-        account_number national character varying(24),
+        account_number          national character varying(24),
         account                 national character varying(1000),
-        previous_debit          decimal(24, 4),
-        previous_credit         decimal(24, 4),
-        debit                   decimal(24, 4),
-        credit                  decimal(24, 4),
-        closing_debit           decimal(24, 4),
-        closing_credit          decimal(24, 4),
+        previous_debit          numeric(30, 6),
+        previous_credit         numeric(30, 6),
+        debit                   numeric(30, 6),
+        credit                  numeric(30, 6),
+        closing_debit           numeric(30, 6),
+        closing_credit          numeric(30, 6),
         root_account_id         integer,
         normally_debit          bit
     );
@@ -4402,12 +4411,12 @@ BEGIN
         GROUP BY verified_transaction_mat_view.account_id;    
     END;
 
-    UPDATE @trial_balance SET root_account_id = finance.get_root_account_id(account_id);
+    UPDATE @trial_balance SET root_account_id = finance.get_root_account_id(account_id, 0);
 
         
-    IF(@compact)
+    IF(@compact = 1)
     BEGIN
-        INSERT INTO @summary_trial_balance
+        INSERT INTO @summary_trial_balance(account_id, account_number, account, previous_debit, previous_credit, debit, credit, closing_debit, closing_credit, normally_debit)
         SELECT
             temp_trial_balance.root_account_id AS account_id,
             '' as account_number,
@@ -4427,7 +4436,7 @@ BEGIN
     END
     ELSE
     BEGIN
-        INSERT INTO @summary_trial_balance
+        INSERT INTO @summary_trial_balance(account_id, account_number, account, previous_debit, previous_credit, debit, credit, closing_debit, closing_credit, normally_debit)
         SELECT
             temp_trial_balance.account_id,
             '' as account_number,
@@ -4446,14 +4455,16 @@ BEGIN
         ORDER BY temp_trial_balance.normally_debit;
     END;
     
-    UPDATE @summary_trial_balance SET
+    UPDATE @summary_trial_balance 
+    SET
         account_number = finance.accounts.account_number,
         account = finance.accounts.account_name,
         normally_debit = finance.account_masters.normally_debit
-    FROM finance.accounts
+    FROM @summary_trial_balance AS summary_trial_balance
+    INNER JOIN finance.accounts
     INNER JOIN finance.account_masters
     ON finance.accounts.account_master_id = finance.account_masters.account_master_id
-    WHERE account_id = finance.accounts.account_id;
+    ON summary_trial_balance.account_id = finance.accounts.account_id;
 
     UPDATE @summary_trial_balance SET 
         closing_debit = COALESCE(previous_debit, 0) + COALESCE(debit, 0),
@@ -4471,19 +4482,19 @@ BEGIN
      UPDATE @summary_trial_balance SET closing_credit = COALESCE(closing_credit, 0) - COALESCE(closing_debit, 0), closing_debit = NULL WHERE normally_debit = 0;
 
 
-    IF(NOT @include_zero_balance_accounts)
+    IF(@include_zero_balance_accounts = 0)
     BEGIN
-        DELETE FROM @summary_trial_balance WHERE COALESCE(closing_debit) + COALESCE(closing_credit) = 0;
+        DELETE FROM @summary_trial_balance WHERE COALESCE(closing_debit, 0) + COALESCE(closing_credit, 0) = 0;
     END;
     
     IF(@factor > 0)
     BEGIN
-        UPDATE @summary_trial_balance SET previous_debit   = previous_debit/_factor;
-        UPDATE @summary_trial_balance SET previous_credit  = previous_credit/_factor;
-        UPDATE @summary_trial_balance SET debit            = debit/_factor;
-        UPDATE @summary_trial_balance SET credit           = credit/_factor;
-        UPDATE @summary_trial_balance SET closing_debit    = closing_debit/_factor;
-        UPDATE @summary_trial_balance SET closing_credit   = closing_credit/_factor;
+        UPDATE @summary_trial_balance SET previous_debit   = previous_debit/@factor;
+        UPDATE @summary_trial_balance SET previous_credit  = previous_credit/@factor;
+        UPDATE @summary_trial_balance SET debit            = debit/@factor;
+        UPDATE @summary_trial_balance SET credit           = credit/@factor;
+        UPDATE @summary_trial_balance SET closing_debit    = closing_debit/@factor;
+        UPDATE @summary_trial_balance SET closing_credit   = closing_credit/@factor;
     END;
 
     --Remove Zeros
@@ -4494,7 +4505,7 @@ BEGIN
     UPDATE @summary_trial_balance SET closing_debit = NULL WHERE closing_debit = 0;
     UPDATE @summary_trial_balance SET closing_debit = NULL WHERE closing_credit = 0;
 
-    IF(@change_side_when_negative)
+    IF(@change_side_when_negative = 1)
     BEGIN
         UPDATE @summary_trial_balance SET previous_debit = previous_credit * -1, previous_credit = NULL WHERE previous_credit < 0;
         UPDATE @summary_trial_balance SET previous_credit = previous_debit * -1, previous_debit = NULL WHERE previous_debit < 0;
@@ -4526,7 +4537,6 @@ END
 
 
 GO
-
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.triggers/finance.update_transaction_meta.sql --<--<--
 IF OBJECT_ID('finance.update_transaction_meta_trigger') IS NOT NULL
@@ -4638,8 +4648,8 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.scrud-views/finance.account_scrud_view.sql --<--<--
-IF OBJECT_ID('finance.account_scrud_view CASCADE') IS NOT NULL
-DROP VIEW finance.account_scrud_view CASCADE;
+IF OBJECT_ID('finance.account_scrud_view') IS NOT NULL
+DROP VIEW finance.account_scrud_view --CASCADE;
 
 GO
 
@@ -4687,7 +4697,7 @@ AS
 SELECT
     finance.auto_verification_policy.auto_verification_policy_id,
     finance.auto_verification_policy.user_id,
-    account.get_name_by_user_id(finance.auto_verification_policy.user_id) AS user,
+    account.get_name_by_user_id(finance.auto_verification_policy.user_id) AS "user",
     finance.auto_verification_policy.office_id,
     core.get_office_name_by_office_id(finance.auto_verification_policy.office_id) AS office,
     finance.auto_verification_policy.effective_from,
@@ -4842,7 +4852,7 @@ AS
 SELECT
     finance.journal_verification_policy.journal_verification_policy_id,
     finance.journal_verification_policy.user_id,
-    account.get_name_by_user_id(finance.journal_verification_policy.user_id) AS user,
+    account.get_name_by_user_id(finance.journal_verification_policy.user_id) AS "user",
     finance.journal_verification_policy.office_id,
     core.get_office_name_by_office_id(finance.journal_verification_policy.office_id) AS office,
     finance.journal_verification_policy.can_verify,
@@ -4860,8 +4870,8 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.scrud-views/finance.merchant_fee_setup_scrud_view.sql --<--<--
-IF OBJECT_ID('finance.merchant_fee_setup_scrud_view CASCADE') IS NOT NULL
-DROP VIEW finance.merchant_fee_setup_scrud_view CASCADE;
+IF OBJECT_ID('finance.merchant_fee_setup_scrud_view') IS NOT NULL
+DROP VIEW finance.merchant_fee_setup_scrud_view --CASCADE;
 
 GO
 
@@ -4943,16 +4953,13 @@ DROP VIEW finance.bank_account_selector_view;
 
 GO
 
-
-
 CREATE VIEW finance.bank_account_selector_view
 AS
 SELECT 
     finance.account_scrud_view.account_id AS bank_account_id,
     finance.account_scrud_view.account_name AS bank_account_name
 FROM finance.account_scrud_view
-WHERE account_master_id = 10102
-ORDER BY account_id;
+WHERE account_master_id = 10102;
 
 
 GO
@@ -4972,8 +4979,7 @@ SELECT
     finance.account_scrud_view.account_id AS payable_account_id,
     finance.account_scrud_view.account_name AS payable_account_name
 FROM finance.account_scrud_view
-WHERE account_master_id = 15010
-ORDER BY account_id;
+WHERE account_master_id = 15010;
 
 
 GO
@@ -4993,10 +4999,7 @@ SELECT
     finance.account_scrud_view.account_id AS receivable_account_id,
     finance.account_scrud_view.account_name AS receivable_account_name
 FROM finance.account_scrud_view
-WHERE account_master_id = 10110
-ORDER BY account_id;
-
-
+WHERE account_master_id = 10110;
 
 GO
 
@@ -5059,8 +5062,8 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.views/1. finance.verified_transaction_view.sql --<--<--
-IF OBJECT_ID('finance.verified_transaction_view CASCADE') IS NOT NULL
-DROP VIEW finance.verified_transaction_view CASCADE;
+IF OBJECT_ID('finance.verified_transaction_view') IS NOT NULL
+DROP VIEW finance.verified_transaction_view --CASCADE;
 
 GO
 
@@ -5076,23 +5079,25 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.views/2.finance.verified_transaction_mat_view.sql --<--<--
-DROP MATERIALIZED VIEW IF EXISTS finance.verified_transaction_mat_view CASCADE;
+IF OBJECT_ID('finance.verified_transaction_mat_view') IS NOT NULL
+DROP VIEW finance.verified_transaction_mat_view--CASCADE;
 
-CREATE MATERIALIZED VIEW finance.verified_transaction_mat_view
+GO
+
+CREATE  VIEW finance.verified_transaction_mat_view
 AS
 SELECT * FROM finance.verified_transaction_view;
-
-ALTER MATERIALIZED VIEW finance.verified_transaction_mat_view
-OWNER TO frapid_db_user;
-
 
 GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.views/3. finance.verified_cash_transaction_mat_view.sql --<--<--
-DROP MATERIALIZED VIEW IF EXISTS finance.verified_cash_transaction_mat_view;
+IF OBJECT_ID('finance.verified_cash_transaction_mat_view') IS NOT NULL
+DROP VIEW finance.verified_cash_transaction_mat_view;
 
-CREATE MATERIALIZED VIEW finance.verified_cash_transaction_mat_view
+GO
+
+CREATE VIEW finance.verified_cash_transaction_mat_view
 AS
 SELECT * FROM finance.verified_transaction_mat_view
 WHERE finance.verified_transaction_mat_view.transaction_master_id
@@ -5102,10 +5107,6 @@ IN
     FROM finance.verified_transaction_mat_view
     WHERE account_master_id IN(10101, 10102) --Cash and Bank A/C
 );
-
-ALTER MATERIALIZED VIEW finance.verified_cash_transaction_mat_view
-OWNER TO frapid_db_user;
-
 
 GO
 
@@ -5179,20 +5180,21 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.views/finance.trial_balance_view.sql --<--<--
-DROP MATERIALIZED VIEW IF EXISTS finance.trial_balance_view;
-CREATE MATERIALIZED VIEW finance.trial_balance_view
+IF OBJECT_ID('finance.trial_balance_view') IS NOT NULL
+DROP VIEW finance.trial_balance_view;
+
+GO
+
+CREATE VIEW finance.trial_balance_view
 AS
-SELECT finance.get_account_name_by_account_id(account_id), 
+SELECT finance.get_account_name_by_account_id(account_id) AS account, 
     SUM(CASE finance.verified_transaction_view.tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE NULL END) AS debit,
     SUM(CASE finance.verified_transaction_view.tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE NULL END) AS Credit
 FROM finance.verified_transaction_view
 GROUP BY account_id;
 
-ALTER MATERIALIZED VIEW finance.trial_balance_view
-OWNER TO frapid_db_user;
-
-
 GO
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/99.ownership.sql --<--<--

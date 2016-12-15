@@ -1,4 +1,5 @@
-﻿IF OBJECT_ID('finance.verify_transaction') IS NOT NULL
+﻿-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--
+IF OBJECT_ID('finance.verify_transaction') IS NOT NULL
 DROP PROCEDURE finance.verify_transaction;
 
 GO
@@ -27,18 +28,13 @@ BEGIN
     DECLARE @cascading_tran_id              bigint;
 
     SELECT
-        finance.transaction_master.book,
-        finance.transaction_master.value_date,
-        finance.transaction_master.office_id,
-        finance.transaction_master.user_id
-    INTO
-        @book,
-        @journal_date,
-        @journal_office_id,
-        @transaction_posted_by  
+        @book                   = finance.transaction_master.book,
+        @journal_date           = finance.transaction_master.value_date,
+        @journal_office_id      = finance.transaction_master.office_id,
+        @transaction_posted_by  = finance.transaction_master.user_id          
     FROM
     finance.transaction_master
-    WHERE finance.transaction_master.transaction_master_id=_transaction_master_id
+    WHERE finance.transaction_master.transaction_master_id=@transaction_master_id
     AND finance.transaction_master.deleted = 0;
 
 
@@ -47,71 +43,60 @@ BEGIN
         RAISERROR('Access is denied. You cannot verify a transaction of another office.', 10, 1);
     END;
         
-    SELECT
-        SUM(amount_in_local_currency)
-    INTO
-        @posted_amount
+    SELECT @posted_amount = SUM(amount_in_local_currency)
     FROM finance.transaction_details
     WHERE finance.transaction_details.transaction_master_id = @transaction_master_id
     AND finance.transaction_details.tran_type='Cr';
 
 
     SELECT
-        1,
-        can_verify,
-        verification_limit,
-        can_self_verify,
-        self_verification_limit
-    INTO
-        @has_policy,
-        @can_verify,
-        @verification_limit,
-        @can_self_verify,
-        @self_verification_limit
+        @has_policy                 = 1,
+        @can_verify                 = can_verify,
+        @verification_limit         = verification_limit,
+        @can_self_verify            = can_self_verify,
+        @self_verification_limit    = self_verification_limit
     FROM finance.journal_verification_policy
-    WHERE finance.journal_verification_policy.user_id=_user_id
+    WHERE finance.journal_verification_policy.user_id=@user_id
     AND finance.journal_verification_policy.office_id = @office_id
     AND finance.journal_verification_policy.is_active= 1
     AND GETDATE() >= effective_from
     AND GETDATE() <= ends_on
     AND finance.journal_verification_policy.deleted = 0;
 
-    IF(NOT @can_self_verify AND @user_id = @transaction_posted_by)
+    IF(@can_self_verify = 0 AND @user_id = @transaction_posted_by)
     BEGIN
-        @can_verify = 0;
+        SET @can_verify = 0;
     END;
 
-    IF(@has_policy)
+    IF(@has_policy = 1)
     BEGIN
-        IF(@can_verify)
+        IF(@can_verify = 1)
         BEGIN
         
-            SELECT cascading_tran_id
-            INTO @cascading_tran_id
+            SELECT @cascading_tran_id = cascading_tran_id
             FROM finance.transaction_master
-            WHERE finance.transaction_master.transaction_master_id=_transaction_master_id
+            WHERE finance.transaction_master.transaction_master_id=@transaction_master_id
             AND finance.transaction_master.deleted = 0;
             
             UPDATE finance.transaction_master
             SET 
                 last_verified_on = GETDATE(),
-                verified_by_user_id=_user_id,
-                verification_status_id=_verification_status_id,
-                verification_reason=_reason
+                verified_by_user_id=@user_id,
+                verification_status_id=@verification_status_id,
+                verification_reason=@reason
             WHERE
-                finance.transaction_master.transaction_master_id=_transaction_master_id
+                finance.transaction_master.transaction_master_id=@transaction_master_id
             OR 
-                finance.transaction_master.cascading_tran_id =_transaction_master_id
+                finance.transaction_master.cascading_tran_id =@transaction_master_id
             OR
             finance.transaction_master.transaction_master_id = @cascading_tran_id;
 
 
             IF(COALESCE(@cascading_tran_id, 0) = 0)
             BEGIN
-                SELECT transaction_master_id
-                INTO @cascading_tran_id
+                SELECT @cascading_tran_id = transaction_master_id
                 FROM finance.transaction_master
-                WHERE finance.transaction_master.cascading_tran_id=_transaction_master_id
+                WHERE finance.transaction_master.cascading_tran_id=@transaction_master_id
                 AND finance.transaction_master.deleted = 0;
             END;
             
@@ -122,6 +107,7 @@ BEGIN
         BEGIN
             RAISERROR('Please ask someone else to verify your transaction.', 10, 1);
         END;
+    END
     ELSE
     BEGIN
         RAISERROR('No verification policy found for this user.', 10, 1);
@@ -130,9 +116,5 @@ BEGIN
     SELECT 0;
     RETURN;
 END;
-
-
-
---SELECT * FROM finance.verify_transaction(1, 1, 1, 6, 2, 'OK');
 
 GO

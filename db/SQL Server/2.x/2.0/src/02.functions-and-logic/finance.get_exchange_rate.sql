@@ -11,8 +11,7 @@ BEGIN
     DECLARE @unit                       dbo.integer_strict2 = 0;
     DECLARE @exchange_rate              dbo.decimal_strict2 = 0;
 
-    SELECT core.offices.currency_code
-    INTO @local_currency_code
+    SELECT @local_currency_code = core.offices.currency_code
     FROM core.offices
     WHERE core.offices.office_id=@office_id
     AND core.offices.deleted = 0;
@@ -22,8 +21,9 @@ BEGIN
         RETURN 1;
     END;
 
-    SELECT unit, exchange_rate
-    INTO @unit, @exchange_rate
+    SELECT 
+        @unit = unit, 
+        @exchange_rate = exchange_rate
     FROM finance.exchange_rate_details
     INNER JOIN finance.exchange_rates
     ON finance.exchange_rate_details.exchange_rate_id = finance.exchange_rates.exchange_rate_id
@@ -35,5 +35,7 @@ BEGIN
         RETURN 0;
     END;
     
-    RETURN @exchange_rate/_unit;    
+    RETURN @exchange_rate/@unit;    
 END;
+
+GO

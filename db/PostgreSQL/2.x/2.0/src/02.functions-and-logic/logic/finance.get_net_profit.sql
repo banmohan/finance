@@ -15,14 +15,14 @@ CREATE FUNCTION finance.get_net_profit
     _factor                         integer,
     _no_provison                    boolean DEFAULT false
 )
-RETURNS decimal(24, 4)
+RETURNS numeric(30, 6)
 AS
 $$
-    DECLARE _incomes                decimal(24, 4) = 0;
-    DECLARE _expenses               decimal(24, 4) = 0;
-    DECLARE _profit_before_tax      decimal(24, 4) = 0;
-    DECLARE _tax_paid               decimal(24, 4) = 0;
-    DECLARE _tax_provison           decimal(24, 4) = 0;
+    DECLARE _incomes                numeric(30, 6) = 0;
+    DECLARE _expenses               numeric(30, 6) = 0;
+    DECLARE _profit_before_tax      numeric(30, 6) = 0;
+    DECLARE _tax_paid               numeric(30, 6) = 0;
+    DECLARE _tax_provison           numeric(30, 6) = 0;
 BEGIN
     SELECT SUM(CASE tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
     INTO _incomes

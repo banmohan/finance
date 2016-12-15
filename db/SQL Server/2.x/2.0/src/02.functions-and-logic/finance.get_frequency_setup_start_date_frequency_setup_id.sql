@@ -9,8 +9,7 @@ AS
 BEGIN
     DECLARE @start_date date;
 
-    SELECT MAX(value_date) + 1 
-    INTO @start_date
+    SELECT @start_date = DATEADD(day, 1, MAX(value_date)) 
     FROM finance.frequency_setups
     WHERE finance.frequency_setups.value_date < 
     (
@@ -23,8 +22,7 @@ BEGIN
 
     IF(@start_date IS NULL)
     BEGIN
-        SELECT starts_from 
-        INTO @start_date
+        SELECT @start_date = starts_from 
         FROM finance.fiscal_year
         WHERE finance.fiscal_year.deleted = 0;
     END;

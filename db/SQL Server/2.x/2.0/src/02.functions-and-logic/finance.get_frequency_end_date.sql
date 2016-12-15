@@ -9,8 +9,7 @@ AS
 BEGIN
     DECLARE @end_date date;
 
-    SELECT MIN(value_date)
-    INTO @end_date
+    SELECT @end_date = MIN(value_date)
     FROM finance.frequency_setups
     WHERE value_date > @value_date
     AND frequency_id IN(SELECT finance.get_frequencies(@frequency_id));

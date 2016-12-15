@@ -1,4 +1,5 @@
-﻿IF OBJECT_ID('finance.get_retained_earnings_statement') IS NOT NULL
+﻿-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_retained_earnings_statement.sql --<--<--
+IF OBJECT_ID('finance.get_retained_earnings_statement') IS NOT NULL
 DROP FUNCTION finance.get_retained_earnings_statement;
 
 GO
@@ -13,15 +14,15 @@ RETURNS @result TABLE
 (
     id                              integer,
     value_date                      date,
-    tran_code national character varying(50),
+    tran_code                       national character varying(50),
     statement_reference             national character varying(2000),
-    debit                           decimal(24, 4),
-    credit                          decimal(24, 4),
-    balance                         decimal(24, 4),
-    office national character varying(1000),
-    book                    national character varying(50),
+    debit                           numeric(30, 6),
+    credit                          numeric(30, 6),
+    balance                         numeric(30, 6),
+    office                          national character varying(1000),
+    book                            national character varying(50),
     account_id                      integer,
-    account_number national character varying(24),
+    account_number                  national character varying(24),
     account                         national character varying(1000),
     posted_on                       DATETIMEOFFSET,
     posted_by                       national character varying(1000),
@@ -36,37 +37,37 @@ BEGIN
     );
 
     DECLARE @date_from              date;
-    DECLARE @net_profit             decimal(24, 4) = 0;
+    DECLARE @net_profit             numeric(30, 6) = 0;
     DECLARE @income_tax_rate        real           = 0;
-    DECLARE @itp                    decimal(24, 4) = 0;
+    DECLARE @itp                    numeric(30, 6) = 0;
 
-    @date_from                      = finance.get_fiscal_year_start_date(@office_id);
-    @net_profit                     = finance.get_net_profit(@date_from, @date_to, @office_id, @factor);
-    @income_tax_rate                = finance.get_income_tax_rate(@office_id);
+    SET @date_from                      = finance.get_fiscal_year_start_date(@office_id);
+    SET @net_profit                     = finance.get_net_profit(@date_from, @date_to, @office_id, @factor);
+    SET @income_tax_rate                = finance.get_income_tax_rate(@office_id);
 
     IF(COALESCE(@factor , 0) = 0)
     BEGIN
-        @factor                        = 1;
+        SET @factor                        = 1;
     END; 
 
     IF(@income_tax_rate != 0)
     BEGIN
-        @itp                            = (@net_profit * @income_tax_rate) / (100 - @income_tax_rate);
+        SET @itp                        = (@net_profit * @income_tax_rate) / (100 - @income_tax_rate);
     END;
 
     DECLARE @retained_earnings TABLE
     (
         id                          integer IDENTITY,
         value_date                  date,
-        tran_code national character varying(50),
+        tran_code                   national character varying(50),
         statement_reference         national character varying(2000),
-        debit                       decimal(24, 4),
-        credit                      decimal(24, 4),
-        balance                     decimal(24, 4),
-        office national character varying(1000),
+        debit                       numeric(30, 6),
+        credit                      numeric(30, 6),
+        balance                     numeric(30, 6),
+        office                      national character varying(1000),
         book                        national character varying(50),
         account_id                  integer,
-        account_number national character varying(24),
+        account_number              national character varying(24),
         account                     national character varying(1000),
         posted_on                   DATETIMEOFFSET,
         posted_by                   national character varying(1000),
@@ -123,9 +124,9 @@ BEGIN
     
 
     UPDATE @retained_earnings SET 
-    debit = @retained_earnings.credit * -1,
+    debit = credit * -1,
     credit = 0
-    WHERE @retained_earnings.credit < 0;
+    WHERE credit < 0;
 
 
     INSERT INTO @retained_earnings(value_date, tran_code, statement_reference, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
@@ -166,30 +167,32 @@ BEGIN
 
     UPDATE @retained_earnings
     SET balance = c.balance
-    FROM
+    FROM @retained_earnings AS retained_earnings
+    INNER JOIN
     (
         SELECT
-            @retained_earnings.id, 
+            retained_earnings.id, 
             SUM(COALESCE(c.credit, 0)) 
             - 
             SUM(COALESCE(c.debit,0)) As balance
-        FROM @retained_earnings
+        FROM @retained_earnings AS retained_earnings
         LEFT JOIN @retained_earnings AS c 
-            ON (c.id <= @retained_earnings.id)
-        GROUP BY @retained_earnings.id
-        ORDER BY @retained_earnings.id
+            ON (c.id <= retained_earnings.id)
+        GROUP BY retained_earnings.id
     ) AS c
-    WHERE @retained_earnings.id = c.id;
+    ON retained_earnings.id = c.id;
 
-    UPDATE @retained_earnings SET 
+    UPDATE @retained_earnings 
+    SET 
         account_number = finance.accounts.account_number,
         account = finance.accounts.account_name
-    FROM finance.accounts
-    WHERE @retained_earnings.account_id = finance.accounts.account_id;
+    FROM @retained_earnings AS retained_earnings 
+    INNER JOIN finance.accounts
+    ON retained_earnings.account_id = finance.accounts.account_id;
 
 
-    UPDATE @retained_earnings SET debit = NULL WHERE @retained_earnings.debit = 0;
-    UPDATE @retained_earnings SET credit = NULL WHERE @retained_earnings.credit = 0;
+    UPDATE @retained_earnings SET debit = NULL WHERE debit = 0;
+    UPDATE @retained_earnings SET credit = NULL WHERE credit = 0;
 
     INSERT INTO @result
     SELECT * FROM @retained_earnings
