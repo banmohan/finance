@@ -6,6 +6,8 @@ GO
 CREATE PROCEDURE finance.initialize_eod_operation(@user_id integer, @office_id integer, @value_date date)
 AS
 BEGIN
+    SET NOCOUNT ON;
+
     IF(@value_date IS NULL)
     BEGIN
         RAISERROR('Invalid date.', 10, 1);

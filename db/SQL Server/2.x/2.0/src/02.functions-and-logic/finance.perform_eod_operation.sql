@@ -6,6 +6,8 @@ GO
 CREATE PROCEDURE finance.perform_eod_operation(@user_id integer, @login_id bigint, @office_id integer, @value_date date)
 AS
 BEGIN
+    SET NOCOUNT ON;
+
     DECLARE @routine            national character varying(128);
     DECLARE @routine_id         integer;
     DECLARE @sql                national character varying(1000);

@@ -556,6 +556,8 @@ CREATE PROCEDURE finance.auto_verify
 )
 AS
 BEGIN
+    SET NOCOUNT ON;
+
     DECLARE @transaction_master_id          bigint= @tran_id;
     DECLARE @transaction_posted_by          integer;
     DECLARE @verifier                       integer;
@@ -762,6 +764,8 @@ GO
 CREATE PROCEDURE finance.create_routine(@routine_code national character varying(12), @routine national character varying(128), @order integer)
 AS
 BEGIN
+    SET NOCOUNT ON;
+
     IF NOT EXISTS(SELECT * FROM finance.routines WHERE routine_code=@routine_code)
     BEGIN
         INSERT INTO finance.routines(routine_code, routine_name, "order")
@@ -2747,6 +2751,8 @@ GO
 CREATE PROCEDURE finance.initialize_eod_operation(@user_id integer, @office_id integer, @value_date date)
 AS
 BEGIN
+    SET NOCOUNT ON;
+
     IF(@value_date IS NULL)
     BEGIN
         RAISERROR('Invalid date.', 10, 1);
@@ -2994,6 +3000,8 @@ GO
 CREATE PROCEDURE finance.perform_eod_operation(@user_id integer, @login_id bigint, @office_id integer, @value_date date)
 AS
 BEGIN
+    SET NOCOUNT ON;
+
     DECLARE @routine            national character varying(128);
     DECLARE @routine_id         integer;
     DECLARE @sql                national character varying(1000);
@@ -3168,6 +3176,8 @@ CREATE PROCEDURE finance.verify_transaction
 )
 AS
 BEGIN
+    SET NOCOUNT ON;
+
     DECLARE @transaction_posted_by          integer;
     DECLARE @book                           national character varying(50);
     DECLARE @can_verify                     bit;
@@ -3287,6 +3297,8 @@ CREATE PROCEDURE finance.create_payment_card
 )
 AS
 BEGIN
+    SET NOCOUNT ON;
+
     IF NOT EXISTS
     (
         SELECT * FROM finance.payment_cards
@@ -3590,7 +3602,9 @@ CREATE PROCEDURE finance.get_cash_flow_statement
     @factor                         integer
 )
 AS
-BEGIN    
+BEGIN
+    SET NOCOUNT ON;
+
     --DECLARE @sql                    national character varying(1000);
     --DECLARE @periods                finance.period;
     --DECLARE @json                   json;
@@ -3930,7 +3944,9 @@ CREATE PROCEDURE finance.get_profit_and_loss_statement
     @compact                        bit
 )
 AS
-BEGIN    
+BEGIN
+    SET NOCOUNT ON;
+
     --DECLARE @sql                    national character varying(1000);
     --DECLARE @periods                finance.period;
     --DECLARE @json                   json;

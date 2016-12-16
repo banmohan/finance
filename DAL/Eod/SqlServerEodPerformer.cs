@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Frapid.Configuration;
 using Frapid.DataAccess.Extensions;
 using MixERP.Finance.AppModels;
-using Npgsql;
 
 namespace MixERP.Finance.DAL.Eod
 {
@@ -58,7 +57,7 @@ namespace MixERP.Finance.DAL.Eod
                         command.ExecuteNonQuery();
                     }
                 }
-                catch (NpgsqlException ex)
+                catch (SqlException ex)
                 {
                     var e = new EodEventArgs(ex.Message, "error");
                     var notificationReceived = this.NotificationReceived;

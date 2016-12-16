@@ -11,6 +11,8 @@ CREATE PROCEDURE finance.create_payment_card
 )
 AS
 BEGIN
+    SET NOCOUNT ON;
+
     IF NOT EXISTS
     (
         SELECT * FROM finance.payment_cards

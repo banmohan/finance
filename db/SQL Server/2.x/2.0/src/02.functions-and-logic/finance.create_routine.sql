@@ -6,6 +6,8 @@ GO
 CREATE PROCEDURE finance.create_routine(@routine_code national character varying(12), @routine national character varying(128), @order integer)
 AS
 BEGIN
+    SET NOCOUNT ON;
+
     IF NOT EXISTS(SELECT * FROM finance.routines WHERE routine_code=@routine_code)
     BEGIN
         INSERT INTO finance.routines(routine_code, routine_name, "order")

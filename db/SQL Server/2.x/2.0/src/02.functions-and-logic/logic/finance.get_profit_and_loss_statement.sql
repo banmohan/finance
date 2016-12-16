@@ -14,7 +14,9 @@ CREATE PROCEDURE finance.get_profit_and_loss_statement
     @compact                        bit
 )
 AS
-BEGIN    
+BEGIN
+    SET NOCOUNT ON;
+
     --DECLARE @sql                    national character varying(1000);
     --DECLARE @periods                finance.period;
     --DECLARE @json                   json;

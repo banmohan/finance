@@ -13,7 +13,9 @@ CREATE PROCEDURE finance.get_cash_flow_statement
     @factor                         integer
 )
 AS
-BEGIN    
+BEGIN
+    SET NOCOUNT ON;
+
     --DECLARE @sql                    national character varying(1000);
     --DECLARE @periods                finance.period;
     --DECLARE @json                   json;
