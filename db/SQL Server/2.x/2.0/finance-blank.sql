@@ -335,10 +335,10 @@ CREATE TABLE finance.transaction_details
     statement_reference                     national character varying(2000),
     cash_repository_id                      integer REFERENCES finance.cash_repositories,
     currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
-    amount_in_currency                      dbo.money_strict NOT NULL,
+    amount_in_currency                      decimal(30, 6) NOT NULL,
     local_currency_code                     national character varying(12) NOT NULL REFERENCES core.currencies,
-    er                                      dbo.decimal_strict NOT NULL,
-    amount_in_local_currency                dbo.money_strict NOT NULL,  
+    er                                      decimal(30, 6) NOT NULL,
+    amount_in_local_currency                decimal(30, 6) NOT NULL,  
     office_id                               integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE())
@@ -388,7 +388,7 @@ CREATE TABLE finance.merchant_fee_setup
     merchant_fee_setup_id                   int IDENTITY PRIMARY KEY,
     merchant_account_id                     integer NOT NULL REFERENCES finance.bank_accounts,
     payment_card_id                         integer NOT NULL REFERENCES finance.payment_cards,
-    rate                                    dbo.decimal_strict NOT NULL,
+    rate                                    decimal(30, 6) NOT NULL,
     customer_pays_fee                       bit NOT NULL DEFAULT(0),
     account_id                              integer NOT NULL REFERENCES finance.accounts,
     statement_reference                     national character varying(2000) NOT NULL DEFAULT(''),
@@ -420,8 +420,8 @@ CREATE TABLE finance.exchange_rate_details
     exchange_rate_id                        bigint NOT NULL REFERENCES finance.exchange_rates,
     local_currency_code                     national character varying(12) NOT NULL REFERENCES core.currencies,
     foreign_currency_code                   national character varying(12) NOT NULL REFERENCES core.currencies,
-    unit                                    dbo.integer_strict NOT NULL,
-    exchange_rate                           dbo.decimal_strict NOT NULL
+    unit                                    integer NOT NULL,
+    exchange_rate                           decimal(30, 6) NOT NULL
 );
 
 
@@ -439,9 +439,9 @@ CREATE TABLE finance.journal_verification_policy
     user_id                                 integer NOT NULL REFERENCES account.users,
     office_id                               integer NOT NULL REFERENCES core.offices,
     can_verify                              bit NOT NULL DEFAULT(0),
-    verification_limit                      dbo.money_strict2 NOT NULL DEFAULT(0),
+    verification_limit                      decimal(30, 6) NOT NULL DEFAULT(0),
     can_self_verify                         bit NOT NULL DEFAULT(0),
-    self_verification_limit                 dbo.money_strict2 NOT NULL DEFAULT(0),
+    self_verification_limit                 decimal(30, 6) NOT NULL DEFAULT(0),
     effective_from                          date NOT NULL,
     ends_on                                 date NOT NULL,
     is_active                               bit NOT NULL,
@@ -456,7 +456,7 @@ CREATE TABLE finance.auto_verification_policy
     auto_verification_policy_id             integer IDENTITY PRIMARY KEY,
     user_id                                 integer NOT NULL REFERENCES account.users,
     office_id                               integer NOT NULL REFERENCES core.offices,
-    verification_limit                      dbo.money_strict2 NOT NULL DEFAULT(0),
+    verification_limit                      decimal(30, 6) NOT NULL DEFAULT(0),
     effective_from                          date NOT NULL,
     ends_on                                 date NOT NULL,
     is_active                               bit NOT NULL,
@@ -469,9 +469,9 @@ CREATE TABLE finance.tax_setups
 (
     tax_setup_id                            int IDENTITY PRIMARY KEY,
     office_id                                integer NOT NULL REFERENCES core.offices,
-    income_tax_rate                            dbo.decimal_strict NOT NULL,
+    income_tax_rate                            decimal(30, 6) NOT NULL,
     income_tax_account_id                    integer NOT NULL REFERENCES finance.accounts,
-    sales_tax_rate                            dbo.decimal_strict NOT NULL,
+    sales_tax_rate                            decimal(30, 6) NOT NULL,
     sales_tax_account_id                    integer NOT NULL REFERENCES finance.accounts,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
@@ -568,8 +568,8 @@ BEGIN
     DECLARE @auto_approved                  smallint = 1;
     DECLARE @approved                       smallint=2;
     DECLARE @book                           national character varying(50);
-    DECLARE @verification_limit             dbo.money_strict2;
-    DECLARE @posted_amount                  dbo.money_strict2;
+    DECLARE @verification_limit             decimal(30, 6);
+    DECLARE @posted_amount                  decimal(30, 6);
     DECLARE @has_policy                     bit= 0;
     DECLARE @voucher_date                   date;
 
@@ -732,13 +732,13 @@ DROP FUNCTION finance.convert_exchange_rate;
 GO
 
 CREATE FUNCTION finance.convert_exchange_rate(@office_id integer, @source_currency_code national character varying(12), @destination_currency_code national character varying(12))
-RETURNS dbo.decimal_strict2
+RETURNS decimal(30, 6)
 AS
 BEGIN
-    DECLARE @unit                           dbo.integer_strict2 = 0;
-    DECLARE @exchange_rate                  dbo.decimal_strict2 = 0;
-    DECLARE @from_source_currency           dbo.decimal_strict2 = finance.get_exchange_rate(@office_id, @source_currency_code);
-    DECLARE @from_destination_currency      dbo.decimal_strict2 = finance.get_exchange_rate(@office_id, @destination_currency_code);
+    DECLARE @unit                           integer = 0;
+    DECLARE @exchange_rate                  decimal(30, 6) = 0;
+    DECLARE @from_source_currency           decimal(30, 6) = finance.get_exchange_rate(@office_id, @source_currency_code);
+    DECLARE @from_destination_currency      decimal(30, 6) = finance.get_exchange_rate(@office_id, @destination_currency_code);
 
     IF(@source_currency_code = @destination_currency_code)
     BEGIN
@@ -1425,11 +1425,11 @@ DROP FUNCTION finance.get_cash_repository_balance;
 GO
 
 CREATE FUNCTION finance.get_cash_repository_balance(@cash_repository_id integer, @currency_code national character varying(12))
-RETURNS dbo.money_strict2
+RETURNS decimal(30, 6)
 AS
 BEGIN
-    DECLARE @debit dbo.money_strict2;
-    DECLARE @credit dbo.money_strict2;
+    DECLARE @debit decimal(30, 6);
+    DECLARE @credit decimal(30, 6);
 
     SELECT @debit = COALESCE(SUM(amount_in_currency), 0)
     FROM finance.verified_transaction_view
@@ -1586,12 +1586,12 @@ DROP FUNCTION finance.get_exchange_rate;
 GO
 
 CREATE FUNCTION finance.get_exchange_rate(@office_id integer, @currency_code national character varying(12))
-RETURNS dbo.decimal_strict2
+RETURNS decimal(30, 6)
 AS
 BEGIN
     DECLARE @local_currency_code        national character varying(12)= '';
-    DECLARE @unit                       dbo.integer_strict2 = 0;
-    DECLARE @exchange_rate              dbo.decimal_strict2 = 0;
+    DECLARE @unit                       integer = 0;
+    DECLARE @exchange_rate              decimal(30, 6) = 0;
 
     SELECT @local_currency_code = core.offices.currency_code
     FROM core.offices
@@ -1849,7 +1849,7 @@ DROP FUNCTION finance.get_income_tax_rate;
 GO
 
 CREATE FUNCTION finance.get_income_tax_rate(@office_id integer)
-RETURNS dbo.decimal_strict
+RETURNS decimal(30, 6)
 AS
 
 BEGIN
@@ -3171,10 +3171,10 @@ BEGIN
     DECLARE @transaction_posted_by          integer;
     DECLARE @book                           national character varying(50);
     DECLARE @can_verify                     bit;
-    DECLARE @verification_limit             dbo.money_strict2;
+    DECLARE @verification_limit             decimal(30, 6);
     DECLARE @can_self_verify                bit;
-    DECLARE @self_verification_limit        dbo.money_strict2;
-    DECLARE @posted_amount                  dbo.money_strict2;
+    DECLARE @self_verification_limit        decimal(30, 6);
+    DECLARE @posted_amount                  decimal(30, 6);
     DECLARE @has_policy                     bit= 0;
     DECLARE @journal_date                   date;
     DECLARE @journal_office_id              integer;

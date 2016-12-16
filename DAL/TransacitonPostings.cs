@@ -6,6 +6,7 @@ using Frapid.Configuration.Db;
 using Frapid.DataAccess;
 using Frapid.Framework.Extensions;
 using Frapid.Mapper;
+using Frapid.Mapper.Database;
 using Frapid.Mapper.Query.Insert;
 using Frapid.Mapper.Query.NonQuery;
 using MixERP.Finance.DTO;
@@ -129,7 +130,14 @@ namespace MixERP.Finance.DAL
                         }
                     }
 
-                    var sql = new Sql("SELECT * FROM finance.auto_verify(@0::bigint, @1::integer)", transactionMasterId, userInfo.UserId);
+                    string query = "SELECT * FROM finance.auto_verify(@0::bigint, @1::integer)";
+
+                    if (DbProvider.GetDbType(DbProvider.GetProviderName(tenant)) == DatabaseType.SqlServer)
+                    {
+                        query = "EXECUTE finance.auto_verify @0, @1";
+                    }
+
+                    var sql = new Sql(query, transactionMasterId, userInfo.UserId);
                     await db.NonQueryAsync(sql).ConfigureAwait(false);
 
                     db.CommitTransaction();

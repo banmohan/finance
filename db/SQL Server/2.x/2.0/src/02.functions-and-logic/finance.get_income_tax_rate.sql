@@ -4,7 +4,7 @@ DROP FUNCTION finance.get_income_tax_rate;
 GO
 
 CREATE FUNCTION finance.get_income_tax_rate(@office_id integer)
-RETURNS dbo.decimal_strict
+RETURNS decimal(30, 6)
 AS
 
 BEGIN

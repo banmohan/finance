@@ -20,6 +20,11 @@ namespace MixERP.Finance.DAL
                 return new PostgreSQLEodPerformer();
             }
 
+            if (type == DatabaseType.SqlServer)
+            {
+                return new SqlServerEodPerformer();
+            }
+
             throw new NotImplementedException();
         }
 

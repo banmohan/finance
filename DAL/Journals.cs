@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Frapid.Configuration.Db;
 using Frapid.DataAccess;
 using Frapid.Framework.Extensions;
+using Frapid.Mapper.Database;
 using MixERP.Finance.DTO;
 using MixERP.Finance.QueryModels;
 using MixERP.Finance.ViewModels;
@@ -13,9 +15,12 @@ namespace MixERP.Finance.DAL
     {
         public static async Task<long> VerifyTransactionAsync(string tenant, Verification model)
         {
-            //Todo: The following query is incompatible with sql server
-            const string sql =
-                "SELECT * FROM finance.verify_transaction(@0::bigint, @1::integer, @2::integer, @3::bigint, @4::smallint, @5::national character varying);";
+            string sql = "SELECT * FROM finance.verify_transaction(@0::bigint, @1::integer, @2::integer, @3::bigint, @4::smallint, @5::national character varying);";
+
+            if (DbProvider.GetDbType(DbProvider.GetProviderName(tenant)) == DatabaseType.SqlServer)
+            {
+                sql = "EXECUTE finance.verify_transaction @0, @1, @2, @3, @4, @5;";
+            }
 
             return await Factory.ScalarAsync<long>(tenant, sql, model.TranId, model.OfficeId, model.UserId, model.LoginId, model.VerificationStatusId,
                 model.Reason).ConfigureAwait(false);
@@ -23,8 +28,12 @@ namespace MixERP.Finance.DAL
 
         public static async Task<List<JournalView>> GetJournalViewAsync(string tenant, JournalViewQuery query)
         {
-            //Todo: The following query is incompatible with sql server
-            const string sql = "SELECT * FROM finance.get_journal_view(@0::integer,@1::integer,@2::date,@3::date,@4::bigint,@5,@6,@7,@8,@9,@10,@11,@12,@13);";
+            string sql = "SELECT * FROM finance.get_journal_view(@0::integer,@1::integer,@2::date,@3::date,@4::bigint,@5,@6,@7,@8,@9,@10,@11,@12,@13);";
+
+            if (DbProvider.GetDbType(DbProvider.GetProviderName(tenant)) == DatabaseType.SqlServer)
+            {
+                sql = "SELECT * FROM finance.get_journal_view(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13);";
+            }
 
             var awaiter = await
                 Factory.GetAsync<JournalView>(tenant, sql, query.UserId, query.OfficeId, query.From, query.To,
