@@ -3916,7 +3916,7 @@ BEGIN
         RETURN (@profit_before_tax - COALESCE(@tax_paid, 0)) / @factor;
     END;
     
-    SET @tax_provison      = core.get_income_tax_provison_amount(@office_id, @profit_before_tax, COALESCE(@tax_paid, 0));
+    SET @tax_provison      = finance.get_income_tax_provison_amount(@office_id, @profit_before_tax, COALESCE(@tax_paid, 0));
     
     RETURN (@profit_before_tax - (COALESCE(@tax_provison, 0) + COALESCE(@tax_paid, 0))) / @factor;
 END;
@@ -4162,8 +4162,8 @@ BEGIN
     ----Income Tax Provison = Profit Before Income Taxes * Income Tax Rate - Paid Income Taxes
     --SELECT * INTO this FROM #pl_temp WHERE item_id = 12000;
     
-    --@sql = 'UPDATE #pl_temp SET amount = core.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + CAST(this.amount AS varchar(100)) + ',(SELECT amount FROM #pl_temp WHERE item_id = 13000)), ' 
-    --+ array_to_string(array_agg('"' + period_name + '"=core.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + core.get_field(hstore(this.*), period_name) + ', (SELECT "' + period_name + '" FROM #pl_temp WHERE item_id = 13000))'), ',')
+    --@sql = 'UPDATE #pl_temp SET amount = finance.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + CAST(this.amount AS varchar(100)) + ',(SELECT amount FROM #pl_temp WHERE item_id = 13000)), ' 
+    --+ array_to_string(array_agg('"' + period_name + '"= finance.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + core.get_field(hstore(this.*), period_name) + ', (SELECT "' + period_name + '" FROM #pl_temp WHERE item_id = 13000))'), ',')
     --        + ' WHERE item_id = 13001;'
     --FROM @periods;
 
@@ -4633,7 +4633,7 @@ EXECUTE core.create_menu 'Finance', 'Auto Verification Policy', '/dashboard/fina
 EXECUTE core.create_menu 'Finance', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'spinner', 'Tasks';
 
 EXECUTE core.create_menu 'Finance', 'Setup', 'square outline', 'configure', '';
-EXECUTE core.create_menu 'Finance', 'Chart of Account', '/dashboard/finance/setup/chart-of-accounts', 'sitemap', 'Setup';
+EXECUTE core.create_menu 'Finance', 'Chart of Accounts', '/dashboard/finance/setup/chart-of-accounts', 'sitemap', 'Setup';
 EXECUTE core.create_menu 'Finance', 'Currencies', '/dashboard/finance/setup/currencies', 'dollar', 'Setup';
 EXECUTE core.create_menu 'Finance', 'Bank Accounts', '/dashboard/finance/setup/bank-accounts', 'university', 'Setup';
 EXECUTE core.create_menu 'Finance', 'Cash Flow Headings', '/dashboard/finance/setup/cash-flow/headings', 'book', 'Setup';

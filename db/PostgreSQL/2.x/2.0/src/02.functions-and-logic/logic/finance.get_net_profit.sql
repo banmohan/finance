@@ -53,7 +53,7 @@ BEGIN
         RETURN (_profit_before_tax - COALESCE(_tax_paid, 0)) / _factor;
     END IF;
     
-    _tax_provison      := core.get_income_tax_provison_amount(_office_id, _profit_before_tax, COALESCE(_tax_paid, 0));
+    _tax_provison      := finance.get_income_tax_provison_amount(_office_id, _profit_before_tax, COALESCE(_tax_paid, 0));
     
     RETURN (_profit_before_tax - (COALESCE(_tax_provison, 0) + COALESCE(_tax_paid, 0))) / _factor;
 END

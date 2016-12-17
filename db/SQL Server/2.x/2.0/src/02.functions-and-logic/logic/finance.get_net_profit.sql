@@ -48,7 +48,7 @@ BEGIN
         RETURN (@profit_before_tax - COALESCE(@tax_paid, 0)) / @factor;
     END;
     
-    SET @tax_provison      = core.get_income_tax_provison_amount(@office_id, @profit_before_tax, COALESCE(@tax_paid, 0));
+    SET @tax_provison      = finance.get_income_tax_provison_amount(@office_id, @profit_before_tax, COALESCE(@tax_paid, 0));
     
     RETURN (@profit_before_tax - (COALESCE(@tax_provison, 0) + COALESCE(@tax_paid, 0))) / @factor;
 END;

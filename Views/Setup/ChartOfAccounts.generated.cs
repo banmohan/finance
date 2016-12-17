@@ -33,7 +33,6 @@ namespace ASP
     using Frapid.Framework;
     using Frapid.i18n;
     using Frapid.Messaging;
-    
     using Frapid.WebsiteBuilder;
     using MixERP.Finance;
     
@@ -62,24 +61,23 @@ WriteLiteral("\r\n\r\n<script>\r\n    var scrudFactory = new Object();\r\n\r\n  
 "leName = \"finance.accounts\";\r\n\r\n    scrudFactory.excludedColumns = [\"audit_user_" +
 "id\", \"audit_ts\"];\r\n\r\n    scrudFactory.allowDelete = true;\r\n    scrudFactory.allo" +
 "wEdit = true;\r\n\r\n    scrudFactory.live = \"AccountName\";\r\n\r\n    scrudFactory.card" +
-" = {\r\n        header: \"account_name\",\r\n        meta: \"account_number\",\r\n        " +
-"description: \"account_master\"        \r\n    };\r\n\r\n    scrudFactory.layout = [\r\n  " +
-"      {\r\n            tab: \"\",\r\n            fields: [\r\n                [\"AccountI" +
-"d\", \"\"],\r\n                [\"\", \"\"],\r\n            ]\r\n        }\r\n    ];\r\n\r\n    scr" +
-"udFactory.keys = [\r\n        {\r\n            property: \"AccountMasterId\",\r\n       " +
-"     url: \'/api/forms/finance/account-masters/display-fields\',\r\n            data" +
-": null,\r\n            valueField: \"Key\",\r\n            textField: \"Value\"\r\n       " +
-" },\r\n        {\r\n            property: \"CurrencyCode\",\r\n            url: \'/api/fo" +
-"rms/core/currencies/display-fields\',\r\n            data: null,\r\n            value" +
-"Field: \"Key\",\r\n            textField: \"Value\"\r\n        },\r\n        {\r\n          " +
-"  property: \"ParentAccountId\",\r\n            url: \'/api/forms/finance/accounts/di" +
-"splay-fields\',\r\n            data: null,\r\n            valueField: \"Key\",\r\n       " +
-"     textField: \"Value\"\r\n        }\r\n    ];\r\n\r\n\r\n\r\n    $.get(\'/ScrudFactory/View." +
-"html\', function (view) {\r\n        $.get(\'/ScrudFactory/Form.html\', function (for" +
-"m) {\r\n            $(\"#ScrudFactoryView\").html(view);\r\n            $(\"#ScrudFacto" +
-"ryForm\").html(form);\r\n            $.cachedScript(\"/assets/js/scrudfactory-view.j" +
-"s\");\r\n            $.cachedScript(\"/assets/js/scrudfactory-form.js\");\r\n        })" +
-";\r\n    });\r\n</script>\r\n\r\n<div");
+" = {\r\n        header: \"AccountName\",\r\n        meta: \"AccountNumber\",\r\n        de" +
+"scription: \"AccountMaster\"        \r\n    };\r\n\r\n    scrudFactory.layout = [\r\n     " +
+"   {\r\n            tab: \"\",\r\n            fields: [\r\n                [\"AccountId\"," +
+" \"\"],\r\n            ]\r\n        }\r\n    ];\r\n\r\n    scrudFactory.keys = [\r\n        {\r" +
+"\n            property: \"AccountMasterId\",\r\n            url: \'/api/forms/finance/" +
+"account-masters/display-fields\',\r\n            data: null,\r\n            valueFiel" +
+"d: \"Key\",\r\n            textField: \"Value\"\r\n        },\r\n        {\r\n            pr" +
+"operty: \"CurrencyCode\",\r\n            url: \'/api/forms/core/currencies/lookup-fie" +
+"lds\',\r\n            data: null,\r\n            valueField: \"Key\",\r\n            text" +
+"Field: \"Value\"\r\n        },\r\n        {\r\n            property: \"ParentAccountId\",\r" +
+"\n            url: \'/api/forms/finance/accounts/display-fields\',\r\n            dat" +
+"a: null,\r\n            valueField: \"Key\",\r\n            textField: \"Value\"\r\n      " +
+"  }\r\n    ];\r\n\r\n\r\n\r\n    $.get(\'/ScrudFactory/View.html\', function (view) {\r\n     " +
+"   $.get(\'/ScrudFactory/Form.html\', function (form) {\r\n            $(\"#ScrudFact" +
+"oryView\").html(view);\r\n            $(\"#ScrudFactoryForm\").html(form);\r\n         " +
+"   $.cachedScript(\"/assets/js/scrudfactory-view.js\");\r\n            $.cachedScrip" +
+"t(\"/assets/js/scrudfactory-form.js\");\r\n        });\r\n    });\r\n</script>\r\n\r\n<div");
 
 WriteLiteral(" id=\"ScrudFactoryForm\"");
 

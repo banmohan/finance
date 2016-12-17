@@ -27,7 +27,7 @@ EXECUTE core.create_menu 'Finance', 'Auto Verification Policy', '/dashboard/fina
 EXECUTE core.create_menu 'Finance', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'spinner', 'Tasks';
 
 EXECUTE core.create_menu 'Finance', 'Setup', 'square outline', 'configure', '';
-EXECUTE core.create_menu 'Finance', 'Chart of Account', '/dashboard/finance/setup/chart-of-accounts', 'sitemap', 'Setup';
+EXECUTE core.create_menu 'Finance', 'Chart of Accounts', '/dashboard/finance/setup/chart-of-accounts', 'sitemap', 'Setup';
 EXECUTE core.create_menu 'Finance', 'Currencies', '/dashboard/finance/setup/currencies', 'dollar', 'Setup';
 EXECUTE core.create_menu 'Finance', 'Bank Accounts', '/dashboard/finance/setup/bank-accounts', 'university', 'Setup';
 EXECUTE core.create_menu 'Finance', 'Cash Flow Headings', '/dashboard/finance/setup/cash-flow/headings', 'book', 'Setup';

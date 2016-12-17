@@ -232,8 +232,8 @@ BEGIN
     ----Income Tax Provison = Profit Before Income Taxes * Income Tax Rate - Paid Income Taxes
     --SELECT * INTO this FROM #pl_temp WHERE item_id = 12000;
     
-    --@sql = 'UPDATE #pl_temp SET amount = core.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + CAST(this.amount AS varchar(100)) + ',(SELECT amount FROM #pl_temp WHERE item_id = 13000)), ' 
-    --+ array_to_string(array_agg('"' + period_name + '"=core.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + core.get_field(hstore(this.*), period_name) + ', (SELECT "' + period_name + '" FROM #pl_temp WHERE item_id = 13000))'), ',')
+    --@sql = 'UPDATE #pl_temp SET amount = finance.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + CAST(this.amount AS varchar(100)) + ',(SELECT amount FROM #pl_temp WHERE item_id = 13000)), ' 
+    --+ array_to_string(array_agg('"' + period_name + '"= finance.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + core.get_field(hstore(this.*), period_name) + ', (SELECT "' + period_name + '" FROM #pl_temp WHERE item_id = 13000))'), ',')
     --        + ' WHERE item_id = 13001;'
     --FROM @periods;
 
