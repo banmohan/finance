@@ -70,7 +70,7 @@ SELECT finance.get_cash_flow_heading_id_by_cash_flow_heading_code('PSE'), financ
 SELECT finance.get_cash_flow_heading_id_by_cash_flow_heading_code('DR'),  finance.get_account_master_id_by_account_master_code('DIR') UNION ALL --Dividends Received/Dividends Received
 SELECT finance.get_cash_flow_heading_id_by_cash_flow_heading_code('DP'),  finance.get_account_master_id_by_account_master_code('DIP') UNION ALL --Dividends Paid/Dividends Paid
 
---We cannot guarantee that every transactions posted is 100% correct and falls under the above-mentioned cateries.
+--We cannot guarantee that every transactions posted is 100% correct and falls under the above-mentioned categories.
 --The following is the list of suspense accounts, cash entries posted directly against all "other account masters".
 SELECT finance.get_cash_flow_heading_id_by_cash_flow_heading_code('SUS'), finance.get_account_master_id_by_account_master_code('BSA') UNION ALL --Against Suspense Accounts/Balance Sheet A/C
 SELECT finance.get_cash_flow_heading_id_by_cash_flow_heading_code('SUS'), finance.get_account_master_id_by_account_master_code('PLA') UNION ALL --Against Suspense Accounts/Profit & Loss A/C
