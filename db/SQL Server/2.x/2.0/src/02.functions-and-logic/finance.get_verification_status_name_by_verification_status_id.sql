@@ -12,9 +12,9 @@ BEGIN
     (
 	    SELECT
 	        verification_status_name
-	    FROM finance.verification_statuses
-	    WHERE finance.verification_statuses.verification_status_id = @verification_status_id
-	    AND finance.verification_statuses.deleted = 0
+	    FROM core.verification_statuses
+	    WHERE core.verification_statuses.verification_status_id = @verification_status_id
+	    AND core.verification_statuses.deleted = 0
 	);
 END;
 

@@ -8,16 +8,6 @@ The table account_masters must only be translated, but not changed.
 UPDATE core.offices
 SET allow_transaction_posting = 1;
 
-
-
-INSERT INTO finance.verification_statuses(verification_status_id, verification_status_name)
-SELECT -3,  'Rejected'                              UNION ALL
-SELECT -2,  'Closed'                                UNION ALL
-SELECT -1,  'Withdrawn'                             UNION ALL
-SELECT 0,   'Unverified'                            UNION ALL
-SELECT 1,   'Automatically Approved by Workflow'    UNION ALL
-SELECT 2,   'Approved';
-
 INSERT INTO finance.frequencies(frequency_id, frequency_code, frequency_name)
 SELECT 2, 'EOM', 'End of Month'                 UNION ALL
 SELECT 3, 'EOQ', 'End of Quarter'               UNION ALL

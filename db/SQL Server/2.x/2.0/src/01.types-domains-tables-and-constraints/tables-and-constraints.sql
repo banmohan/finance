@@ -3,16 +3,6 @@ GO
 CREATE SCHEMA finance;
 GO
 
-
-CREATE TABLE finance.verification_statuses
-(
-    verification_status_id                  smallint PRIMARY KEY,
-    verification_status_name                national character varying(128) NOT NULL,
-    audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
-    deleted                                    bit DEFAULT(0)
-);
-
 CREATE TABLE finance.frequencies
 (
     frequency_id                            integer PRIMARY KEY,
@@ -292,7 +282,7 @@ CREATE TABLE finance.transaction_master
     statement_reference                     national character varying(2000),
     last_verified_on                        DATETIMEOFFSET, 
     verified_by_user_id                     integer REFERENCES account.users,
-    verification_status_id                  smallint NOT NULL REFERENCES finance.verification_statuses   
+    verification_status_id                  smallint NOT NULL REFERENCES core.verification_statuses   
                                             DEFAULT(0/*Awaiting verification*/),
     verification_reason                     national character varying(128) NOT NULL DEFAULT(''),
     cascading_tran_id                         bigint REFERENCES finance.transaction_master,

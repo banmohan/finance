@@ -16,6 +16,7 @@ CREATE PROCEDURE finance.verify_transaction
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     DECLARE @transaction_posted_by          integer;
     DECLARE @book                           national character varying(50);

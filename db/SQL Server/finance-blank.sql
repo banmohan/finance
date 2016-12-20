@@ -4,16 +4,6 @@ GO
 CREATE SCHEMA finance;
 GO
 
-
-CREATE TABLE finance.verification_statuses
-(
-    verification_status_id                  smallint PRIMARY KEY,
-    verification_status_name                national character varying(128) NOT NULL,
-    audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
-    deleted                                    bit DEFAULT(0)
-);
-
 CREATE TABLE finance.frequencies
 (
     frequency_id                            integer PRIMARY KEY,
@@ -293,7 +283,7 @@ CREATE TABLE finance.transaction_master
     statement_reference                     national character varying(2000),
     last_verified_on                        DATETIMEOFFSET, 
     verified_by_user_id                     integer REFERENCES account.users,
-    verification_status_id                  smallint NOT NULL REFERENCES finance.verification_statuses   
+    verification_status_id                  smallint NOT NULL REFERENCES core.verification_statuses   
                                             DEFAULT(0/*Awaiting verification*/),
     verification_reason                     national character varying(128) NOT NULL DEFAULT(''),
     cascading_tran_id                         bigint REFERENCES finance.transaction_master,
@@ -557,6 +547,7 @@ CREATE PROCEDURE finance.auto_verify
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     DECLARE @transaction_master_id          bigint= @tran_id;
     DECLARE @transaction_posted_by          integer;
@@ -765,6 +756,7 @@ CREATE PROCEDURE finance.create_routine(@routine_code national character varying
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     IF NOT EXISTS(SELECT * FROM finance.routines WHERE routine_code=@routine_code)
     BEGIN
@@ -2707,9 +2699,9 @@ BEGIN
     (
 	    SELECT
 	        verification_status_name
-	    FROM finance.verification_statuses
-	    WHERE finance.verification_statuses.verification_status_id = @verification_status_id
-	    AND finance.verification_statuses.deleted = 0
+	    FROM core.verification_statuses
+	    WHERE core.verification_statuses.verification_status_id = @verification_status_id
+	    AND core.verification_statuses.deleted = 0
 	);
 END;
 
@@ -2752,6 +2744,7 @@ CREATE PROCEDURE finance.initialize_eod_operation(@user_id integer, @office_id i
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     IF(@value_date IS NULL)
     BEGIN
@@ -3001,6 +2994,7 @@ CREATE PROCEDURE finance.perform_eod_operation(@user_id integer, @login_id bigin
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     DECLARE @routine            national character varying(128);
     DECLARE @routine_id         integer;
@@ -3177,6 +3171,7 @@ CREATE PROCEDURE finance.verify_transaction
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     DECLARE @transaction_posted_by          integer;
     DECLARE @book                           national character varying(50);
@@ -3298,6 +3293,7 @@ CREATE PROCEDURE finance.create_payment_card
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     IF NOT EXISTS
     (
@@ -3604,6 +3600,7 @@ CREATE PROCEDURE finance.get_cash_flow_statement
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     --DECLARE @sql                    national character varying(1000);
     --DECLARE @periods                finance.period;
@@ -3946,6 +3943,7 @@ CREATE PROCEDURE finance.get_profit_and_loss_statement
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     --DECLARE @sql                    national character varying(1000);
     --DECLARE @periods                finance.period;

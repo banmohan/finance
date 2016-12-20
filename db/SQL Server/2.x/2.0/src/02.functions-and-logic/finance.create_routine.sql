@@ -7,6 +7,7 @@ CREATE PROCEDURE finance.create_routine(@routine_code national character varying
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     IF NOT EXISTS(SELECT * FROM finance.routines WHERE routine_code=@routine_code)
     BEGIN

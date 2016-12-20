@@ -16,6 +16,7 @@ CREATE PROCEDURE finance.get_profit_and_loss_statement
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     --DECLARE @sql                    national character varying(1000);
     --DECLARE @periods                finance.period;

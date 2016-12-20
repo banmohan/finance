@@ -7,6 +7,7 @@ CREATE PROCEDURE finance.perform_eod_operation(@user_id integer, @login_id bigin
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     DECLARE @routine            national character varying(128);
     DECLARE @routine_id         integer;

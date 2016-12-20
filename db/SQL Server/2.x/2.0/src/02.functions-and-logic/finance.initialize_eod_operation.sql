@@ -7,6 +7,7 @@ CREATE PROCEDURE finance.initialize_eod_operation(@user_id integer, @office_id i
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     IF(@value_date IS NULL)
     BEGIN

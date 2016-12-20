@@ -12,6 +12,7 @@ CREATE PROCEDURE finance.auto_verify
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     DECLARE @transaction_master_id          bigint= @tran_id;
     DECLARE @transaction_posted_by          integer;

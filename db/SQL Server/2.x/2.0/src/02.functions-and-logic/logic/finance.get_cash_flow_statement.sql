@@ -15,6 +15,7 @@ CREATE PROCEDURE finance.get_cash_flow_statement
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     --DECLARE @sql                    national character varying(1000);
     --DECLARE @periods                finance.period;

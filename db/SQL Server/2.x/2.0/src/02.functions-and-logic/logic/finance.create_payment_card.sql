@@ -12,6 +12,7 @@ CREATE PROCEDURE finance.create_payment_card
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     IF NOT EXISTS
     (

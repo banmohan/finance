@@ -7,9 +7,9 @@ $$
 BEGIN
     RETURN
         verification_status_name
-    FROM finance.verification_statuses
-    WHERE finance.verification_statuses.verification_status_id = _verification_status_id
-	AND NOT finance.verification_statuses.deleted;
+    FROM core.verification_statuses
+    WHERE core.verification_statuses.verification_status_id = _verification_status_id
+	AND NOT core.verification_statuses.deleted;
 END
 $$
 LANGUAGE plpgsql;
