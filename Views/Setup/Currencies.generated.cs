@@ -33,7 +33,6 @@ namespace ASP
     using Frapid.Framework;
     using Frapid.i18n;
     using Frapid.Messaging;
-    
     using Frapid.WebsiteBuilder;
     using MixERP.Finance;
     
@@ -55,65 +54,26 @@ namespace ASP
             
             #line default
             #line hidden
-WriteLiteral(@"
-
-<script>
-    var scrudFactory = new Object();
-
-    scrudFactory.title = ""Currencies"";
-
-    scrudFactory.viewAPI = ""/api/forms/core/currencies"";
-    scrudFactory.viewTableName = ""core.currencies"";
-
-    scrudFactory.formAPI = ""/api/forms/core/currencies"";
-    scrudFactory.formTableName = ""core.currencies"";
-
-    scrudFactory.excludedColumns = [""audit_user_id"", ""audit_ts""];
-
-    scrudFactory.allowDelete = true;
-    scrudFactory.allowEdit = true;
-
-    scrudFactory.live = ""CurrencyName"";
-
-    scrudFactory.card = {
-        header: ""currency_name"",
-        meta: ""currency_symbol"",
-        description: ""hundredth_name""        
-    };
-
-    //scrudFactory.layout = [
-    //    {
-    //        tab: """",
-    //        fields: [
-    //            ["""", """"],
-    //            ["""", """"],
-    //        ]
-    //    }
-    //];
-
-    //scrudFactory.keys = [
-    //    {
-    //        property: ""CamelCase"",
-    //        url: '/api/forms/finance/display-fields',
-    //        data: null,
-    //        valueField: ""Key"",
-    //        textField: ""Value""
-    //    }
-    //];
-
-
-
-    $.get('/ScrudFactory/View.html', function (view) {
-        $.get('/ScrudFactory/Form.html', function (form) {
-            $(""#ScrudFactoryView"").html(view);
-            $(""#ScrudFactoryForm"").html(form);
-            $.cachedScript(""/assets/js/scrudfactory-view.js"");
-            $.cachedScript(""/assets/js/scrudfactory-form.js"");
-        });
-    });
-</script>
-
-<div");
+WriteLiteral("\r\n\r\n<script>\r\n    var scrudFactory = new Object();\r\n\r\n    scrudFactory.title = \"C" +
+"urrencies\";\r\n\r\n    scrudFactory.viewAPI = \"/api/forms/core/currencies\";\r\n    scr" +
+"udFactory.viewTableName = \"core.currencies\";\r\n\r\n    scrudFactory.formAPI = \"/api" +
+"/forms/core/currencies\";\r\n    scrudFactory.formTableName = \"core.currencies\";\r\n\r" +
+"\n    scrudFactory.excludedColumns = [\"audit_user_id\", \"audit_ts\"];\r\n    scrudFac" +
+"tory.skipPrimaryKey = true;\r\n\r\n    scrudFactory.allowDelete = true;\r\n    scrudFa" +
+"ctory.allowEdit = true;\r\n\r\n    scrudFactory.live = \"CurrencyName\";\r\n\r\n    scrudF" +
+"actory.card = {\r\n        header: \"CurrencyName\",\r\n        meta: \"CurrencySymbol\"" +
+",\r\n        description: \"HundredthName\"        \r\n    };\r\n\r\n    //scrudFactory.la" +
+"yout = [\r\n    //    {\r\n    //        tab: \"\",\r\n    //        fields: [\r\n    //  " +
+"          [\"\", \"\"],\r\n    //            [\"\", \"\"],\r\n    //        ]\r\n    //    }\r\n" +
+"    //];\r\n\r\n    //scrudFactory.keys = [\r\n    //    {\r\n    //        property: \"C" +
+"amelCase\",\r\n    //        url: \'/api/forms/finance/display-fields\',\r\n    //     " +
+"   data: null,\r\n    //        valueField: \"Key\",\r\n    //        textField: \"Valu" +
+"e\"\r\n    //    }\r\n    //];\r\n\r\n\r\n\r\n    $.get(\'/ScrudFactory/View.html\', function (" +
+"view) {\r\n        $.get(\'/ScrudFactory/Form.html\', function (form) {\r\n           " +
+" $(\"#ScrudFactoryView\").html(view);\r\n            $(\"#ScrudFactoryForm\").html(for" +
+"m);\r\n            $.cachedScript(\"/assets/js/scrudfactory-view.js\");\r\n           " +
+" $.cachedScript(\"/assets/js/scrudfactory-form.js\");\r\n        });\r\n    });\r\n</scr" +
+"ipt>\r\n\r\n<div");
 
 WriteLiteral(" id=\"ScrudFactoryForm\"");
 

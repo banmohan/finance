@@ -18,7 +18,16 @@ namespace MixERP.Finance.DAL
     {
         public static async Task<bool> CanPostTransactionAsync(string tenant, long loginId, int userId, int officeId, string transactionBook, DateTime valueDate)
         {
-            const string sql = "SELECT finance.can_post_transaction(@0, @1, @2, @3, @4);";
+            string sql = "SELECT finance.can_post_transaction(@0, @1, @2, @3, @4);";
+
+            string providerName = DbProvider.GetProviderName(tenant);
+            var type = DbProvider.GetDbType(providerName);
+
+            if (type == DatabaseType.SqlServer)
+            {
+                sql = "SELECT can_post_transaction FROM finance.can_post_transaction(@0, @1, @2, @3, @4);";
+            }
+
             return await Factory.ScalarAsync<bool>(tenant, sql, loginId, userId, officeId, transactionBook, valueDate).ConfigureAwait(false);
         }
 

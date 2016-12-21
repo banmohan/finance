@@ -1,7 +1,7 @@
 ﻿using System;
 using MixERP.Finance.AppModels;
 
-namespace MixERP.Finance.DAL
+namespace MixERP.Finance.DAL.Eod
 {
     public interface IEodPerformer
     {

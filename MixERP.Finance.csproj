@@ -175,7 +175,7 @@
     <Compile Include="DAL\EodPerformer.cs" />
     <Compile Include="DAL\Eod\PostgreSQLEodPerformer.cs" />
     <Compile Include="DAL\Eod\SqlServerEodPerformer.cs" />
-    <Compile Include="DAL\IEodPerformer.cs" />
+    <Compile Include="DAL\Eod\IEodPerformer.cs" />
     <Compile Include="DAL\ExchangeRates.cs" />
     <Compile Include="DAL\FiscalYears.cs" />
     <Compile Include="DAL\Journals.cs" />

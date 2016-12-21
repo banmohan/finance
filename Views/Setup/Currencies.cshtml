@@ -17,6 +17,7 @@
     scrudFactory.formTableName = "core.currencies";
 
     scrudFactory.excludedColumns = ["audit_user_id", "audit_ts"];
+    scrudFactory.skipPrimaryKey = true;
 
     scrudFactory.allowDelete = true;
     scrudFactory.allowEdit = true;
