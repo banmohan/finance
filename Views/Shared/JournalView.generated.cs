@@ -33,7 +33,6 @@ namespace ASP
     using Frapid.Framework;
     using Frapid.i18n;
     using Frapid.Messaging;
-    
     using Frapid.WebsiteBuilder;
     using MixERP.Finance;
     
@@ -371,33 +370,38 @@ WriteLiteral(" class=\"ui green button\"");
 
 WriteLiteral(" id=\"ShowButton\"");
 
-WriteLiteral(">Show</div>\r\n            </div>\r\n        </div>\r\n\r\n\r\n    </div>\r\n\r\n    <table");
+WriteLiteral(">Show</div>\r\n            </div>\r\n        </div>\r\n\r\n\r\n    </div>\r\n\r\n    <div");
+
+WriteLiteral(" class=\"fluid width overflown section\"");
+
+WriteLiteral(">\r\n        <table");
 
 WriteLiteral(" id=\"JournalView\"");
 
-WriteLiteral(" class=\"ui table segment\"");
+WriteLiteral(" class=\"ui nowrap table segment\"");
 
 WriteLiteral(@">
-        <thead>
-            <tr>
-                <th>Actions</th>
-                <th>Select</th>
-                <th>TranId</th>
-                <th>TranCode</th>
-                <th>Value Date</th>
-                <th>Book Date</th>
-                <th>Ref#</th>
-                <th>Statement Reference</th>
-                <th>Posted By</th>
-                <th>Office</th>
-                <th>Status</th>
-                <th>Verified By</th>
-                <th>Verified On</th>
-                <th>Reason</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+            <thead>
+                <tr>
+                    <th>Actions</th>
+                    <th>Select</th>
+                    <th>TranId</th>
+                    <th>TranCode</th>
+                    <th>Value Date</th>
+                    <th>Book Date</th>
+                    <th>Ref#</th>
+                    <th>Statement Reference</th>
+                    <th>Posted By</th>
+                    <th>Office</th>
+                    <th>Status</th>
+                    <th>Verified By</th>
+                    <th>Verified On</th>
+                    <th>Reason</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>        
+    </div>
 </div>
 
 <div");
