@@ -33,7 +33,7 @@ BEGIN
     )
     BEGIN
         INSERT INTO finance.day_operation(office_id, value_date, started_on, started_by)
-        SELECT @office_id, @value_date, GETDATE(), @user_id;
+        SELECT @office_id, @value_date, GETUTCDATE(), @user_id;
     END
     ELSE    
     BEGIN
@@ -43,14 +43,4 @@ BEGIN
     RETURN;
 END;
 
-
-
-
---SELECT finance.initialize_eod_operation(1, 1, finance.get_value_date(1));
---delete from finance.day_operation
-
---select * from finance.day_operation
-
-
 GO
-

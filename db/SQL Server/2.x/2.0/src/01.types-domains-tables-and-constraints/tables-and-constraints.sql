@@ -9,7 +9,7 @@ CREATE TABLE finance.frequencies
     frequency_code                          national character varying(12) NOT NULL,
     frequency_name                          national character varying(50) NOT NULL,
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -31,7 +31,7 @@ CREATE TABLE finance.cash_repositories
     parent_cash_repository_id               integer NULL REFERENCES finance.cash_repositories,
     description                             national character varying(100) NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -54,7 +54,7 @@ CREATE TABLE finance.fiscal_year
     eod_required                            bit NOT NULL DEFAULT(1),
     office_id                                integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -80,7 +80,7 @@ CREATE TABLE finance.account_masters
     normally_debit                          bit NOT NULL CONSTRAINT account_masters_normally_debit_df DEFAULT(0),
     parent_account_master_id                smallint NULL REFERENCES finance.account_masters,
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -104,7 +104,7 @@ CREATE TABLE finance.cost_centers
     cost_center_code                        national character varying(24) NOT NULL,
     cost_center_name                        national character varying(50) NOT NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -126,7 +126,7 @@ CREATE TABLE finance.frequency_setups
     frequency_id                            integer NOT NULL REFERENCES finance.frequencies,
     office_id                                integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -151,7 +151,7 @@ CREATE TABLE finance.accounts
     sys_type                                bit NOT NULL CONSTRAINT accounts_sys_type_df DEFAULT(0),
     parent_account_id                       integer NULL REFERENCES finance.accounts,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -179,7 +179,7 @@ CREATE TABLE finance.cash_flow_headings
     is_purchase                             bit NOT NULL CONSTRAINT cash_flow_headings_is_purchase_df
                                             DEFAULT(0),
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -215,7 +215,7 @@ CREATE TABLE finance.bank_accounts
     relationship_officer_name               national character varying(128) NULL,
     relationship_officer_contact_number     national character varying(128) NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -225,7 +225,7 @@ CREATE TABLE finance.transaction_types
     transaction_type_code                   national character varying(4),
     transaction_type_name                   national character varying(100),
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -250,7 +250,7 @@ CREATE TABLE finance.cash_flow_setup
     cash_flow_heading_id                    integer NOT NULL REFERENCES finance.cash_flow_headings,
     account_master_id                       smallint NOT NULL REFERENCES finance.account_masters,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -273,7 +273,7 @@ CREATE TABLE finance.transaction_master
     value_date                              date NOT NULL,
     book_date                                  date NOT NULL,
     transaction_ts                          DATETIMEOFFSET NOT NULL   
-                                            DEFAULT(GETDATE()),
+                                            DEFAULT(GETUTCDATE()),
     login_id                                bigint NOT NULL REFERENCES account.logins,
     user_id                                 integer NOT NULL REFERENCES account.users,
     office_id                               integer NOT NULL REFERENCES core.offices,
@@ -287,7 +287,7 @@ CREATE TABLE finance.transaction_master
     verification_reason                     national character varying(128) NOT NULL DEFAULT(''),
     cascading_tran_id                         bigint REFERENCES finance.transaction_master,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -308,7 +308,7 @@ CREATE TABLE finance.transaction_documents
     file_path                                national character varying(2000) NOT NULL,
     memo                                    national character varying(2000),
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -330,7 +330,7 @@ CREATE TABLE finance.transaction_details
     amount_in_local_currency                decimal(30, 6) NOT NULL,  
     office_id                               integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE())
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE())
 );
 
 
@@ -340,7 +340,7 @@ CREATE TABLE finance.card_types
     card_type_code                          national character varying(12) NOT NULL,
     card_type_name                          national character varying(100) NOT NULL,
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -359,7 +359,7 @@ CREATE TABLE finance.payment_cards
     payment_card_name                       national character varying(100) NOT NULL,
     card_type_id                            integer NOT NULL REFERENCES finance.card_types,            
     audit_user_id                           integer NULL REFERENCES account.users,            
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)            
 );
 
@@ -382,7 +382,7 @@ CREATE TABLE finance.merchant_fee_setup
     account_id                              integer NOT NULL REFERENCES finance.accounts,
     statement_reference                     national character varying(2000) NOT NULL DEFAULT(''),
     audit_user_id                           integer NULL REFERENCES account.users,            
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)            
 );
 
@@ -396,7 +396,7 @@ CREATE TABLE finance.exchange_rates
     exchange_rate_id                        bigint IDENTITY PRIMARY KEY,
     updated_on                              DATETIMEOFFSET NOT NULL   
                                             CONSTRAINT exchange_rates_updated_on_df 
-                                            DEFAULT(GETDATE()),
+                                            DEFAULT(GETUTCDATE()),
     office_id                               integer NOT NULL REFERENCES core.offices,
     status                                  bit NOT NULL   
                                             CONSTRAINT exchange_rates_status_df 
@@ -435,7 +435,7 @@ CREATE TABLE finance.journal_verification_policy
     ends_on                                 date NOT NULL,
     is_active                               bit NOT NULL,
     audit_user_id                           integer NULL REFERENCES account.users,            
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)            
 );
 
@@ -450,7 +450,7 @@ CREATE TABLE finance.auto_verification_policy
     ends_on                                 date NOT NULL,
     is_active                               bit NOT NULL,
     audit_user_id                           integer NULL REFERENCES account.users,            
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)                                            
 );
 
@@ -463,7 +463,7 @@ CREATE TABLE finance.tax_setups
     sales_tax_rate                            decimal(30, 6) NOT NULL,
     sales_tax_account_id                    integer NOT NULL REFERENCES finance.accounts,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 

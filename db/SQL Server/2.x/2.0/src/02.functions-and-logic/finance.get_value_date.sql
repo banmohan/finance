@@ -39,7 +39,7 @@ BEGIN
 
     IF(@value_date IS NULL)
     BEGIN
-        --SET @value_date = GETDATE() AT time zone config.get_server_timezone();
+        --SET @value_date = GETUTCDATE() AT time zone config.get_server_timezone();
         --Todo: validate the date and time produced by the following function
         SET @value_date = CAST(SYSDATETIMEOFFSET() AS date);
     END;

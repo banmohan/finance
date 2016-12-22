@@ -10,7 +10,7 @@ CREATE TABLE finance.frequencies
     frequency_code                          national character varying(12) NOT NULL,
     frequency_name                          national character varying(50) NOT NULL,
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -32,7 +32,7 @@ CREATE TABLE finance.cash_repositories
     parent_cash_repository_id               integer NULL REFERENCES finance.cash_repositories,
     description                             national character varying(100) NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -55,7 +55,7 @@ CREATE TABLE finance.fiscal_year
     eod_required                            bit NOT NULL DEFAULT(1),
     office_id                                integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -81,7 +81,7 @@ CREATE TABLE finance.account_masters
     normally_debit                          bit NOT NULL CONSTRAINT account_masters_normally_debit_df DEFAULT(0),
     parent_account_master_id                smallint NULL REFERENCES finance.account_masters,
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -105,7 +105,7 @@ CREATE TABLE finance.cost_centers
     cost_center_code                        national character varying(24) NOT NULL,
     cost_center_name                        national character varying(50) NOT NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -127,7 +127,7 @@ CREATE TABLE finance.frequency_setups
     frequency_id                            integer NOT NULL REFERENCES finance.frequencies,
     office_id                                integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -152,7 +152,7 @@ CREATE TABLE finance.accounts
     sys_type                                bit NOT NULL CONSTRAINT accounts_sys_type_df DEFAULT(0),
     parent_account_id                       integer NULL REFERENCES finance.accounts,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -180,7 +180,7 @@ CREATE TABLE finance.cash_flow_headings
     is_purchase                             bit NOT NULL CONSTRAINT cash_flow_headings_is_purchase_df
                                             DEFAULT(0),
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -216,7 +216,7 @@ CREATE TABLE finance.bank_accounts
     relationship_officer_name               national character varying(128) NULL,
     relationship_officer_contact_number     national character varying(128) NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -226,7 +226,7 @@ CREATE TABLE finance.transaction_types
     transaction_type_code                   national character varying(4),
     transaction_type_name                   national character varying(100),
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -251,7 +251,7 @@ CREATE TABLE finance.cash_flow_setup
     cash_flow_heading_id                    integer NOT NULL REFERENCES finance.cash_flow_headings,
     account_master_id                       smallint NOT NULL REFERENCES finance.account_masters,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -274,7 +274,7 @@ CREATE TABLE finance.transaction_master
     value_date                              date NOT NULL,
     book_date                                  date NOT NULL,
     transaction_ts                          DATETIMEOFFSET NOT NULL   
-                                            DEFAULT(GETDATE()),
+                                            DEFAULT(GETUTCDATE()),
     login_id                                bigint NOT NULL REFERENCES account.logins,
     user_id                                 integer NOT NULL REFERENCES account.users,
     office_id                               integer NOT NULL REFERENCES core.offices,
@@ -288,7 +288,7 @@ CREATE TABLE finance.transaction_master
     verification_reason                     national character varying(128) NOT NULL DEFAULT(''),
     cascading_tran_id                         bigint REFERENCES finance.transaction_master,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -309,7 +309,7 @@ CREATE TABLE finance.transaction_documents
     file_path                                national character varying(2000) NOT NULL,
     memo                                    national character varying(2000),
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -331,7 +331,7 @@ CREATE TABLE finance.transaction_details
     amount_in_local_currency                decimal(30, 6) NOT NULL,  
     office_id                               integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE())
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE())
 );
 
 
@@ -341,7 +341,7 @@ CREATE TABLE finance.card_types
     card_type_code                          national character varying(12) NOT NULL,
     card_type_name                          national character varying(100) NOT NULL,
     audit_user_id                           integer REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -360,7 +360,7 @@ CREATE TABLE finance.payment_cards
     payment_card_name                       national character varying(100) NOT NULL,
     card_type_id                            integer NOT NULL REFERENCES finance.card_types,            
     audit_user_id                           integer NULL REFERENCES account.users,            
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)            
 );
 
@@ -383,7 +383,7 @@ CREATE TABLE finance.merchant_fee_setup
     account_id                              integer NOT NULL REFERENCES finance.accounts,
     statement_reference                     national character varying(2000) NOT NULL DEFAULT(''),
     audit_user_id                           integer NULL REFERENCES account.users,            
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)            
 );
 
@@ -397,7 +397,7 @@ CREATE TABLE finance.exchange_rates
     exchange_rate_id                        bigint IDENTITY PRIMARY KEY,
     updated_on                              DATETIMEOFFSET NOT NULL   
                                             CONSTRAINT exchange_rates_updated_on_df 
-                                            DEFAULT(GETDATE()),
+                                            DEFAULT(GETUTCDATE()),
     office_id                               integer NOT NULL REFERENCES core.offices,
     status                                  bit NOT NULL   
                                             CONSTRAINT exchange_rates_status_df 
@@ -436,7 +436,7 @@ CREATE TABLE finance.journal_verification_policy
     ends_on                                 date NOT NULL,
     is_active                               bit NOT NULL,
     audit_user_id                           integer NULL REFERENCES account.users,            
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)            
 );
 
@@ -451,7 +451,7 @@ CREATE TABLE finance.auto_verification_policy
     ends_on                                 date NOT NULL,
     is_active                               bit NOT NULL,
     audit_user_id                           integer NULL REFERENCES account.users,            
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)                                            
 );
 
@@ -464,7 +464,7 @@ CREATE TABLE finance.tax_setups
     sales_tax_rate                            decimal(30, 6) NOT NULL,
     sales_tax_account_id                    integer NOT NULL REFERENCES finance.accounts,
     audit_user_id                           integer NULL REFERENCES account.users,
-    audit_ts                                DATETIMEOFFSET DEFAULT(GETDATE()),
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
     deleted                                    bit DEFAULT(0)
 );
 
@@ -589,15 +589,15 @@ BEGIN
     WHERE finance.auto_verification_policy.user_id = @transaction_posted_by
     AND finance.auto_verification_policy.office_id = @office_id
     AND finance.auto_verification_policy.is_active= 1
-    AND GETDATE() >= effective_from
-    AND GETDATE() <= ends_on
+    AND GETUTCDATE() >= effective_from
+    AND GETUTCDATE() <= ends_on
     AND finance.auto_verification_policy.deleted = 0;
 
     IF(@has_policy= 1)
     BEGIN
         UPDATE finance.transaction_master
         SET 
-            last_verified_on = GETDATE(),
+            last_verified_on = GETUTCDATE(),
             verified_by_user_id=@verifier,
             verification_status_id=@status,
             verification_reason=@reason
@@ -770,7 +770,6 @@ BEGIN
         routine_name = @routine,
         "order" = @order
     WHERE routine_code=@routine_code;
-    RETURN;
 END;
 
 GO
@@ -2397,7 +2396,7 @@ BEGIN
 					CAST(@office_id AS varchar(100)) + '-' + 
 					CAST(@user_id AS varchar(100)) + '-' + 
 					CAST(@login_id AS varchar(100))   + '-' +  
-					CONVERT(VARCHAR(10), GETDATE(), 108);
+					CONVERT(VARCHAR(10), GETUTCDATE(), 108);
 
     RETURN @ret_val;
 END;
@@ -2447,7 +2446,7 @@ BEGIN
 
     IF(@value_date IS NULL)
     BEGIN
-        --SET @value_date = GETDATE() AT time zone config.get_server_timezone();
+        --SET @value_date = GETUTCDATE() AT time zone config.get_server_timezone();
         --Todo: validate the date and time produced by the following function
         SET @value_date = CAST(SYSDATETIMEOFFSET() AS date);
     END;
@@ -2770,7 +2769,7 @@ BEGIN
     )
     BEGIN
         INSERT INTO finance.day_operation(office_id, value_date, started_on, started_by)
-        SELECT @office_id, @value_date, GETDATE(), @user_id;
+        SELECT @office_id, @value_date, GETUTCDATE(), @user_id;
     END
     ELSE    
     BEGIN
@@ -2780,17 +2779,7 @@ BEGIN
     RETURN;
 END;
 
-
-
-
---SELECT finance.initialize_eod_operation(1, 1, finance.get_value_date(1));
---delete from finance.day_operation
-
---select * from finance.day_operation
-
-
 GO
-
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.is_cash_account_id.sql --<--<--
@@ -3004,148 +2993,167 @@ BEGIN
     DECLARE @office_code        national character varying(50);
     DECLARE @completed          bit;
     DECLARE @completed_on       DATETIMEOFFSET;
+    DECLARE @counter            integer = 0;
+    DECLARE @total_rows         integer = 0;
+
     DECLARE @this               TABLE
     (
         routine_id              integer,
         routine_name            national character varying(128)
     );
-    DECLARE @counter            integer = 0;
-    DECLARE @total_rows         integer = 0;
 
-
-    IF(@value_date IS NULL)
-    BEGIN
-        RAISERROR('Invalid date.', 10, 1);
-    END;
-
-    IF(account.is_admin(@user_id) = 0)
-    BEGIN
-        RAISERROR('Access is denied.', 10, 1);
-    END;
-
-    IF(@value_date != finance.get_value_date(@office_id))
-    BEGIN
-        RAISERROR('Invalid value date.', 10, 1);
-    END;
-
-    SELECT 
-        @completed      = finance.day_operation.completed,
-        @completed_on   = finance.day_operation.completed_on
-    FROM finance.day_operation
-    WHERE value_date=@value_date 
-    AND office_id = @office_id;
-
-    IF(@completed IS NULL)
-    BEGIN
-        RAISERROR('Invalid value date.', 10, 1);
-    END
-    ELSE
-    BEGIN    
-        IF(@completed = 1 OR @completed_on IS NOT NULL)
+    BEGIN TRY
+        DECLARE @tran_count int = @@TRANCOUNT;
+        
+        IF(@tran_count= 0)
         BEGIN
-            RAISERROR('End of day operation was already performed.', 10, 1);
-            SET @is_error        = 1;
+            BEGIN TRANSACTION
         END;
-    END;
-
-    IF EXISTS
-    (
-        SELECT * FROM finance.transaction_master
-        WHERE value_date < @value_date
-        AND verification_status_id = 0
-    )
-    BEGIN
-        RAISERROR('Past dated transactions in verification queue.', 10, 1);
-        SET @is_error        = 1;
-    END;
-
-    IF EXISTS
-    (
-        SELECT * FROM finance.transaction_master
-        WHERE value_date = @value_date
-        AND verification_status_id = 0
-    )
-    BEGIN
-        RAISERROR('Please verify transactions before performing end of day operation.', 10, 1);
-        SET @is_error        = 1;
-    END;
-    
-    IF(@is_error = 0)
-    BEGIN
-        INSERT INTO @this
-        SELECT routine_id, routine_name 
-        FROM finance.routines 
-        WHERE status = 1
-        ORDER BY "order" ASC;
-
-        SET @office_code        = core.get_office_code_by_office_id(@office_id);
-        SET @notice             = 'EOD started.';
-        PRINT @notice;
-
-        SELECT @total_rows=MAX(routine_id) FROM @this;
-
-        WHILE @counter<@total_rows
+        
+        IF(@value_date IS NULL)
         BEGIN
-            SELECT TOP 1 
-                @routine_id = routine_id,
-                @routine = routine_name 
-            FROM @this
-            WHERE routine_id >= @counter
-            ORDER BY routine_id;
-
-            PRINT @ROUTINE_ID;  
-
-            IF(@routine_id IS NOT NULL)
-            BEGIN
-                SET @counter=@routine_id +1;        
-            END
-            ELSE
-            BEGIN
-                BREAK;
-            END;
-
-            SET @sql                    = FORMATMESSAGE('EXECUTE %s @user_id, @login_id, @office_id, @value_date;', @routine);
-
-            PRINT @sql;
-
-            SET @notice             = 'Performing ' + @routine + '.';
-            PRINT @notice;
-
-            WAITFOR DELAY '00:00:02';
-            EXECUTE sp_executesql @sql, '@user_id integer, @login_id bigint, @office_id integer, @value_date date', @login_id, @office_id, @value_date;
-
-            SET @notice             = 'Completed  ' + @routine + '.';
-            PRINT @notice;
-            
-            WAITFOR DELAY '00:00:02';
+            RAISERROR('Invalid date.', 10, 1);
         END;
 
+        IF(account.is_admin(@user_id) = 0)
+        BEGIN
+            RAISERROR('Access is denied.', 10, 1);
+        END;
 
+        IF(@value_date != finance.get_value_date(@office_id))
+        BEGIN
+            RAISERROR('Invalid value date.', 10, 1);
+        END;
 
-
-        UPDATE finance.day_operation SET 
-            completed_on = GETDATE(), 
-            completed_by = @user_id,
-            completed = 1
-        WHERE value_date=@value_date
+        SELECT 
+            @completed      = finance.day_operation.completed,
+            @completed_on   = finance.day_operation.completed_on
+        FROM finance.day_operation
+        WHERE value_date=@value_date 
         AND office_id = @office_id;
 
-        SET @notice             = 'EOD of ' + @office_code + ' for ' + CAST(@value_date AS varchar(24)) + ' completed without errors.';
-        PRINT @notice;
+        IF(@completed IS NULL)
+        BEGIN
+            RAISERROR('Invalid value date.', 10, 1);
+        END
+        ELSE
+        BEGIN    
+            IF(@completed = 1 OR @completed_on IS NOT NULL)
+            BEGIN
+                RAISERROR('End of day operation was already performed.', 10, 1);
+                SET @is_error        = 1;
+            END;
+        END;
 
-        SET @notice             = 'OK';
-        PRINT @notice;
+        IF EXISTS
+        (
+            SELECT * FROM finance.transaction_master
+            WHERE value_date < @value_date
+            AND verification_status_id = 0
+        )
+        BEGIN
+            RAISERROR('Past dated transactions in verification queue.', 10, 1);
+            SET @is_error        = 1;
+        END;
 
-        SELECT 1;
-        RETURN;
-    END;
+        IF EXISTS
+        (
+            SELECT * FROM finance.transaction_master
+            WHERE value_date = @value_date
+            AND verification_status_id = 0
+        )
+        BEGIN
+            RAISERROR('Please verify transactions before performing end of day operation.', 10, 1);
+            SET @is_error        = 1;
+        END;
+        
+        IF(@is_error = 0)
+        BEGIN
+            INSERT INTO @this
+            SELECT routine_id, routine_name 
+            FROM finance.routines 
+            WHERE status = 1
+            ORDER BY "order" ASC;
 
-    SELECT 0;
-    RETURN;    
+            SET @office_code        = core.get_office_code_by_office_id(@office_id);
+            SET @notice             = 'EOD started.';
+            PRINT @notice;
+
+            SELECT @total_rows=MAX(routine_id) FROM @this;
+
+            WHILE @counter<@total_rows
+            BEGIN
+                SELECT TOP 1 
+                    @routine_id = routine_id,
+                    @routine = routine_name 
+                FROM @this
+                WHERE routine_id >= @counter
+                ORDER BY routine_id;
+
+                PRINT @ROUTINE_ID;  
+
+                IF(@routine_id IS NOT NULL)
+                BEGIN
+                    SET @counter=@routine_id +1;        
+                END
+                ELSE
+                BEGIN
+                    BREAK;
+                END;
+
+                SET @sql                    = FORMATMESSAGE('EXECUTE %s @user_id, @login_id, @office_id, @value_date;', @routine);
+
+                PRINT @sql;
+
+                SET @notice             = 'Performing ' + @routine + '.';
+                PRINT @notice;
+
+                WAITFOR DELAY '00:00:02';
+                EXECUTE sp_executesql @sql, '@user_id integer, @login_id bigint, @office_id integer, @value_date date', @login_id, @office_id, @value_date;
+
+                SET @notice             = 'Completed  ' + @routine + '.';
+                PRINT @notice;
+                
+                WAITFOR DELAY '00:00:02';
+            END;
+
+
+
+
+            UPDATE finance.day_operation SET 
+                completed_on = GETUTCDATE(), 
+                completed_by = @user_id,
+                completed = 1
+            WHERE value_date=@value_date
+            AND office_id = @office_id;
+
+            SET @notice             = 'EOD of ' + @office_code + ' for ' + CAST(@value_date AS varchar(24)) + ' completed without errors.';
+            PRINT @notice;
+
+            SET @notice             = 'OK';
+            PRINT @notice;
+
+            SELECT 1;
+            RETURN;
+        END;
+
+        IF(@tran_count = 0)
+        BEGIN
+            COMMIT TRANSACTION;
+        END;
+    END TRY
+    BEGIN CATCH
+        IF(XACT_STATE() <> 0 AND @tran_count = 0) 
+        BEGIN
+            ROLLBACK TRANSACTION;
+        END;
+
+        DECLARE @ErrorMessage national character varying(4000)  = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity int                              = ERROR_SEVERITY();
+        DECLARE @ErrorState int                                 = ERROR_STATE();
+        RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
+    END CATCH;
 END;
-
---SELECT * FROM finance.perform_eod_operation(1, 1, 1, finance.get_value_date(1));
-
 
 GO
 
@@ -3217,8 +3225,8 @@ BEGIN
     WHERE finance.journal_verification_policy.user_id=@user_id
     AND finance.journal_verification_policy.office_id = @office_id
     AND finance.journal_verification_policy.is_active= 1
-    AND GETDATE() >= effective_from
-    AND GETDATE() <= ends_on
+    AND GETUTCDATE() >= effective_from
+    AND GETUTCDATE() <= ends_on
     AND finance.journal_verification_policy.deleted = 0;
 
     IF(@can_self_verify = 0 AND @user_id = @transaction_posted_by)
@@ -3238,7 +3246,7 @@ BEGIN
             
             UPDATE finance.transaction_master
             SET 
-                last_verified_on = GETDATE(),
+                last_verified_on = GETUTCDATE(),
                 verified_by_user_id=@user_id,
                 verification_status_id=@verification_status_id,
                 verification_reason=@reason
@@ -3316,10 +3324,8 @@ BEGIN
     END;
 END;
 
-
-
-
 GO
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_balance_sheet.sql --<--<--

@@ -21,7 +21,6 @@ BEGIN
         routine_name = @routine,
         "order" = @order
     WHERE routine_code=@routine_code;
-    RETURN;
 END;
 
 GO

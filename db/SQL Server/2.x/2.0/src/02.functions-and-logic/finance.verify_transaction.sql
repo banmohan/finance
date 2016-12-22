@@ -62,8 +62,8 @@ BEGIN
     WHERE finance.journal_verification_policy.user_id=@user_id
     AND finance.journal_verification_policy.office_id = @office_id
     AND finance.journal_verification_policy.is_active= 1
-    AND GETDATE() >= effective_from
-    AND GETDATE() <= ends_on
+    AND GETUTCDATE() >= effective_from
+    AND GETUTCDATE() <= ends_on
     AND finance.journal_verification_policy.deleted = 0;
 
     IF(@can_self_verify = 0 AND @user_id = @transaction_posted_by)
@@ -83,7 +83,7 @@ BEGIN
             
             UPDATE finance.transaction_master
             SET 
-                last_verified_on = GETDATE(),
+                last_verified_on = GETUTCDATE(),
                 verified_by_user_id=@user_id,
                 verification_status_id=@verification_status_id,
                 verification_reason=@reason
