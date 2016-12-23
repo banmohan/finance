@@ -16,7 +16,8 @@
     scrudFactory.formAPI = "/api/forms/core/currencies";
     scrudFactory.formTableName = "core.currencies";
 
-    scrudFactory.excludedColumns = ["AuditUserId", "AuditTs"];
+    scrudFactory.excludedColumns = ["AuditUserId", "AuditTs", "Deleted"];
+
     scrudFactory.skipPrimaryKey = true;
 
     scrudFactory.allowDelete = true;

@@ -33,9 +33,14 @@ namespace ASP
     using Frapid.Framework;
     using Frapid.i18n;
     using Frapid.Messaging;
-    
     using Frapid.WebsiteBuilder;
     using MixERP.Finance;
+    
+    #line 1 "..\..\Views\Tasks\JournalEntry\Checklist.cshtml"
+    using MixERP.Finance.Extensions;
+    
+    #line default
+    #line hidden
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "2.0.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Tasks/JournalEntry/Checklist.cshtml")]
@@ -55,53 +60,40 @@ namespace ASP
             
             #line default
             #line hidden
-WriteLiteral("\r\n<style>\r\niframe{\r\n\tdisplay: block;\r\n\tmargin-top:1em;\r\n\twidth: 800px;\r\n\theight: " +
-"800px;\r\n\tborder:1px solid #ccc;\r\n}    \r\n</style>\r\n<div");
+WriteLiteral("\r\n");
 
-WriteLiteral(" class=\"ui attached page segment\"");
-
-WriteLiteral(" style=\"min-height: 100%; padding: 3em;\"");
-
-WriteLiteral(">\r\n    <div");
-
-WriteLiteral(" class=\"ui huge header\"");
-
-WriteLiteral(">Journal Entry</div>\r\n    <div");
-
-WriteLiteral(" class=\"ui divider\"");
-
-WriteLiteral("></div>\r\n\r\n    <div");
-
-WriteLiteral(" class=\"ui positive message\"");
-
-WriteLiteral(">The transaction was posted successfully.</div>\r\n\r\n    <a");
-
-WriteLiteral(" href=\"/dashboard/finance/tasks/journal/entry\"");
-
-WriteLiteral(" class=\"ui green button\"");
-
-WriteLiteral(">\r\n        View Transactions\r\n    </a>\r\n    <a");
-
-WriteLiteral(" href=\"/dashboard/finance/tasks/journal/entry/new\"");
-
-WriteLiteral(" class=\"ui red button\"");
-
-WriteLiteral(">\r\n        Add a New Transaction\r\n    </a>\r\n    <iframe");
-
-WriteAttribute("src", Tuple.Create(" src=\"", 733), Tuple.Create("\"", 839)
-, Tuple.Create(Tuple.Create("", 739), Tuple.Create("/dashboard/reports/source/Areas/MixERP.Finance/Reports/JournalEntry.xml?transacti" +
-"on_master_id=", 739), true)
             
-            #line 28 "..\..\Views\Tasks\JournalEntry\Checklist.cshtml"
-                                , Tuple.Create(Tuple.Create("", 833), Tuple.Create<System.Object, System.Int32>(Model
+            #line 7 "..\..\Views\Tasks\JournalEntry\Checklist.cshtml"
+Write(Html.PartialView("Shared/Checklist.cshtml", TenantConvention.GetTenant()));
+
             
             #line default
             #line hidden
-, 833), false)
-);
+WriteLiteral("\r\n<script>\r\n    window.overridePath = \"/dashboard/finance/tasks/journal/entry\";\r\n" +
+"\r\n    window.prepareChecklist({\r\n        Title: \"Journal Entry #");
 
-WriteLiteral("></iframe>\r\n</div>\r\n\r\n\r\n<script>\r\n    window.overridePath = \"/dashboard/finance/t" +
-"asks/journal/entry\";\r\n</script>");
+            
+            #line 12 "..\..\Views\Tasks\JournalEntry\Checklist.cshtml"
+                          Write(Model);
+
+            
+            #line default
+            #line hidden
+WriteLiteral(@""",
+        ViewText: ""View Journal Entries"",
+        ViewUrl: ""/dashboard/finance/tasks/journal/entry"",
+        AddNewText: ""Add New Journal Entry"",
+        AddNewUrl: ""/dashboard/finance/tasks/journal/entry/new"",
+        ReportPath: ""/dashboard/reports/source/Areas/MixERP.Finance/Reports/JournalEntry.xml?transaction_master_id=");
+
+            
+            #line 17 "..\..\Views\Tasks\JournalEntry\Checklist.cshtml"
+                                                                                                              Write(Model);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\"\r\n    });\r\n</script>\r\n");
 
         }
     }

@@ -17,14 +17,10 @@ function parseLocalizedDate(dateString) {
     if (date) {
         const offset = date.getTimezoneOffset() * 60000;
 
-        return removeTimezone(new Date(date.getTime() - offset).toISOString());
-    }
+        return new Date(date.getTime() - offset).toISOString();
+    };
 
     return dateString;
-};
-
-function removeTimezone(dateTime) {
-    return dateTime.toString().replace("Z", "");
 };
 
 function getTime(dateTime) {
@@ -40,9 +36,7 @@ function getTime(dateTime) {
         return minutes;
     };
 
-    var value = removeTimezone(dateTime);
-    const d = new Date(value);
-    value = d.getHours() + ":" + padMinutes(d.getMinutes());
+    value = dateTime.getHours() + ":" + padMinutes(dateTime.getMinutes());
 
     return value;
 };

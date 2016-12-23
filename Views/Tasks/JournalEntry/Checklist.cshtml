@@ -1,34 +1,19 @@
-﻿@model long
-
+﻿@using MixERP.Finance.Extensions
+@model long
 @{
     ViewBag.Title = "Checklist";
     Layout = ViewBag.FinanceLayoutPath;
 }
-<style>
-iframe{
-	display: block;
-	margin-top:1em;
-	width: 800px;
-	height: 800px;
-	border:1px solid #ccc;
-}    
-</style>
-<div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
-    <div class="ui huge header">Journal Entry</div>
-    <div class="ui divider"></div>
-
-    <div class="ui positive message">The transaction was posted successfully.</div>
-
-    <a href="/dashboard/finance/tasks/journal/entry" class="ui green button">
-        View Transactions
-    </a>
-    <a href="/dashboard/finance/tasks/journal/entry/new" class="ui red button">
-        Add a New Transaction
-    </a>
-    <iframe src="/dashboard/reports/source/Areas/MixERP.Finance/Reports/JournalEntry.xml?transaction_master_id=@Model"></iframe>
-</div>
-
-
+@Html.PartialView("Shared/Checklist.cshtml", TenantConvention.GetTenant())
 <script>
     window.overridePath = "/dashboard/finance/tasks/journal/entry";
+
+    window.prepareChecklist({
+        Title: "Journal Entry #@Model",
+        ViewText: "View Journal Entries",
+        ViewUrl: "/dashboard/finance/tasks/journal/entry",
+        AddNewText: "Add New Journal Entry",
+        AddNewUrl: "/dashboard/finance/tasks/journal/entry/new",
+        ReportPath: "/dashboard/reports/source/Areas/MixERP.Finance/Reports/JournalEntry.xml?transaction_master_id=@Model"
+    });
 </script>

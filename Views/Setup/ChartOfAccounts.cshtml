@@ -16,7 +16,8 @@
     scrudFactory.formAPI = "/api/forms/finance/accounts";
     scrudFactory.formTableName = "finance.accounts";
 
-    scrudFactory.excludedColumns = ["AuditUserId", "AuditTs"];
+    scrudFactory.excludedColumns = ["AuditUserId", "AuditTs", "Deleted"];
+
 
     scrudFactory.allowDelete = true;
     scrudFactory.allowEdit = true;

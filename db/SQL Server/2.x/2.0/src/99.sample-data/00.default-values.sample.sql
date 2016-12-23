@@ -398,35 +398,35 @@ SELECT 2,     '40000', 'Expenses',                                              
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 2,     '40100', 'Purchase A/C',                                                0, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20400,  '40200', 'Cost of ods Sold',                                         0, finance.get_account_id_by_account_name('Expenses');
+SELECT 20400,  '40200', 'Cost of Goods Sold',                                         0, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40205', 'Product Cost',                                               0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40205', 'Product Cost',                                               0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40210', 'Raw Material Purchases',                                     0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40210', 'Raw Material Purchases',                                     0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40215', 'Direct Labor Costs',                                         0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40215', 'Direct Labor Costs',                                         0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40220', 'Indirect Labor Costs',                                       0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40220', 'Indirect Labor Costs',                                       0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40225', 'Heat and Power',                                             0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40225', 'Heat and Power',                                             0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40230', 'Commissions',                                                0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40230', 'Commissions',                                                0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40235', 'Miscellaneous Factory Costs',                                0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40235', 'Miscellaneous Factory Costs',                                0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40240', 'Cost of ods Sold-Salaries and Wages',                      0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40240', 'Cost of Goods Sold-Salaries and Wages',                      0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40245', 'Cost of ods Sold-Contract Labor',                          0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40245', 'Cost of Goods Sold-Contract Labor',                          0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40250', 'Cost of ods Sold-Freight',                                 0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40250', 'Cost of Goods Sold-Freight',                                 0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40255', 'Cost of ods Sold-Other',                                   0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40255', 'Cost of Goods Sold-Other',                                   0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40260', 'Inventory Adjustments',                                      0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40260', 'Inventory Adjustments',                                      0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40265', 'Purchase Returns and Allowances',                            0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40265', 'Purchase Returns and Allowances',                            0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20500,  '40270', 'Sales Discounts',                                            0, finance.get_account_id_by_account_name('Cost of ods Sold');
+SELECT 20500,  '40270', 'Sales Discounts',                                            0, finance.get_account_id_by_account_name('Cost of Goods Sold');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 20600,  '40300', 'General Purchase Expenses',                                  0, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
