@@ -983,7 +983,7 @@ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS finance.get_account_id_by_account_name(text);
 
 CREATE FUNCTION finance.get_account_id_by_account_name(text)
-RETURNS bigint
+RETURNS integer
 STABLE
 AS
 $$
@@ -1002,7 +1002,7 @@ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS finance.get_account_id_by_account_number(text);
 
 CREATE FUNCTION finance.get_account_id_by_account_number(text)
-RETURNS bigint
+RETURNS integer
 STABLE
 AS
 $$
@@ -1021,7 +1021,7 @@ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS finance.get_account_ids(root_account_id integer);
 
 CREATE FUNCTION finance.get_account_ids(root_account_id integer)
-RETURNS SETOF bigint
+RETURNS SETOF integer
 STABLE
 AS
 $$

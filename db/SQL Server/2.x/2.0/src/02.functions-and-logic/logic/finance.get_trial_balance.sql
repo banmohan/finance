@@ -1,5 +1,4 @@
-﻿-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_trial_balance.sql --<--<--
-IF OBJECT_ID('finance.get_trial_balance') IS NOT NULL
+﻿IF OBJECT_ID('finance.get_trial_balance') IS NOT NULL
 DROP FUNCTION finance.get_trial_balance;
 
 GO
@@ -236,7 +235,7 @@ BEGIN
         credit,
         closing_debit,
         closing_credit
-    FROM temp_trial_balance2;
+    FROM @summary_trial_balance;
 
     RETURN;
 END
@@ -244,3 +243,5 @@ END
 
 
 GO
+
+--SELECT * FROM finance.get_trial_balance('1-1-2000', '1-1-2020', 1, 1, 1, 1, 1, 1) ORDER BY id;

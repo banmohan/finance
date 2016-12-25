@@ -49,12 +49,12 @@ along with MixERP.  If not, see <http://www.gnu.org/licenses />.
         balance,
         office,
         account
-        FROM finance.get_retained_earnings_statement(@Date::date, @OfficeId::integer, @Factor::integer);
+        FROM finance.get_retained_earnings_statement(@Date, @OfficeId, @Factor);
       </Query>
       <Parameters>
         <Parameter Name="@Date" Type="System.DateTime" />
         <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="int"  DefaultValue="{Meta.OfficeId}" />
-        <Parameter Name="@Factor" Type="int" />
+        <Parameter Name="@Factor" Type="int" DefaultValue="1" />
       </Parameters>
       <RunningTotalTextColumnIndex>2</RunningTotalTextColumnIndex>
       <RunningTotalFieldIndices>3,4</RunningTotalFieldIndices>

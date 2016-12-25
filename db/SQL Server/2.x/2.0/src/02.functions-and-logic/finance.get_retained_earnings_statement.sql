@@ -1,5 +1,4 @@
-﻿-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_retained_earnings_statement.sql --<--<--
-IF OBJECT_ID('finance.get_retained_earnings_statement') IS NOT NULL
+﻿IF OBJECT_ID('finance.get_retained_earnings_statement') IS NOT NULL
 DROP FUNCTION finance.get_retained_earnings_statement;
 
 GO
@@ -42,7 +41,7 @@ BEGIN
     DECLARE @itp                    numeric(30, 6) = 0;
 
     SET @date_from                      = finance.get_fiscal_year_start_date(@office_id);
-    SET @net_profit                     = finance.get_net_profit(@date_from, @date_to, @office_id, @factor);
+    SET @net_profit                     = finance.get_net_profit(@date_from, @date_to, @office_id, @factor, 0);
     SET @income_tax_rate                = finance.get_income_tax_rate(@office_id);
 
     IF(COALESCE(@factor , 0) = 0)
@@ -204,10 +203,11 @@ END;
 
 
 
---SELECT * FROM finance.get_retained_earnings_statement('7/16/2015', 2, 1000);
-
---SELECT * FROM finance.get_retained_earnings('7/16/2015', 2, 100);
-
 
 
 GO
+
+
+--SELECT * FROM finance.get_retained_earnings_statement('7/16/2015', 2, 1000);
+
+--SELECT * FROM finance.get_retained_earnings('7/16/2015', 2, 100);

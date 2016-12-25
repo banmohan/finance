@@ -1,7 +1,7 @@
 ﻿DROP FUNCTION IF EXISTS finance.get_account_id_by_account_name(text);
 
 CREATE FUNCTION finance.get_account_id_by_account_name(text)
-RETURNS bigint
+RETURNS integer
 STABLE
 AS
 $$

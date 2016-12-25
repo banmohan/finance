@@ -1102,6 +1102,10 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_account_ids.sql --<--<--
+IF OBJECT_ID('finance.get_account_ids') IS NOT NULL
+DROP FUNCTION finance.get_account_ids;
+
+GO
 
 CREATE FUNCTION finance.get_account_ids(@root_account_id integer)
 RETURNS @result TABLE
@@ -1110,30 +1114,29 @@ RETURNS @result TABLE
 )
 AS
 BEGIN
-        WITH account_cte(account_id, path) AS 
-        (
-            SELECT
-                tn.account_id,  tn.account_id AS path
-            FROM finance.accounts AS tn 
-            WHERE tn.account_id = @root_account_id
-            AND tn.deleted = 0
+    WITH account_cte(account_id, path) AS 
+    (
+        SELECT
+            tn.account_id,  CAST(tn.account_id AS varchar(2000)) AS path
+        FROM finance.accounts AS tn 
+        WHERE tn.account_id = @root_account_id
+        AND tn.deleted = 0
 
-            UNION ALL
+        UNION ALL
 
-            SELECT
-                c.account_id, (p.path + '->' + c.account_id)
-            FROM account_cte AS p, finance.accounts AS c WHERE parent_account_id = p.account_id
-        )
+        SELECT
+            c.account_id, CAST((p.path + '->' + CAST(c.account_id AS varchar(50))) AS varchar(2000))
+        FROM account_cte AS p, finance.accounts AS c WHERE parent_account_id = p.account_id
+    )
 
     INSERT INTO @result
     SELECT account_id FROM account_cte
     RETURN;
 END;
-
-
-
-
 GO
+
+--SELECT * FROM finance.get_account_ids(1);
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_account_master_id_by_account_id.sql --<--<--
@@ -1218,7 +1221,6 @@ END;
 GO
 
 
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_account_statement.sql --<--<--
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_account_statement.sql --<--<--
 IF OBJECT_ID('finance.get_account_statement') IS NOT NULL
 DROP FUNCTION finance.get_account_statement;
@@ -2071,7 +2073,6 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_retained_earnings_statement.sql --<--<--
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_retained_earnings_statement.sql --<--<--
 IF OBJECT_ID('finance.get_retained_earnings_statement') IS NOT NULL
 DROP FUNCTION finance.get_retained_earnings_statement;
 
@@ -2115,7 +2116,7 @@ BEGIN
     DECLARE @itp                    numeric(30, 6) = 0;
 
     SET @date_from                      = finance.get_fiscal_year_start_date(@office_id);
-    SET @net_profit                     = finance.get_net_profit(@date_from, @date_to, @office_id, @factor);
+    SET @net_profit                     = finance.get_net_profit(@date_from, @date_to, @office_id, @factor, 0);
     SET @income_tax_rate                = finance.get_income_tax_rate(@office_id);
 
     IF(COALESCE(@factor , 0) = 0)
@@ -2277,13 +2278,14 @@ END;
 
 
 
---SELECT * FROM finance.get_retained_earnings_statement('7/16/2015', 2, 1000);
-
---SELECT * FROM finance.get_retained_earnings('7/16/2015', 2, 100);
-
 
 
 GO
+
+
+--SELECT * FROM finance.get_retained_earnings_statement('7/16/2015', 2, 1000);
+
+--SELECT * FROM finance.get_retained_earnings('7/16/2015', 2, 100);
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_root_account_id.sql --<--<--
@@ -4311,7 +4313,6 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_trial_balance.sql --<--<--
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_trial_balance.sql --<--<--
 IF OBJECT_ID('finance.get_trial_balance') IS NOT NULL
 DROP FUNCTION finance.get_trial_balance;
 
@@ -4549,7 +4550,7 @@ BEGIN
         credit,
         closing_debit,
         closing_credit
-    FROM temp_trial_balance2;
+    FROM @summary_trial_balance;
 
     RETURN;
 END
@@ -4557,6 +4558,9 @@ END
 
 
 GO
+
+--SELECT * FROM finance.get_trial_balance('1-1-2000', '1-1-2020', 1, 1, 1, 1, 1, 1) ORDER BY id;
+
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.triggers/finance.update_transaction_meta.sql --<--<--
 IF OBJECT_ID('finance.update_transaction_meta_trigger') IS NOT NULL

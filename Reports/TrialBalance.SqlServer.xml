@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<FrapidReport>
+  <Header />
+  <Title>Trial Balance</Title>
+  <TopSection>
+
+  </TopSection>
+  <Body>
+    <Content>
+    </Content>
+    <GridViews>
+      <GridView>
+        <GridViewDataSource Index="0">
+        </GridViewDataSource>
+      </GridView>
+    </GridViews>
+  </Body>
+  <BottomSection>
+  </BottomSection>
+  <DataSources>
+    <DataSource>
+      <Query>
+        SELECT 
+        account_number,
+        account,
+        previous_debit,
+        previous_credit,
+        debit,
+        credit,
+        closing_debit,
+        closing_credit
+        FROM finance.get_trial_balance(@From, @To, @UserId, @OfficeId, @Compact, @Factor, @ChangeSideWhenNegative, @IncludeZeroBalanceAccounts) 
+		ORDER BY id;
+      </Query>	
+      <Parameters>
+        <Parameter Name="@From" Type="System.DateTime" />
+        <Parameter Name="@To" Type="System.DateTime" />
+        <Parameter Name="@UserId" FieldLabel="User Id" Type="int" DefaultValue="{Meta.UserId}" />
+        <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="int"  DefaultValue="{Meta.OfficeId}" />
+        <Parameter Name="@Factor" Type="int" DefaultValue="100" />
+        <Parameter Name="@ChangeSideWhenNegative" Type="bool" />
+        <Parameter Name="@IncludeZeroBalanceAccounts" Type="bool" />
+        <Parameter Name="@Compact" Type="bool" />
+      </Parameters>
+      <RunningTotalTextColumnIndex>1</RunningTotalTextColumnIndex>
+      <RunningTotalFieldIndices>2,3,4,5,6,7</RunningTotalFieldIndices>
+    </DataSource>
+  </DataSources>
+</FrapidReport>

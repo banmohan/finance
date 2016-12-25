@@ -203,106 +203,6 @@
     <Compile Include="ViewModels\JournalDetail.cs" />
     <Compile Include="ViewModels\TransactionPosting.cs" />
     <Compile Include="ViewModels\Verification.cs" />
-    <Compile Include="Views\Home.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Home.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Layout.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Layout.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Setup\BankAccounts.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>BankAccounts.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Setup\CashFlowHeadings.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CashFlowHeadings.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Setup\CashFlowSetups.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CashFlowSetups.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Setup\CashRepositories.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CashRepositories.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Setup\ChartOfAccounts.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ChartOfAccounts.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Setup\CostCenters.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CostCenters.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Setup\Currencies.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Currencies.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\Verification.generated.cs">
-      <DependentUpon>Verification.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\JournalView.generated.cs">
-      <DependentUpon>JournalView.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Shared\Checklist.generated.cs">
-      <DependentUpon>Checklist.cshtml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Views\Tasks\EOD\Index.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Tasks\ExchangeRates\Index.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Tasks\JournalEntry\Checklist.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Checklist.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Tasks\JournalEntry\Index.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Tasks\JournalEntry\New.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>New.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Tasks\JournalVerification\Index.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Tasks\VerificationPolicy\Auto.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Auto.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Tasks\VerificationPolicy\Index.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Index.cshtml</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="JavaScript.js" />
@@ -315,86 +215,26 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="web.config" />
-    <Content Include="Views\Setup\ChartOfAccounts.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>ChartOfAccounts.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Setup\BankAccounts.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>BankAccounts.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Setup\Currencies.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Currencies.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Setup\CostCenters.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>CostCenters.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Setup\CashFlowHeadings.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>CashFlowHeadings.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Setup\CashFlowSetups.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>CashFlowSetups.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Home.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Home.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Tasks\JournalEntry\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Tasks\JournalEntry\New.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>New.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Setup\CashRepositories.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>CashRepositories.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Layout.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Layout.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Tasks\JournalVerification\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Tasks\VerificationPolicy\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Tasks\VerificationPolicy\Auto.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Auto.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Tasks\JournalEntry\Checklist.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Checklist.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Tasks\ExchangeRates\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Tasks\EOD\Index.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Index.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Shared\Checklist.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Checklist.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Shared\JournalView.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>JournalView.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Shared\Verification.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Verification.generated.cs</LastGenOutput>
-    </Content>
+    <Content Include="Views\Setup\ChartOfAccounts.cshtml" />
+    <Content Include="Views\Setup\BankAccounts.cshtml" />
+    <Content Include="Views\Setup\Currencies.cshtml" />
+    <Content Include="Views\Setup\CostCenters.cshtml" />
+    <Content Include="Views\Setup\CashFlowHeadings.cshtml" />
+    <Content Include="Views\Setup\CashFlowSetups.cshtml" />
+    <Content Include="Views\Home.cshtml" />
+    <Content Include="Views\Tasks\JournalEntry\Index.cshtml" />
+    <Content Include="Views\Tasks\JournalEntry\New.cshtml" />
+    <Content Include="Views\Setup\CashRepositories.cshtml" />
+    <Content Include="Views\Layout.cshtml" />
+    <Content Include="Views\Tasks\JournalVerification\Index.cshtml" />
+    <Content Include="Views\Tasks\VerificationPolicy\Index.cshtml" />
+    <Content Include="Views\Tasks\VerificationPolicy\Auto.cshtml" />
+    <Content Include="Views\Tasks\JournalEntry\Checklist.cshtml" />
+    <Content Include="Views\Tasks\ExchangeRates\Index.cshtml" />
+    <Content Include="Views\Tasks\EOD\Index.cshtml" />
+    <Content Include="Views\Shared\Checklist.cshtml" />
+    <Content Include="Views\Shared\JournalView.cshtml" />
+    <Content Include="Views\Shared\Verification.cshtml" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

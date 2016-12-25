@@ -1,5 +1,4 @@
-﻿-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_account_statement.sql --<--<--
-IF OBJECT_ID('finance.get_account_statement') IS NOT NULL
+﻿IF OBJECT_ID('finance.get_account_statement') IS NOT NULL
 DROP FUNCTION finance.get_account_statement;
 
 GO
