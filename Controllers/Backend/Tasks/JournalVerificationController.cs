@@ -6,9 +6,11 @@ using Frapid.ApplicationState.Cache;
 using Frapid.Dashboard;
 using MixERP.Finance.DAL;
 using MixERP.Finance.ViewModels;
+using Frapid.Areas.CSRF;
 
 namespace MixERP.Finance.Controllers.Backend.Tasks
 {
+    [AntiForgery]
     public class JournalVerificationController : FinanceDashboardController
     {
         [Route("dashboard/finance/tasks/journal/verification")]

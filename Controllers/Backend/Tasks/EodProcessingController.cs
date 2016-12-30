@@ -9,9 +9,11 @@ using MixERP.Finance.DAL;
 using MixERP.Finance.DAL.Eod;
 using MixERP.Finance.Models;
 using Serilog;
+using Frapid.Areas.CSRF;
 
 namespace MixERP.Finance.Controllers.Backend.Tasks
 {
+    [AntiForgery]
     public class EodProcessingController : FinanceDashboardController
     {
         [Route("dashboard/finance/tasks/eod-processing")]
