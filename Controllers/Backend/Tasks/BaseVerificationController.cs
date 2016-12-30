@@ -5,9 +5,11 @@ using System.Web.Mvc;
 using Frapid.ApplicationState.Cache;
 using MixERP.Finance.DAL;
 using MixERP.Finance.ViewModels;
+using Frapid.Areas.CSRF;
 
 namespace MixERP.Finance.Controllers.Backend.Tasks
 {
+    [AntiForgery]
     public sealed class VerificationController : FinanceDashboardController
     {
         [Route("dashboard/finance/tasks/verification/approve")]

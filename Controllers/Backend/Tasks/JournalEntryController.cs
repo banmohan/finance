@@ -9,9 +9,11 @@ using Frapid.i18n;
 using MixERP.Finance.DAL;
 using MixERP.Finance.QueryModels;
 using MixERP.Finance.ViewModels;
+using Frapid.Areas.CSRF;
 
 namespace MixERP.Finance.Controllers.Backend.Tasks
 {
+    [AntiForgery]
     public class JournalEntryController : FinanceDashboardController
     {
         [Route("dashboard/finance/tasks/journal/entry")]
