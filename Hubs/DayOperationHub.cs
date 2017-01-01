@@ -4,7 +4,6 @@ using Frapid.Areas.Authorization.Helpers;
 using Microsoft.AspNet.SignalR;
 using MixERP.Finance.AppModels;
 using MixERP.Finance.DAL;
-using MixERP.Finance.DAL.Eod;
 
 namespace MixERP.Finance.Hubs
 {

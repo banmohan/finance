@@ -61,7 +61,7 @@
 
 
 
-                    <button id = "InitializeEODButton" class="ui blue button">Initialize EOD</button>
+                    <button id="InitializeEODButton" disabled="disabled" class="ui blue button">Initialize EOD</button>
                 </div>
             }
             @if (Model.NewDayStarted)
@@ -78,7 +78,7 @@
                             This process is irreversible.
                         </p>
                     </div>
-                    <button id="PerformEODButton" class="ui small red button" onclick="return false;">Perform EOD</button>
+                    <button id="PerformEODButton" disabled="disabled" class="ui small red button" onclick="return false;">Perform EOD</button>
                 </div>
             }
             <div class="sixteen wide column">
@@ -139,6 +139,9 @@
         };
 
         $.connection.hub.start().done(function () {
+            $("#InitializeEODButton").removeAttr("disabled");
+            $("#PerformEODButton").removeAttr("disabled");
+
             $("#PerformEODButton").click(function () {
                 $(this).addClass("disabled");
                 $(".ui.blue.header").removeClass("initially hidden");

@@ -29,11 +29,11 @@ namespace MixERP.Finance.DAL
 
             if (DbProvider.GetDbType(DbProvider.GetProviderName(tenant)) == DatabaseType.SqlServer)
             {
-                sql = @"
-                        DECLARE @value_date date = finance.get_value_date(@0);
+                sql = @"DECLARE @value_date date = finance.get_value_date(@0);
                         EXECUTE finance.initialize_eod_operation @1, @2, @value_date;";
 
                 await Factory.NonQueryAsync(tenant, sql, officeId, userId, officeId).ConfigureAwait(false);
+                return;
             }
 
             await Factory.NonQueryAsync(tenant, sql, userId, officeId).ConfigureAwait(false);

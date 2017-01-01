@@ -2,16 +2,17 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MixERP.Finance.AppModels;
+using Frapid.ApplicationState.Models;
 using MixERP.Finance.Cache;
 using MixERP.Finance.DAL;
 using MixERP.Finance.DTO;
+using MixERP.Social.Helpers;
 
 namespace MixERP.Finance.Models
 {
     public static class EodProcessing
     {
-        public static void RevokeLogins(string tenant, int revokedBy)
+        private static void RevokeLogins(string tenant, int revokedBy)
         {
             ThreadPool.QueueUserWorkItem(async delegate
             {
@@ -41,6 +42,19 @@ namespace MixERP.Finance.Models
 
                 Dates.SetApplicationDates(tenant, applicationDates);
             }
+        }
+
+        public static async Task InitializeAsync(string tenant, LoginView meta)
+        {
+            await DayEnd.InitializeAsync(tenant, meta.UserId, meta.OfficeId).ConfigureAwait(true);
+            RevokeLogins(tenant, meta.UserId);
+            await SendNotificationAsync(tenant, meta).ConfigureAwait(false);
+        }
+
+        private static async Task SendNotificationAsync(string tenant, LoginView meta)
+        {
+            string message = "EOD operation has begun now.";
+            await FeedHelper.CreateNotificationFeedAsync(tenant, message, "Finance", meta).ConfigureAwait(false);
         }
     }
 }

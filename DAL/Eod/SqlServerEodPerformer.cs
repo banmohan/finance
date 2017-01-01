@@ -15,11 +15,17 @@ namespace MixERP.Finance.DAL.Eod
         {
             Task eodTask;
 
-            string sql = "EXECUTE finance.perform_eod_operation @LoginId;";
+            string sql = @"
+                        DECLARE @UserId integer     = account.get_user_id_by_login_id(@LoginId);
+                        DECLARE @OfficeId integer   = account.get_office_id_by_login_id(@LoginId);
+                        DECLARE @ValueDate date     = finance.get_value_date(@OfficeId);
+
+                        EXECUTE finance.perform_eod_operation @UserId, @LoginId, @OfficeId, @ValueDate;";
 
             using (var command = new SqlCommand(sql))
             {
                 command.Parameters.AddWithNullableValue("@LoginId", loginId);
+
                 command.CommandTimeout = 3600;
                 eodTask = this.ListenNonQueryAsync(tenant, command);
             }
@@ -35,6 +41,10 @@ namespace MixERP.Finance.DAL.Eod
             }
         }
 
+        public void Dispose()
+        {
+        }
+
         public Task ListenNonQueryAsync(string tenant, SqlCommand command)
         {
             if (command == null)
@@ -47,13 +57,14 @@ namespace MixERP.Finance.DAL.Eod
             {
                 try
                 {
-                    using (
-                        var connection = new SqlConnection(connectionString))
+                    using (var connection = new SqlConnection(connectionString))
                     {
                         command.Connection = connection;
 
                         connection.InfoMessage += this.Connection_Notice;
+
                         connection.Open();
+
                         command.ExecuteNonQuery();
                     }
                 }
@@ -67,6 +78,7 @@ namespace MixERP.Finance.DAL.Eod
 
             return task;
         }
+
 
         private void Connection_Notice(object sender, SqlInfoMessageEventArgs e)
         {

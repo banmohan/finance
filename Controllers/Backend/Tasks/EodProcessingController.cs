@@ -10,6 +10,11 @@ using MixERP.Finance.DAL.Eod;
 using MixERP.Finance.Models;
 using Serilog;
 using Frapid.Areas.CSRF;
+using Frapid.Dashboard.DTO;
+using Frapid.Dashboard.Helpers;
+using MixERP.Social.DAL;
+using MixERP.Social.DTO;
+using Feeds = MixERP.Social.Models.Feeds;
 
 namespace MixERP.Finance.Controllers.Backend.Tasks
 {
@@ -31,13 +36,10 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
         public async Task<ActionResult> InitializeAsync()
         {
             var meta = await AppUsers.GetCurrentAsync().ConfigureAwait(true);
-            string tenant = this.Tenant;
 
             try
             {
-                await DayEnd.InitializeAsync(tenant, meta.UserId, meta.OfficeId).ConfigureAwait(true);
-                EodProcessing.RevokeLogins(tenant, meta.UserId);
-
+                await EodProcessing.InitializeAsync(this.Tenant, meta).ConfigureAwait(true);    
                 return this.Ok();
             }
             catch (Exception ex)

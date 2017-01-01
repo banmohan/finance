@@ -32,8 +32,10 @@ namespace MixERP.Finance.DAL
         public void Perform(string tenant, long loginId)
         {
             var eod = this.GetPerformer(tenant);
-            eod.NotificationReceived += this.Performer_NotificationReceived;
-            eod.Perform(tenant, loginId);
+            {
+                eod.NotificationReceived += this.Performer_NotificationReceived;
+                eod.Perform(tenant, loginId);
+            }
         }
 
         private void Performer_NotificationReceived(object sender, EodEventArgs e)

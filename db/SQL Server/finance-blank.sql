@@ -3081,18 +3081,16 @@ BEGIN
             SET @notice             = 'EOD started.';
             PRINT @notice;
 
-            SELECT @total_rows=MAX(routine_id) FROM @this;
+            SELECT @total_rows = MAX(routine_id) FROM @this;
 
             WHILE @counter<@total_rows
             BEGIN
                 SELECT TOP 1 
                     @routine_id = routine_id,
-                    @routine = routine_name 
+                    @routine = LTRIM(RTRIM(routine_name))
                 FROM @this
                 WHERE routine_id >= @counter
                 ORDER BY routine_id;
-
-                PRINT @ROUTINE_ID;  
 
                 IF(@routine_id IS NOT NULL)
                 BEGIN
@@ -3103,15 +3101,12 @@ BEGIN
                     BREAK;
                 END;
 
-                SET @sql                    = FORMATMESSAGE('EXECUTE %s @user_id, @login_id, @office_id, @value_date;', @routine);
-
+                SET @sql                = FORMATMESSAGE('EXECUTE %s @user_id, @login_id, @office_id, @value_date;', @routine);
                 PRINT @sql;
-
                 SET @notice             = 'Performing ' + @routine + '.';
                 PRINT @notice;
 
-                WAITFOR DELAY '00:00:02';
-                EXECUTE sp_executesql @sql, '@user_id integer, @login_id bigint, @office_id integer, @value_date date', @login_id, @office_id, @value_date;
+                EXECUTE @routine @user_id, @login_id, @office_id, @value_date;
 
                 SET @notice             = 'Completed  ' + @routine + '.';
                 PRINT @notice;
@@ -3136,7 +3131,6 @@ BEGIN
             PRINT @notice;
 
             SELECT 1;
-            RETURN;
         END;
 
         IF(@tran_count = 0)
@@ -3160,6 +3154,12 @@ END;
 GO
 
 
+--UPDATE finance.day_operation
+--SET completed = 0, completed_by = NULL, completed_on = NULL;
+
+--EXECUTE finance.perform_eod_operation 1, 1, 1, '1/2/2017';
+
+--ROLLBACK TRANSACTION
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--

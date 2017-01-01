@@ -1,9 +1,8 @@
 using System;
-using System.Threading.Tasks;
 using Frapid.Configuration;
+using Frapid.DataAccess.Extensions;
 using MixERP.Finance.AppModels;
 using Npgsql;
-using Frapid.DataAccess.Extensions;
 
 namespace MixERP.Finance.DAL.Eod
 {
@@ -13,30 +12,34 @@ namespace MixERP.Finance.DAL.Eod
 
         public void Perform(string tenant, long loginId)
         {
-            string sql = "VACUUM ANALYZE VERBOSE;";
-            Task vacuumAnalyzeTask;
-            Task eodTask;
-
-            using (var command = new NpgsqlCommand(sql))
-            {
-                command.CommandTimeout = 3600;
-                vacuumAnalyzeTask = this.ListenNonQueryAsync(tenant, command);
-            }
-
-
-            sql = "SELECT * FROM finance.perform_eod_operation(@LoginId::bigint);";
-
-            using (var command = new NpgsqlCommand(sql))
-            {
-                command.Parameters.AddWithNullableValue("@LoginId", loginId);
-                command.CommandTimeout = 3600;
-                eodTask = this.ListenNonQueryAsync(tenant, command);
-            }
             try
             {
-                vacuumAnalyzeTask.Start();
+                string sql = "VACUUM ANALYZE VERBOSE; SELECT * FROM finance.perform_eod_operation(@LoginId::bigint);";
 
-                vacuumAnalyzeTask.ContinueWith(delegate { eodTask.Start(); });
+                using (var command = new NpgsqlCommand(sql))
+                {
+                    command.Parameters.AddWithNullableValue("@LoginId", loginId);
+                    command.CommandTimeout = 3600;
+
+                    string connectionString = FrapidDbServer.GetConnectionString(tenant);
+
+                    try
+                    {
+                        using (var connection = new NpgsqlConnection(connectionString))
+                        {
+                            command.Connection = connection;
+                            connection.Notice += this.Connection_Notice;
+                            connection.Open();
+                            command.ExecuteNonQuery();
+                        }
+                    }
+                    catch (NpgsqlException ex)
+                    {
+                        var e = new EodEventArgs(ex.Message, "error");
+                        var notificationReceived = this.NotificationReceived;
+                        notificationReceived?.Invoke(this, e);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -46,38 +49,6 @@ namespace MixERP.Finance.DAL.Eod
             }
         }
 
-        public Task ListenNonQueryAsync(string tenant, NpgsqlCommand command)
-        {
-            if (command == null)
-            {
-                return null;
-            }
-            string connectionString = FrapidDbServer.GetConnectionString(tenant);
-
-            var task = new Task(delegate
-            {
-                try
-                {
-                    using (
-                        var connection = new NpgsqlConnection(connectionString))
-                    {
-                        command.Connection = connection;
-                        connection.Notice += this.Connection_Notice;
-                        connection.Open();
-                        command.ExecuteNonQuery();
-                    }
-                }
-                catch (NpgsqlException ex)
-                {
-
-                    var e = new EodEventArgs(ex.Message, "error");
-                    var notificationReceived = this.NotificationReceived;
-                    notificationReceived?.Invoke(this, e);
-                }
-            });
-
-            return task;
-        }
 
         private void Connection_Notice(object sender, NpgsqlNoticeEventArgs e)
         {
@@ -94,5 +65,4 @@ namespace MixERP.Finance.DAL.Eod
             }
         }
     }
-
 }
