@@ -36,18 +36,18 @@ CREATE FUNCTION finance.get_journal_view
 RETURNS TABLE
 (
     transaction_master_id           bigint,
-    transaction_code                national character varying(50),
-    book                            national character varying(50),
+    transaction_code                text,
+    book                            text,
     value_date                      date,
     book_date                      	date,
-    reference_number                national character varying(24),
+    reference_number                text,
     statement_reference             text,
     posted_by                       text,
     office                          text,
     status                          text,
     verified_by                     text,
     verified_on                     TIMESTAMP WITH TIME ZONE,
-    reason                          national character varying(128),
+    reason                          text,
     transaction_ts                  TIMESTAMP WITH TIME ZONE
 )
 AS
@@ -69,18 +69,18 @@ BEGIN
 
     SELECT 
         finance.transaction_master.transaction_master_id, 
-        finance.transaction_master.transaction_code,
-        finance.transaction_master.book,
+        finance.transaction_master.transaction_code::text,
+        finance.transaction_master.book::text,
         finance.transaction_master.value_date,
         finance.transaction_master.book_date,
-        finance.transaction_master.reference_number,
-        finance.transaction_master.statement_reference,
-        account.get_name_by_user_id(finance.transaction_master.user_id) as posted_by,
-        core.get_office_name_by_office_id(finance.transaction_master.office_id) as office,
-        finance.get_verification_status_name_by_verification_status_id(finance.transaction_master.verification_status_id) as status,
-        account.get_name_by_user_id(finance.transaction_master.verified_by_user_id) as verified_by,
+        finance.transaction_master.reference_number::text,
+        finance.transaction_master.statement_reference::text,
+        account.get_name_by_user_id(finance.transaction_master.user_id)::text as posted_by,
+        core.get_office_name_by_office_id(finance.transaction_master.office_id)::text as office,
+        finance.get_verification_status_name_by_verification_status_id(finance.transaction_master.verification_status_id)::text as status,
+        account.get_name_by_user_id(finance.transaction_master.verified_by_user_id)::text as verified_by,
         finance.transaction_master.last_verified_on AS verified_on,
-        finance.transaction_master.verification_reason AS reason,    
+        finance.transaction_master.verification_reason::text AS reason,    
         finance.transaction_master.transaction_ts
     FROM finance.transaction_master
     WHERE 1 = 1
