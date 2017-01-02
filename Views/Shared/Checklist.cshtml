@@ -18,7 +18,9 @@
         max-width: 800px;
     }
 
-
+    section {
+        padding: 1em 0;
+    }
 
     .choices {
         display: flex;
@@ -37,9 +39,9 @@
             color: #eee;
         }
 
-        .selection.group .field:last-child {
-            padding-bottom: 1em;
-        }
+    .selection.group .field:last-child {
+        padding-bottom: 1em;
+    }
 </style>
 <div class="ui attached page checklist segment" style="min-height: 100%; padding: 3em;">
     <div class="ui huge title header"></div>
@@ -47,30 +49,51 @@
 
     <div class="ui positive message">The transaction was posted successfully.</div>
 
-    <div class="ui basic  buttons">
+    <div class="ui basic buttons">
         <a class="ui basic view transaction button"></a>
         <a class="ui basic add new button"></a>
-        <a class="ui basic withdraw button" onclick="alert('todo');">Cancel/Withdraw Transaction</a>
+        <a class="ui basic withdraw button" onclick="$('#WithdrawDiv').fadeToggle(1000);">Cancel/Withdraw Transaction</a>
     </div>
 
-    <div class="ui header">Notes</div>
-    <div class="ui warning message">You haven't left a note yet.</div>
-    <div class="ui form">
-        <div class="field">
-            <textarea rows="2"></textarea>
+    <div id="WithdrawDiv" style="display: none;" class="ui basic segment">
+        <div class="ui attached message" style="display: block;">
+            <div class="header">Why do you want to withdraw this transaction?</div>
         </div>
-        <div class="ui green button">Add Note</div>
+        <div class="ui form attached fluid segment">
+            <p>When you withdraw a transaction, it won't be forwarded to the workflow module. This means that your withdrawn transactions are rejected and require no further verification. However, you won't be able to unwithdraw this transaction later.</p>
+            <div class="field">
+                <input type="hidden" id="TranIdInputHidden" value="" />
+                <textarea rows="5" id="ReasonTextarea"></textarea>
+            </div>
+            <div class="ui message">Are you sure?</div>
+            <button id="WithdrawOKButton" class="ui red small submit button" type="submit">OK</button>
+            <button class="ui green small submit button" type="button">Cancel</button>
+        </div>
     </div>
 
+    <section class="notes" style="display: none;">
+        <div class="ui header">Notes</div>
+        <div class="ui warning message">You haven't left a note yet.</div>
+        <div class="ui form">
+            <div class="field">
+                <textarea rows="2"></textarea>
+            </div>
+            <div class="ui green button">Add Note</div>
+        </div>
+    </section>
 
-    <div class="ui header">Documents</div>
-    <div class="ui warning message">No document(s) found.</div>
-    <div class="ui green button">Upload a New Document</div>
 
+    <section class="documents" style="display: none;">
+        <div class="ui header">Documents</div>
+        <div class="ui warning message">No document(s) found.</div>
+        <div class="ui green button">Upload a New Document</div>
+    </section>
 
-    <div class="ui header">Reminder</div>
-    <div class="ui warning message">No reminder was set.</div>
-    <div class="ui green add reminder button">Create a New Reminder</div>
+    <section class="reminders" style="display: none;">
+        <div class="ui header">Reminder</div>
+        <div class="ui warning message">No reminder was set.</div>
+        <div class="ui green add reminder button">Create a New Reminder</div>
+    </section>
 
 
     <div class="ui header">Advice</div>
@@ -80,12 +103,12 @@
 
 <div class="ui reminder small modal">
     <i class="close icon"></i>
-        <div class="header">Create a New Reminder</div>
+    <div class="header">Create a New Reminder</div>
     <div class="content">
         <div class="ui padded unstyled form">
             <div class="field">
                 <label>Title</label>
-                <input placeholder="Remind Me About"/>
+                <input placeholder="Remind Me About" />
             </div>
             <div class="selection group">
                 <div class="field">
@@ -103,7 +126,7 @@
                 <div class="user selection field" style="display: none;">
                     <label>Select Users</label>
                     <select class="ui collapsing select dropdown"></select>
-                </div>                
+                </div>
             </div>
             <div class="field">
                 <label>Starts From</label>
@@ -144,14 +167,14 @@
                     <div class="four fields">
                         <div class="repeat hour value selection field" style="display: none;">
                             <label>Repeat Every</label>
-                            <input/>
+                            <input />
                             <label>hours</label>
                         </div>
                         <div class="repeat day value selection field" style="display: none;">
                             <label>Repeat Every</label>
                             <input />
                             <label>days</label>
-                        </div>                        
+                        </div>
                         <div class="field">
                             <label>Remind Me at Least</label>
                             <input type="text" value="2" />
@@ -176,7 +199,7 @@
 
             <div class="field">
                 <div class="ui checkbox">
-                    <input type="checkbox"  />
+                    <input type="checkbox" />
                     <label>Including Other Participants</label>
                 </div>
             </div>
@@ -191,7 +214,8 @@
     <div class="actions">
         <div class="ui deny button">Cancel</div>
         <div class="ui positive button">OK</div>
-    </div></div>
+    </div>
+</div>
 <script>
     function prepareChecklist(model) {
         $(".title.header").html(model.Title);
@@ -200,6 +224,7 @@
         $(".add.new.button").html(model.AddNewText);
         $(".add.new.button").attr("href", model.AddNewUrl);
         $("#ReportIFrame").attr("src", model.ReportPath);
+        $("#TranIdInputHidden").val(model.TranId);
 
         if (!model.ViewText) {
             $(".view.transaction.button").remove();
@@ -234,8 +259,41 @@
         };
     });
 
-    $(".add.reminder.button").off("click").on("click", function() {
+    $(".add.reminder.button").off("click").on("click", function () {
         $(".reminder.modal").modal("show");
         $(".time").timepicker('setTime', new Date());
+    });
+
+    $("#WithdrawOKButton").off("click").on("click", function () {
+        function request(model) {
+            const url = "/dashboard/finance/tasks/journal/withdraw";
+            const data = JSON.stringify(model);
+
+            return window.getAjaxRequest(url, "PUT", data);
+        };
+
+        function getModel() {
+            const tranId = $("#TranIdInputHidden").val();
+            const reason = $("#ReasonTextarea").val();
+
+            return {
+                TranId: tranId,
+                Reason: reason
+            };
+        };
+
+        $("#WithdrawDiv").addClass("loading");
+        const model = getModel();
+        const ajax = request(model);
+
+        ajax.success(function () {
+            window.displaySuccess();
+            $("#WithdrawDiv").removeClass("loading").hide();
+        });
+
+        ajax.fail(function (xhr) {
+            window.logAjaxErrorMessage(xhr);
+            $("#WithdrawDiv").removeClass("loading").hide();
+        });
     });
 </script>

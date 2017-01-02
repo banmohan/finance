@@ -16,6 +16,22 @@ namespace MixERP.Finance.DAL
 {
     public static class TransacitonPostings
     {
+        public static async Task WithdrawAsync(string tenant, string reason, int userId, long tranId, int officeId)
+        {
+            var sql = new Sql("UPDATE finance.transaction_master");
+            sql.Append("SET");
+            sql.Append("verification_status_id = -1,");
+            sql.Append("verified_by_user_id = @0,", userId);
+            sql.Append("verification_reason = @0,", reason);
+            sql.Append("last_verified_on = @0", DateTimeOffset.UtcNow);
+            sql.Where("transaction_master_id = @0", tranId);
+            sql.And("office_id = @0", officeId);
+            sql.And("user_id = @0", userId);//Only you can withdraw your transaction
+            sql.And("verification_status_id IN(0, 1)");//Only unverified or automatically verified transacitons can be withdrawn.
+
+            await Factory.NonQueryAsync(tenant, sql).ConfigureAwait(false);
+        }
+
         public static async Task<bool> CanPostTransactionAsync(string tenant, long loginId, int userId, int officeId, string transactionBook, DateTime valueDate)
         {
             string sql = "SELECT finance.can_post_transaction(@0, @1, @2, @3, @4);";

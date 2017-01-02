@@ -4642,6 +4642,23 @@ SELECT
 FROM core.offices;
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.transaction_verification_status_view.sql --<--<--
+DROP VIEW IF EXISTS finance.transaction_verification_status_view;
+
+CREATE VIEW finance.transaction_verification_status_view
+AS
+SELECT
+    finance.transaction_master.transaction_master_id,
+    finance.transaction_master.user_id,
+    finance.transaction_master.office_id,
+    finance.transaction_master.verification_status_id, 
+    account.get_name_by_user_id(finance.transaction_master.verified_by_user_id) AS verifier_name,
+    finance.transaction_master.verified_by_user_id,
+    finance.transaction_master.last_verified_on, 
+    finance.transaction_master.verification_reason
+FROM finance.transaction_master;
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.trial_balance_view.sql --<--<--
 DROP MATERIALIZED VIEW IF EXISTS finance.trial_balance_view;
 CREATE MATERIALIZED VIEW finance.trial_balance_view

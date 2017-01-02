@@ -172,6 +172,10 @@
     <Compile Include="Controllers\Backend\Tasks\ExchangeRateController.cs" />
     <Compile Include="Controllers\Backend\Tasks\JournalEntryController.cs" />
     <Compile Include="Controllers\Backend\Tasks\JournalVerificationController.cs" />
+    <Compile Include="DAL\Verifications.cs" />
+    <Compile Include="DTO\TransactionVerificationStatusView.cs" />
+    <Compile Include="Models\JournalWithadrawals.cs" />
+    <Compile Include="Controllers\Backend\Tasks\JournalWithdrawalController.cs" />
     <Compile Include="Controllers\Backend\Tasks\VerificationPolicyController.cs" />
     <Compile Include="Controllers\FinanceDashboardController.cs" />
     <Compile Include="CustomJavascriptVariable.cs" />
@@ -203,6 +207,7 @@
     <Compile Include="AppModels\EodStatus.cs" />
     <Compile Include="DTO\FrequencyDates.cs" />
     <Compile Include="AppModels\EodEventArgs.cs" />
+    <Compile Include="Models\JournalWithdrawalException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryModels\JournalViewQuery.cs" />
     <Compile Include="ViewModels\Document.cs" />
@@ -210,6 +215,7 @@
     <Compile Include="ViewModels\JournalDetail.cs" />
     <Compile Include="ViewModels\TransactionPosting.cs" />
     <Compile Include="ViewModels\Verification.cs" />
+    <Compile Include="ViewModels\WithdrawalViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="JavaScript.js" />

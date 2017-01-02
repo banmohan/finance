@@ -1,12 +1,11 @@
-﻿using Frapid.DataAccess;
-
-using System;
+﻿using System;
+using Frapid.DataAccess;
 using Frapid.Mapper.Decorators;
 
 namespace MixERP.Finance.DTO
 {
-    [PrimaryKey("account_id", AutoIncrement = true)]
     [TableName("finance.accounts")]
+    [PrimaryKey("account_id", AutoIncrement = true)]
     public sealed class Account : IPoco
     {
         public int AccountId { get; set; }
