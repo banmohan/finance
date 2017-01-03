@@ -45,6 +45,7 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.fiscal_year
 (
+	fiscal_year_id							SERIAL NOT NULL UNIQUE,
     fiscal_year_code                        national character varying(12) PRIMARY KEY,
     fiscal_year_name                        national character varying(50) NOT NULL,
     starts_from                             date NOT NULL,

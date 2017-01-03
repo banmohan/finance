@@ -35,6 +35,8 @@ SELECT * FROM core.create_menu('Finance', 'Cash Flow Headings', '/dashboard/fina
 SELECT * FROM core.create_menu('Finance', 'Cash Flow Setup', '/dashboard/finance/setup/cash-flow/setup', 'edit', 'Setup');
 SELECT * FROM core.create_menu('Finance', 'Cost Centers', '/dashboard/finance/setup/cost-centers', 'closed captioning', 'Setup');
 SELECT * FROM core.create_menu('Finance', 'Cash Repositories', '/dashboard/finance/setup/cash-repositories', 'bookmark', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Fical Years', '/dashboard/finance/setup/fiscal-years', 'sitemap', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Frequency Setups', '/dashboard/finance/setup/frequency-setups', 'sitemap', 'Setup');
 
 SELECT * FROM core.create_menu('Finance', 'Reports', '', 'block layout', '');
 SELECT * FROM core.create_menu('Finance', 'Account Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountStatement.xml', 'file text outline', 'Reports');

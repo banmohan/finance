@@ -35,6 +35,8 @@ EXECUTE core.create_menu 'Finance', 'Cash Flow Headings', '/dashboard/finance/se
 EXECUTE core.create_menu 'Finance', 'Cash Flow Setup', '/dashboard/finance/setup/cash-flow/setup', 'edit', 'Setup';
 EXECUTE core.create_menu 'Finance', 'Cost Centers', '/dashboard/finance/setup/cost-centers', 'closed captioning', 'Setup';
 EXECUTE core.create_menu 'Finance', 'Cash Repositories', '/dashboard/finance/setup/cash-repositories', 'bookmark', 'Setup';
+EXECUTE core.create_menu 'Finance', 'Fical Years', '/dashboard/finance/setup/fiscal-years', 'sitemap', 'Setup';
+EXECUTE core.create_menu 'Finance', 'Frequency Setups', '/dashboard/finance/setup/frequency-setups', 'sitemap', 'Setup';
 
 EXECUTE core.create_menu 'Finance', 'Reports', '', 'block layout', '';
 EXECUTE core.create_menu 'Finance', 'Account Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountStatement.xml', 'file national character varying(1000) outline', 'Reports';

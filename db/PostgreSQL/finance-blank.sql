@@ -46,6 +46,7 @@ WHERE NOT deleted;
 
 CREATE TABLE finance.fiscal_year
 (
+	fiscal_year_id							SERIAL NOT NULL UNIQUE,
     fiscal_year_code                        national character varying(12) PRIMARY KEY,
     fiscal_year_name                        national character varying(50) NOT NULL,
     starts_from                             date NOT NULL,
@@ -4288,6 +4289,8 @@ SELECT * FROM core.create_menu('Finance', 'Cash Flow Headings', '/dashboard/fina
 SELECT * FROM core.create_menu('Finance', 'Cash Flow Setup', '/dashboard/finance/setup/cash-flow/setup', 'edit', 'Setup');
 SELECT * FROM core.create_menu('Finance', 'Cost Centers', '/dashboard/finance/setup/cost-centers', 'closed captioning', 'Setup');
 SELECT * FROM core.create_menu('Finance', 'Cash Repositories', '/dashboard/finance/setup/cash-repositories', 'bookmark', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Fical Years', '/dashboard/finance/setup/fiscal-years', 'sitemap', 'Setup');
+SELECT * FROM core.create_menu('Finance', 'Frequency Setups', '/dashboard/finance/setup/frequency-setups', 'sitemap', 'Setup');
 
 SELECT * FROM core.create_menu('Finance', 'Reports', '', 'block layout', '');
 SELECT * FROM core.create_menu('Finance', 'Account Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountStatement.xml', 'file text outline', 'Reports');
@@ -4442,6 +4445,22 @@ SELECT
     finance.cost_centers.cost_center_name
 FROM finance.cost_centers
 WHERE NOT finance.cost_centers.deleted;
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.fiscal_year_scrud_view.sql --<--<--
+DROP VIEW IF EXISTS finance.fiscal_year_scrud_view;
+
+CREATE VIEW finance.fiscal_year_scrud_view
+AS
+SELECT
+	finance.fiscal_year.fiscal_year_code,
+	finance.fiscal_year.fiscal_year_name,
+	finance.fiscal_year.starts_from,
+	finance.fiscal_year.ends_on,
+	finance.fiscal_year.eod_required,
+	core.get_office_name_by_office_id(finance.fiscal_year.office_id) AS office 
+FROM finance.fiscal_year
+WHERE NOT finance.fiscal_year.deleted;
+
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.journal_verification_policy_scrud_view.sql --<--<--
 DROP VIEW IF EXISTS finance.journal_verification_policy_scrud_view;

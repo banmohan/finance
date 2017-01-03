@@ -166,6 +166,8 @@
     <Compile Include="Controllers\Backend\Setup\ChartOfAccountController.cs" />
     <Compile Include="Controllers\Backend\Setup\CostCenterController.cs" />
     <Compile Include="Controllers\Backend\Setup\CurrencyController.cs" />
+    <Compile Include="Controllers\Backend\Setup\FiscalYearController.cs" />
+    <Compile Include="Controllers\Backend\Setup\FrequencySetupController.cs" />
     <Compile Include="Controllers\Backend\Tasks\AccountReconciliationController.cs" />
     <Compile Include="Controllers\Backend\Tasks\AutoVerificationPolicyController.cs" />
     <Compile Include="Controllers\Backend\Tasks\BaseVerificationController.cs" />
@@ -253,6 +255,8 @@
     <Content Include="Views\Shared\JournalView.cshtml" />
     <Content Include="Views\Shared\Verification.cshtml" />
     <Content Include="Views\Tasks\AccountReconciliation\Index.cshtml" />
+    <Content Include="Views\Setup\FiscalYears.cshtml" />
+    <Content Include="Views\Setup\FrequencySetups.cshtml" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

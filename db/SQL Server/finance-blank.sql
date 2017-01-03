@@ -33,7 +33,7 @@ CREATE TABLE finance.cash_repositories
     description                             national character varying(100) NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)
+    deleted                                 bit DEFAULT(0)
 );
 
 
@@ -48,15 +48,16 @@ WHERE deleted = 0;
 
 CREATE TABLE finance.fiscal_year
 (
+	fiscal_year_id							int IDENTITY UNIQUE,
     fiscal_year_code                        national character varying(12) PRIMARY KEY,
     fiscal_year_name                        national character varying(50) NOT NULL,
     starts_from                             date NOT NULL,
     ends_on                                 date NOT NULL,
     eod_required                            bit NOT NULL DEFAULT(1),
-    office_id                                integer NOT NULL REFERENCES core.offices,
+    office_id                               integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)
+    deleted                                 bit DEFAULT(0)
 );
 
 CREATE UNIQUE INDEX fiscal_year_fiscal_year_name_uix
@@ -4721,6 +4722,8 @@ EXECUTE core.create_menu 'Finance', 'Cash Flow Headings', '/dashboard/finance/se
 EXECUTE core.create_menu 'Finance', 'Cash Flow Setup', '/dashboard/finance/setup/cash-flow/setup', 'edit', 'Setup';
 EXECUTE core.create_menu 'Finance', 'Cost Centers', '/dashboard/finance/setup/cost-centers', 'closed captioning', 'Setup';
 EXECUTE core.create_menu 'Finance', 'Cash Repositories', '/dashboard/finance/setup/cash-repositories', 'bookmark', 'Setup';
+EXECUTE core.create_menu 'Finance', 'Fical Years', '/dashboard/finance/setup/fiscal-years', 'sitemap', 'Setup';
+EXECUTE core.create_menu 'Finance', 'Frequency Setups', '/dashboard/finance/setup/frequency-setups', 'sitemap', 'Setup';
 
 EXECUTE core.create_menu 'Finance', 'Reports', '', 'block layout', '';
 EXECUTE core.create_menu 'Finance', 'Account Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountStatement.xml', 'file national character varying(1000) outline', 'Reports';
@@ -4931,6 +4934,50 @@ SELECT
     finance.cost_centers.cost_center_name
 FROM finance.cost_centers
 WHERE finance.cost_centers.deleted = 0;
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.scrud-views/finance.fiscal_year_scrud_view.sql --<--<--
+IF OBJECT_ID('finance.fiscal_year_scrud_view') IS NOT NULL
+DROP VIEW finance.fiscal_year_scrud_view;
+
+GO
+
+CREATE VIEW finance.fiscal_year_scrud_view
+AS
+SELECT
+	finance.fiscal_year.fiscal_year_code,
+	finance.fiscal_year.fiscal_year_name,
+	finance.fiscal_year.starts_from,
+	finance.fiscal_year.ends_on,
+	finance.fiscal_year.eod_required,
+	core.get_office_name_by_office_id(finance.fiscal_year.office_id) AS office 
+FROM finance.fiscal_year
+WHERE finance.fiscal_year.deleted = 0;
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.scrud-views/finance.frequency_setup_scrud_view.sql --<--<--
+IF OBJECT_ID('finance.frequency_setup_scrud_view') IS NOT NULL
+DROP VIEW finance.frequency_setup_scrud_view;
+
+GO
+
+CREATE VIEW finance.frequency_setup_scrud_view
+AS
+SELECT
+	finance.frequency_setups.frequency_setup_id,
+	finance.frequency_setups.fiscal_year_code,
+	finance.frequency_setups.frequency_setup_code,
+	finance.frequency_setups.value_date,
+	finance.frequencies.frequency_code,
+	core.get_office_name_by_office_id(finance.frequency_setups.office_id) AS office
+FROM finance.frequency_setups
+INNER JOIN finance.frequencies
+ON finance.frequencies.frequency_id = finance.frequency_setups.frequency_id
+WHERE finance.frequency_setups.deleted = 0;
 
 GO
 

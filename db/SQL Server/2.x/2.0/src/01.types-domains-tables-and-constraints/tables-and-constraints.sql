@@ -32,7 +32,7 @@ CREATE TABLE finance.cash_repositories
     description                             national character varying(100) NULL,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)
+    deleted                                 bit DEFAULT(0)
 );
 
 
@@ -47,15 +47,16 @@ WHERE deleted = 0;
 
 CREATE TABLE finance.fiscal_year
 (
+	fiscal_year_id							int IDENTITY UNIQUE,
     fiscal_year_code                        national character varying(12) PRIMARY KEY,
     fiscal_year_name                        national character varying(50) NOT NULL,
     starts_from                             date NOT NULL,
     ends_on                                 date NOT NULL,
     eod_required                            bit NOT NULL DEFAULT(1),
-    office_id                                integer NOT NULL REFERENCES core.offices,
+    office_id                               integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)
+    deleted                                 bit DEFAULT(0)
 );
 
 CREATE UNIQUE INDEX fiscal_year_fiscal_year_name_uix
