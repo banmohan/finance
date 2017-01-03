@@ -13,26 +13,27 @@ CREATE FUNCTION finance.get_account_statement
 )
 RETURNS @result TABLE
 (
-    id                      integer,
+    id                      integer IDENTITY,
+	transaction_id			bigint,
+	transaction_detail_id	bigint,
     value_date              date,
     book_date               date,
     tran_code               national character varying(50),
     reference_number        national character varying(24),
     statement_reference     national character varying(2000),
+    reconciliation_memo     national character varying(2000),
     debit                   numeric(30, 6),
     credit                  numeric(30, 6),
     balance                 numeric(30, 6),
-    office national character varying(1000),
+    office 					national character varying(1000),
     book                    national character varying(50),
     account_id              integer,
-    account_number national character varying(24),
+    account_number 			national character varying(24),
     account                 national character varying(1000),
     posted_on               DATETIMEOFFSET,
     posted_by               national character varying(1000),
     approved_by             national character varying(1000),
-    verification_status     integer,
-    flag_bg                 national character varying(1000),
-    flag_fg                 national character varying(1000)
+    verification_status     integer
 )
 AS
 BEGIN
@@ -80,13 +81,16 @@ BEGIN
     WHERE credit < 0;
     
 
-    INSERT INTO @result(value_date, book_date, tran_code, reference_number, statement_reference, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
+    INSERT INTO @result(transaction_id, transaction_detail_id, value_date, book_date, tran_code, reference_number, statement_reference, reconciliation_memo, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
     SELECT
+		finance.transaction_details.transaction_master_id,
+		finance.transaction_details.transaction_detail_id,
         finance.transaction_master.value_date,
         finance.transaction_master.book_date,
         finance.transaction_master. transaction_code,
         finance.transaction_master.reference_number,
         finance.transaction_details.statement_reference,
+		finance.transaction_details.reconciliation_memo,
         CASE finance.transaction_details.tran_type
         WHEN 'Dr' THEN amount_in_local_currency
         ELSE NULL END,
@@ -142,10 +146,6 @@ BEGIN
     ON result.account_id = finance.accounts.account_id;
 
 
---     UPDATE temp_account_statement SET
---         flag_bg = core.get_flag_background_color(core.get_flag_type_id(@user_id, 'account_statement', 'transaction_code', temp_account_statement.tran_code)),
---         flag_fg = core.get_flag_foreground_color(core.get_flag_type_id(@user_id, 'account_statement', 'transaction_code', temp_account_statement.tran_code));
-
 
     IF(@normally_debit = 1)
     BEGIN
@@ -157,7 +157,8 @@ END;
 
 
 
---SELECT * FROM finance.get_account_statement('1-1-2010','1-1-2020',1,1,1);
 
 
 GO
+
+--SELECT * FROM finance.get_account_statement('1-1-2010','1-1-2020',1,1,1);

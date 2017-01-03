@@ -18,11 +18,14 @@ CREATE FUNCTION finance.get_account_statement
 RETURNS TABLE
 (
     id                      integer,
+	transaction_id	        bigint,
+	transaction_detail_id	bigint,
     value_date              date,
     book_date               date,
     tran_code               text,
     reference_number        text,
     statement_reference     text,
+    reconciliation_memo     text,
     debit                   numeric(30, 6),
     credit                  numeric(30, 6),
     balance                 numeric(30, 6),
@@ -34,9 +37,7 @@ RETURNS TABLE
     posted_on               TIMESTAMP WITH TIME ZONE,
     posted_by               text,
     approved_by             text,
-    verification_status     integer,
-    flag_bg                 text,
-    flag_fg                 text
+    verification_status     integer
 )
 AS
 $$
@@ -49,11 +50,14 @@ BEGIN
     CREATE TEMPORARY TABLE temp_account_statement
     (
         id                      SERIAL,
+        transaction_id	        bigint,
+		transaction_detail_id	bigint,
         value_date              date,
         book_date               date,
         tran_code               text,
         reference_number        text,
         statement_reference     text,
+		reconciliation_memo		text,
         debit                   numeric(30, 6),
         credit                  numeric(30, 6),
         balance                 numeric(30, 6),
@@ -65,9 +69,7 @@ BEGIN
         posted_on               TIMESTAMP WITH TIME ZONE,
         posted_by               text,
         approved_by             text,
-        verification_status     integer,
-        flag_bg                 text,
-        flag_fg                 text
+        verification_status     integer
     ) ON COMMIT DROP;
 
 
@@ -113,13 +115,16 @@ BEGIN
     WHERE temp_account_statement.credit < 0;
     
 
-    INSERT INTO temp_account_statement(value_date, book_date, tran_code, reference_number, statement_reference, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
+    INSERT INTO temp_account_statement(transaction_id, transaction_detail_id, value_date, book_date, tran_code, reference_number, statement_reference, reconciliation_memo, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
     SELECT
+		finance.transaction_details.transaction_master_id,
+		finance.transaction_details.transaction_detail_id,
         finance.transaction_master.value_date,
         finance.transaction_master.book_date,
         finance.transaction_master. transaction_code,
         finance.transaction_master.reference_number::text,
         finance.transaction_details.statement_reference,
+		finance.transaction_details.reconciliation_memo,
         CASE finance.transaction_details.tran_type
         WHEN 'Dr' THEN amount_in_local_currency
         ELSE NULL END,

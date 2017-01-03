@@ -302,15 +302,15 @@ WHERE deleted = 0;
 
 CREATE TABLE finance.transaction_documents
 (
-    document_id                                bigint IDENTITY PRIMARY KEY,
-    transaction_master_id                    bigint NOT NULL REFERENCES finance.transaction_master,
-    original_file_name                        national character varying(500) NOT NULL,
-    file_extension                            national character varying(50),
-    file_path                                national character varying(2000) NOT NULL,
+    document_id                             bigint IDENTITY PRIMARY KEY,
+    transaction_master_id                   bigint NOT NULL REFERENCES finance.transaction_master,
+    original_file_name                      national character varying(500) NOT NULL,
+    file_extension                          national character varying(50),
+    file_path                               national character varying(2000) NOT NULL,
     memo                                    national character varying(2000),
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)
+    deleted                                 bit DEFAULT(0)
 );
 
 
@@ -319,10 +319,11 @@ CREATE TABLE finance.transaction_details
     transaction_detail_id                   bigint IDENTITY PRIMARY KEY,
     transaction_master_id                   bigint NOT NULL REFERENCES finance.transaction_master,
     value_date                              date NOT NULL,
-    book_date                                  date NOT NULL,
+    book_date                               date NOT NULL,
     tran_type                               national character varying(4) NOT NULL CHECK(tran_type IN ('Dr', 'Cr')),
     account_id                              integer NOT NULL REFERENCES finance.accounts,
     statement_reference                     national character varying(2000),
+    reconciliation_memo                     national character varying(2000),
     cash_repository_id                      integer REFERENCES finance.cash_repositories,
     currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
     amount_in_currency                      decimal(30, 6) NOT NULL,
@@ -342,7 +343,7 @@ CREATE TABLE finance.card_types
     card_type_name                          national character varying(100) NOT NULL,
     audit_user_id                           integer REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)
+    deleted                                 bit DEFAULT(0)
 );
 
 CREATE UNIQUE INDEX card_types_card_type_code_uix
@@ -361,7 +362,7 @@ CREATE TABLE finance.payment_cards
     card_type_id                            integer NOT NULL REFERENCES finance.card_types,            
     audit_user_id                           integer NULL REFERENCES account.users,            
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)            
+    deleted                                 bit DEFAULT(0)            
 );
 
 CREATE UNIQUE INDEX payment_cards_payment_card_code_uix
@@ -384,7 +385,7 @@ CREATE TABLE finance.merchant_fee_setup
     statement_reference                     national character varying(2000) NOT NULL DEFAULT(''),
     audit_user_id                           integer NULL REFERENCES account.users,            
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)            
+    deleted                                 bit DEFAULT(0)            
 );
 
 CREATE UNIQUE INDEX merchant_fee_setup_merchant_account_id_payment_card_id_uix
@@ -1237,26 +1238,27 @@ CREATE FUNCTION finance.get_account_statement
 )
 RETURNS @result TABLE
 (
-    id                      integer,
+    id                      integer IDENTITY,
+	transaction_id			bigint,
+	transaction_detail_id	bigint,
     value_date              date,
     book_date               date,
     tran_code               national character varying(50),
     reference_number        national character varying(24),
     statement_reference     national character varying(2000),
+    reconciliation_memo     national character varying(2000),
     debit                   numeric(30, 6),
     credit                  numeric(30, 6),
     balance                 numeric(30, 6),
-    office national character varying(1000),
+    office 					national character varying(1000),
     book                    national character varying(50),
     account_id              integer,
-    account_number national character varying(24),
+    account_number 			national character varying(24),
     account                 national character varying(1000),
     posted_on               DATETIMEOFFSET,
     posted_by               national character varying(1000),
     approved_by             national character varying(1000),
-    verification_status     integer,
-    flag_bg                 national character varying(1000),
-    flag_fg                 national character varying(1000)
+    verification_status     integer
 )
 AS
 BEGIN
@@ -1304,13 +1306,16 @@ BEGIN
     WHERE credit < 0;
     
 
-    INSERT INTO @result(value_date, book_date, tran_code, reference_number, statement_reference, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
+    INSERT INTO @result(transaction_id, transaction_detail_id, value_date, book_date, tran_code, reference_number, statement_reference, reconciliation_memo, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
     SELECT
+		finance.transaction_details.transaction_master_id,
+		finance.transaction_details.transaction_detail_id,
         finance.transaction_master.value_date,
         finance.transaction_master.book_date,
         finance.transaction_master. transaction_code,
         finance.transaction_master.reference_number,
         finance.transaction_details.statement_reference,
+		finance.transaction_details.reconciliation_memo,
         CASE finance.transaction_details.tran_type
         WHEN 'Dr' THEN amount_in_local_currency
         ELSE NULL END,
@@ -1366,10 +1371,6 @@ BEGIN
     ON result.account_id = finance.accounts.account_id;
 
 
---     UPDATE temp_account_statement SET
---         flag_bg = core.get_flag_background_color(core.get_flag_type_id(@user_id, 'account_statement', 'transaction_code', temp_account_statement.tran_code)),
---         flag_fg = core.get_flag_foreground_color(core.get_flag_type_id(@user_id, 'account_statement', 'transaction_code', temp_account_statement.tran_code));
-
 
     IF(@normally_debit = 1)
     BEGIN
@@ -1381,10 +1382,11 @@ END;
 
 
 
---SELECT * FROM finance.get_account_statement('1-1-2010','1-1-2020',1,1,1);
 
 
 GO
+
+--SELECT * FROM finance.get_account_statement('1-1-2010','1-1-2020',1,1,1);
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_cash_flow_heading_id_by_cash_flow_heading_code.sql --<--<--
@@ -3162,6 +3164,76 @@ GO
 --ROLLBACK TRANSACTION
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.reconcile_account.sql --<--<--
+IF OBJECT_ID('finance.reconcile_account') IS NOT NULL
+DROP PROCEDURE finance.reconcile_account;
+
+GO
+
+CREATE PROCEDURE finance.reconcile_account
+(
+    @transaction_detail_id              bigint,
+	@user_id							integer,
+    @new_book_date                      date, 
+    @reconciliation_memo                text
+)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	SET XACT_ABORT ON;
+
+    DECLARE @transaction_master_id      bigint;
+
+	BEGIN TRY
+		DECLARE @tran_count int = @@TRANCOUNT;
+		
+		IF(@tran_count= 0)
+		BEGIN
+			BEGIN TRANSACTION
+		END;
+
+		SELECT @transaction_master_id = finance.transaction_details.transaction_master_id 
+		FROM finance.transaction_details
+		WHERE finance.transaction_details.transaction_detail_id = @transaction_detail_id;
+
+		UPDATE finance.transaction_master
+		SET 
+			book_date				= @new_book_date,
+			audit_user_id			= @user_id,
+			audit_ts				= GETUTCDATE()
+		WHERE finance.transaction_master.transaction_master_id = @transaction_master_id;
+
+
+		UPDATE finance.transaction_details
+		SET
+			book_date               = @new_book_date,
+			reconciliation_memo     = @reconciliation_memo,
+			audit_user_id			= @user_id,
+			audit_ts				= GETUTCDATE()
+		WHERE finance.transaction_details.transaction_master_id = @transaction_master_id;    
+		IF(@tran_count = 0)
+		BEGIN
+			COMMIT TRANSACTION;
+		END;
+	END TRY
+	BEGIN CATCH
+		IF(XACT_STATE() <> 0 AND @tran_count = 0) 
+		BEGIN
+			ROLLBACK TRANSACTION;
+		END;
+
+		DECLARE @ErrorMessage national character varying(4000)	= ERROR_MESSAGE();
+		DECLARE @ErrorSeverity int								= ERROR_SEVERITY();
+		DECLARE @ErrorState int									= ERROR_STATE();
+		RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
+	END CATCH;
+END
+
+GO
+
+--EXECUTE finance.reconcile_account 1, 1, '1-1-2000', 'test';
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--
 IF OBJECT_ID('finance.verify_transaction') IS NOT NULL
@@ -4638,6 +4710,7 @@ EXECUTE core.create_menu 'Finance', 'Exchange Rates', '/dashboard/finance/tasks/
 EXECUTE core.create_menu 'Finance', 'Journal Verification', '/dashboard/finance/tasks/journal/verification', 'checkmark', 'Tasks';
 EXECUTE core.create_menu 'Finance', 'Verification Policy', '/dashboard/finance/tasks/verification-policy', 'checkmark box', 'Tasks';
 EXECUTE core.create_menu 'Finance', 'Auto Verification Policy', '/dashboard/finance/tasks/verification-policy/auto', 'check circle', 'Tasks';
+EXECUTE core.create_menu 'Finance', 'Account Reconciliation', '/dashboard/finance/tasks/account-reconciliation', 'book', 'Tasks';
 EXECUTE core.create_menu 'Finance', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'spinner', 'Tasks';
 
 EXECUTE core.create_menu 'Finance', 'Setup', 'square outline', 'configure', '';

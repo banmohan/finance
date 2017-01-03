@@ -24,6 +24,7 @@ EXECUTE core.create_menu 'Finance', 'Exchange Rates', '/dashboard/finance/tasks/
 EXECUTE core.create_menu 'Finance', 'Journal Verification', '/dashboard/finance/tasks/journal/verification', 'checkmark', 'Tasks';
 EXECUTE core.create_menu 'Finance', 'Verification Policy', '/dashboard/finance/tasks/verification-policy', 'checkmark box', 'Tasks';
 EXECUTE core.create_menu 'Finance', 'Auto Verification Policy', '/dashboard/finance/tasks/verification-policy/auto', 'check circle', 'Tasks';
+EXECUTE core.create_menu 'Finance', 'Account Reconciliation', '/dashboard/finance/tasks/account-reconciliation', 'book', 'Tasks';
 EXECUTE core.create_menu 'Finance', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'spinner', 'Tasks';
 
 EXECUTE core.create_menu 'Finance', 'Setup', 'square outline', 'configure', '';

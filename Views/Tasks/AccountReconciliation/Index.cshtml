@@ -1,0 +1,379 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "Exchange Rates";
+    Layout = ViewBag.FinanceLayoutPath;
+}
+<script src="/signalr/hubs"></script>
+
+<div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
+    <div class="ui large header" data-localize="AccountReconciliation"></div>
+    <div class="ui divider"></div>
+
+    <div class="ui form">
+        <div class="fields">
+            <div class="four wide field">
+                <label>Select Account</label>
+                <select id="AccountSelect" class="ui dropdown" data-persist></select>
+            </div>
+            <div class="field">
+                <label>From</label>
+                <input id="FromInputDate" type="text" class="date" data-persist value="-3m" />
+            </div>
+            <div class="field">
+                <label>To</label>
+                <input id="ToInputDate" type="text" class="date" data-persist value="3m" />
+            </div>
+            <div class="field">
+                <label>&nbsp;</label>
+                <div id="ShowButton" class="ui positive button">Show</div>
+            </div>
+        </div>
+    </div>
+
+    <table id="ReconciliationTable" class="ui celled striped table">
+        <thead>
+            <tr>
+                <th data-localize="Reconcile" style="width: 40px;"></th>
+                <th data-localize="Book"></th>
+                <th data-localize="BookDate"></th>
+                <th data-localize="TranId"></th>                
+                <th data-localize="ReconciliationMemo"></th>
+                <th data-localize="ReferenceNumber"></th>
+                <th data-localize="StatementReference"></th>
+                <th data-localize="Office"></th>
+                <th data-localize="Debit"></th>
+                <th data-localize="Credit"></th>
+                <th data-localize="Balance"></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div class="ui reconciliation padded segment" style="max-width: 600px;">
+        <div class="ui big header" data-localize="ReconcileTransaction"></div>
+        <div class="ui divider"></div>
+        <div class="ui form">
+            <div class="two fields">
+                <div class="field">
+                    <label data-localize="EnterNewBookDate"></label>
+                    <input  id="NewBookDateInputText" type="text" data-target="data-book-date" class="date"/>
+                </div>
+                <div class="field">
+                    <label data-localize="ReconciliationMemo"></label>
+                    <input  id="MemoInputText" type="text" data-target="data-reconciliation-memo"/>
+                </div>
+            </div>
+            <button onclick="performRequest();" class="ui positive button" data-localize="ReconcileNow"></button>
+        </div>
+
+        <div class="ui big header" data-localize="Details"></div>
+        <div class="ui divider"></div>
+        <div class="ui form">
+            <div class="two fields">
+                <div class="field">
+                    <label data-localize="TransactionId"></label>
+                    <input type="text" data-target="data-transaction-id" disabled/>
+                </div>
+                <div class="field">
+                    <label data-localize="TransactionDetailId"></label>
+                    <input id="TransactionDetailIdInputText" type="text" data-target="data-transaction-detail-id" disabled/>
+                </div>
+            </div>
+            <div class="three fields">
+                <div class="field">
+                    <label data-localize="AccountId"></label>
+                    <input type="text" data-target="data-account-id" disabled/>
+                </div>
+                <div class="field">
+                    <label data-localize="AccountNumber"></label>
+                    <input type="text" data-target="data-account-number" disabled/>
+                </div>
+                <div class="field">
+                    <label data-localize="Account"></label>
+                    <input type="text" data-target="data-account" disabled/>
+                </div>
+            </div>
+            <div class="two fields">
+                <div class="field">
+                    <label data-localize="TransactionCode"></label>
+                    <input type="text" data-target="data-tran-code" disabled/>
+                </div>
+                <div class="field">
+                    <label data-localize="ReferenceNumber"></label>
+                    <input type="text" data-target="data-reference-number" disabled/>
+                </div>
+            </div>
+            <div class="field">
+                <label data-localize="Book"></label>
+                <input type="text" data-target="data-book" disabled/>
+            </div>
+            <div class="two fields">
+                <div class="field">
+                    <label data-localize="ValueDate"></label>
+                    <input type="text" data-target="data-value-date" disabled/>
+                </div>
+                <div class="field">
+                    <label data-localize="BookDate"></label>
+                    <input type="text" data-target="data-book-date" disabled/>
+                </div>
+            </div>
+            <div class="field">
+                <label data-localize="StatementReference"></label>
+                <input type="text" data-target="data-statement-reference" disabled/>
+            </div>
+            <div class="field">
+                <label data-localize="ReconciliationMemo"></label>
+                <input type="text" data-target="data-reconciliation-memo" disabled/>
+            </div>
+            <div class="two fields">
+                <div class="field">
+                    <label data-localize="Debit"></label>
+                    <input type="text" data-target="data-debit" disabled/>
+                </div>
+                <div class="field">
+                    <label data-localize="Credit"></label>
+                    <input type="text" data-target="data-credit" disabled/>
+                </div>
+            </div>
+            <div class="two fields">
+                <div class="field">
+                    <label data-localize="PostedOn"></label>
+                    <input type="text" data-target="data-posted-on" disabled/>
+                </div>
+                <div class="field">
+                    <label data-localize="PostedBy"></label>
+                    <input type="text" data-target="data-posted-by" disabled/>
+                </div>
+                <div class="field">
+                    <label data-localize="ApprovedBy"></label>
+                    <input type="text" data-target="data-approved-by" disabled/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.localize();
+
+    function showAccounts() {
+        const url = "/api/views/finance/account-selector-view/lookup-fields";
+
+        window.displayFieldBinder($("#AccountSelect"), url, false, null, function () {
+            const key = document.location.pathname + '/AccountSelect';
+            const value = localStorage.getItem(key);
+
+            if (!value) {
+                return;
+            };
+
+            $("#AccountSelect").dropdown("set selected", value);
+
+            $("#ShowButton").trigger("click");
+        });
+    };
+
+    showAccounts();
+
+    function displayStatement(model) {
+        const target = $("#ReconciliationTable tbody").html("");
+
+        function addRow(item) {
+            function addActionCell(row) {
+                const cell = $("<td />");
+                const anchor = $("<a onclick='reconcile(this);' href='javascript:void(0);' />");
+
+                anchor.attr("data-transaction-id", item.TransactionId);
+                anchor.attr("data-transaction-detail-id", item.TransactionDetailId);
+                anchor.attr("data-value-date", item.ValueDate);
+                anchor.attr("data-book-date", item.BookDate);
+                anchor.attr("data-tran-code", item.TranCode);
+                anchor.attr("data-reference-number", item.ReferenceNumber);
+                anchor.attr("data-statement-reference", item.StatementReference);
+                anchor.attr("data-reconciliation-memo", item.ReconciliationMemo);
+                anchor.attr("data-debit", item.Debit);
+                anchor.attr("data-credit", item.Credit);
+                anchor.attr("data-office-id", item.Office);
+                anchor.attr("data-book", item.Book);
+                anchor.attr("data-account-id", item.AccountId);
+                anchor.attr("data-account-number", item.AccountNumber);
+                anchor.attr("data-account", item.Account);
+                anchor.attr("data-posted-on", item.PostedOn);
+                anchor.attr("data-posted-by", item.PostedBy);
+                anchor.attr("data-approved-by", item.ApprovedBy);
+
+                const icon = $("<i class='edit icon' />");
+                icon.appendTo(anchor);
+                anchor.appendTo(cell);
+
+                cell.appendTo(row);
+            };
+
+            function addCell(row, property, cssClass, isDate) {
+                const cell = $("<td />");
+
+                if (cssClass) {
+                    cell.addClass(cssClass);
+                };
+
+                if (item.hasOwnProperty(property)) {
+                    var value = item[property];
+
+                    if (isDate) {
+                        value = value.replace("T00:00:00Z", "");
+                    };
+
+                    cell.html(value);
+                };
+
+                row.append(cell);
+            };
+
+            const row = $("<tr />");
+            addActionCell(row);
+            addCell(row, "Book", null, true);
+            addCell(row, "BookDate", null, true);
+            addCell(row, "TransactionId");
+            addCell(row, "ReconciliationMemo");
+            addCell(row, "ReferenceNumber");
+            addCell(row, "StatementReference");
+            addCell(row, "Office");
+            addCell(row, "Debit", "right");
+            addCell(row, "Credit", "right");
+            addCell(row, "Balance", "right");
+
+            target.append(row);
+        };
+
+        $.each(model, function () {
+            addRow(this);
+        });
+    };
+
+    $("#ShowButton").off("click").on("click", function () {
+        function request(model) {
+            const url = "/dashboard/finance/tasks/account-reconciliation/statement";
+            const data = JSON.stringify(model);
+
+            return window.getAjaxRequest(url, "POST", data);
+        };
+
+        function getModel() {
+            window.removeDirty($("#AccountSelect"));
+            window.removeDirty($("#FromInputDate"));
+            window.removeDirty($("#ToInputDate"));
+
+            const from = $("#FromInputDate").val();
+            const to = $("#ToInputDate").val();
+            const accountNumber = $("#AccountSelect").val();
+
+            if (!accountNumber || accountNumber === "Select") {
+                window.makeDirty($("#AccountSelect"));
+                return null;
+            };
+
+            if (!from) {
+                window.makeDirty($("#FromInputDate"));
+                return null;
+            };
+
+            if (!to) {
+                window.makeDirty($("#ToInputDate"));
+                return null;
+            };
+
+            return {
+                From: from,
+                To: to,
+                AccountNumber: accountNumber
+            };
+        };
+
+        const model = getModel();
+
+        if (!model) {
+            return;
+        };
+
+        const ajax = request(model);
+
+        ajax.success(function (response) {
+            displayStatement(response);
+        });
+
+        ajax.fail(function (xhr) {
+            window.logAjaxErrorMessage(xhr);
+        });
+    });
+
+    function reconcile(el) {
+        el = $(el);
+        $("#ReconciliationTable tbody tr").removeClass("warning");
+        el.closest("tr").addClass("warning");
+
+        const candidates = $(".reconciliation.segment [data-target]");
+
+        $.each(candidates, function() {
+            const candidate = $(this);
+            const target = candidate.attr("data-target");
+            const value = el.attr(target);
+
+            if (value) {
+                if (candidate.is(".date")) {
+                    candidate.datepicker("setDate", new Date(value));
+                } else {
+                    candidate.val(value);
+                };
+            };
+        });
+    };
+
+    function performRequest() {
+        function request(model) {
+            const url = "/dashboard/finance/tasks/account-reconciliation";
+            const data = JSON.stringify(model);
+
+            return window.getAjaxRequest(url, "PUT", data);
+        };
+
+        function getModel() {
+            window.removeDirty($("#NewBookDateInputText"));
+
+            const transactionDetailId = $("#TransactionDetailIdInputText").val();
+            const newBookDate = $("#NewBookDateInputText").val();
+            const memo = $("#MemoInputText").val();
+
+            if (!transactionDetailId) {
+                return null;
+            };
+
+            if (!newBookDate) {
+                window.makeDirty($("#NewBookDateInputText"));
+                return null;
+            };
+
+            return {
+                TransactionDetailId: transactionDetailId,
+                NewBookDate: newBookDate,
+                Memo: memo
+            };
+        };
+
+        const model = getModel();
+        if (!model) {
+            return;            
+        };
+
+        const ajax = request(model);
+
+        ajax.success(function() {
+            window.displaySuccess();
+            $("#ShowButton").trigger("click");
+        });
+
+        ajax.fail(function(xhr) {
+            window.displayAjaxErrorMessage(xhr);
+        });
+    };
+</script>

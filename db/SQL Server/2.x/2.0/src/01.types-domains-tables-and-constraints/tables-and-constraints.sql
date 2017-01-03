@@ -301,15 +301,15 @@ WHERE deleted = 0;
 
 CREATE TABLE finance.transaction_documents
 (
-    document_id                                bigint IDENTITY PRIMARY KEY,
-    transaction_master_id                    bigint NOT NULL REFERENCES finance.transaction_master,
-    original_file_name                        national character varying(500) NOT NULL,
-    file_extension                            national character varying(50),
-    file_path                                national character varying(2000) NOT NULL,
+    document_id                             bigint IDENTITY PRIMARY KEY,
+    transaction_master_id                   bigint NOT NULL REFERENCES finance.transaction_master,
+    original_file_name                      national character varying(500) NOT NULL,
+    file_extension                          national character varying(50),
+    file_path                               national character varying(2000) NOT NULL,
     memo                                    national character varying(2000),
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)
+    deleted                                 bit DEFAULT(0)
 );
 
 
@@ -318,10 +318,11 @@ CREATE TABLE finance.transaction_details
     transaction_detail_id                   bigint IDENTITY PRIMARY KEY,
     transaction_master_id                   bigint NOT NULL REFERENCES finance.transaction_master,
     value_date                              date NOT NULL,
-    book_date                                  date NOT NULL,
+    book_date                               date NOT NULL,
     tran_type                               national character varying(4) NOT NULL CHECK(tran_type IN ('Dr', 'Cr')),
     account_id                              integer NOT NULL REFERENCES finance.accounts,
     statement_reference                     national character varying(2000),
+    reconciliation_memo                     national character varying(2000),
     cash_repository_id                      integer REFERENCES finance.cash_repositories,
     currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
     amount_in_currency                      decimal(30, 6) NOT NULL,
@@ -341,7 +342,7 @@ CREATE TABLE finance.card_types
     card_type_name                          national character varying(100) NOT NULL,
     audit_user_id                           integer REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)
+    deleted                                 bit DEFAULT(0)
 );
 
 CREATE UNIQUE INDEX card_types_card_type_code_uix
@@ -360,7 +361,7 @@ CREATE TABLE finance.payment_cards
     card_type_id                            integer NOT NULL REFERENCES finance.card_types,            
     audit_user_id                           integer NULL REFERENCES account.users,            
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)            
+    deleted                                 bit DEFAULT(0)            
 );
 
 CREATE UNIQUE INDEX payment_cards_payment_card_code_uix
@@ -383,7 +384,7 @@ CREATE TABLE finance.merchant_fee_setup
     statement_reference                     national character varying(2000) NOT NULL DEFAULT(''),
     audit_user_id                           integer NULL REFERENCES account.users,            
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
-    deleted                                    bit DEFAULT(0)            
+    deleted                                 bit DEFAULT(0)            
 );
 
 CREATE UNIQUE INDEX merchant_fee_setup_merchant_account_id_payment_card_id_uix

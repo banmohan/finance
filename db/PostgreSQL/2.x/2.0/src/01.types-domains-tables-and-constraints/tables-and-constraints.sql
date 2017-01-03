@@ -320,6 +320,7 @@ CREATE TABLE finance.transaction_details
     tran_type                               national character varying(4) NOT NULL CHECK(tran_type IN ('Dr', 'Cr')),
     account_id                              integer NOT NULL REFERENCES finance.accounts,
     statement_reference                     text,
+	reconciliation_memo						text,
     cash_repository_id                      integer REFERENCES finance.cash_repositories,
     currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
     amount_in_currency                      money_strict NOT NULL,

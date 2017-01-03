@@ -321,6 +321,7 @@ CREATE TABLE finance.transaction_details
     tran_type                               national character varying(4) NOT NULL CHECK(tran_type IN ('Dr', 'Cr')),
     account_id                              integer NOT NULL REFERENCES finance.accounts,
     statement_reference                     text,
+	reconciliation_memo						text,
     cash_repository_id                      integer REFERENCES finance.cash_repositories,
     currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
     amount_in_currency                      money_strict NOT NULL,
@@ -1129,11 +1130,14 @@ CREATE FUNCTION finance.get_account_statement
 RETURNS TABLE
 (
     id                      integer,
+	transaction_id	        bigint,
+	transaction_detail_id	bigint,
     value_date              date,
     book_date               date,
     tran_code               text,
     reference_number        text,
     statement_reference     text,
+    reconciliation_memo     text,
     debit                   numeric(30, 6),
     credit                  numeric(30, 6),
     balance                 numeric(30, 6),
@@ -1145,9 +1149,7 @@ RETURNS TABLE
     posted_on               TIMESTAMP WITH TIME ZONE,
     posted_by               text,
     approved_by             text,
-    verification_status     integer,
-    flag_bg                 text,
-    flag_fg                 text
+    verification_status     integer
 )
 AS
 $$
@@ -1160,11 +1162,14 @@ BEGIN
     CREATE TEMPORARY TABLE temp_account_statement
     (
         id                      SERIAL,
+        transaction_id	        bigint,
+		transaction_detail_id	bigint,
         value_date              date,
         book_date               date,
         tran_code               text,
         reference_number        text,
         statement_reference     text,
+		reconciliation_memo		text,
         debit                   numeric(30, 6),
         credit                  numeric(30, 6),
         balance                 numeric(30, 6),
@@ -1176,9 +1181,7 @@ BEGIN
         posted_on               TIMESTAMP WITH TIME ZONE,
         posted_by               text,
         approved_by             text,
-        verification_status     integer,
-        flag_bg                 text,
-        flag_fg                 text
+        verification_status     integer
     ) ON COMMIT DROP;
 
 
@@ -1224,13 +1227,16 @@ BEGIN
     WHERE temp_account_statement.credit < 0;
     
 
-    INSERT INTO temp_account_statement(value_date, book_date, tran_code, reference_number, statement_reference, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
+    INSERT INTO temp_account_statement(transaction_id, transaction_detail_id, value_date, book_date, tran_code, reference_number, statement_reference, reconciliation_memo, debit, credit, office, book, account_id, posted_on, posted_by, approved_by, verification_status)
     SELECT
+		finance.transaction_details.transaction_master_id,
+		finance.transaction_details.transaction_detail_id,
         finance.transaction_master.value_date,
         finance.transaction_master.book_date,
         finance.transaction_master. transaction_code,
         finance.transaction_master.reference_number::text,
         finance.transaction_details.statement_reference,
+		finance.transaction_details.reconciliation_memo,
         CASE finance.transaction_details.tran_type
         WHEN 'Dr' THEN amount_in_local_currency
         ELSE NULL END,
@@ -2782,6 +2788,54 @@ LANGUAGE plpgsql;
 --SELECT * FROM finance.perform_eod_operation(1, 1, 1, finance.get_value_date(1));
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.reconcile_account.sql --<--<--
+DROP FUNCTION IF EXISTS finance.reconcile_account
+(
+    _transaction_detail_id              bigint, 
+    _user_id                            integer,
+    _new_book_date                      date, 
+    _reconciliation_memo                text
+);
+
+CREATE FUNCTION finance.reconcile_account
+(
+    _transaction_detail_id              bigint, 
+    _user_id                            integer,
+    _new_book_date                      date, 
+    _reconciliation_memo                text
+)
+RETURNS void
+AS
+$$
+    DECLARE _transaction_master_id      bigint;
+BEGIN
+    SELECT finance.transaction_details.transaction_master_id 
+    INTO _transaction_master_id
+    FROM finance.transaction_details
+    WHERE finance.transaction_details.transaction_detail_id = _transaction_detail_id;
+
+    UPDATE finance.transaction_master
+    SET 
+        book_date               = _new_book_date,
+        audit_user_id           = _user_id,
+        audit_ts                = NOW()
+    WHERE finance.transaction_master.transaction_master_id = _transaction_master_id;
+
+
+    UPDATE finance.transaction_details
+    SET
+        book_date               = _new_book_date,
+        reconciliation_memo     = _reconciliation_memo,
+        audit_user_id           = _user_id,
+        audit_ts                = NOW()
+    WHERE finance.transaction_details.transaction_master_id = _transaction_master_id;    
+END
+$$
+LANGUAGE plpgsql;
+
+
+--SELECT * FROM finance.reconcile_account(1, 1, '1-1-2000', 'test');
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--
 DROP FUNCTION IF EXISTS finance.verify_transaction
 (
@@ -4223,6 +4277,7 @@ SELECT * FROM core.create_menu('Finance', 'Exchange Rates', '/dashboard/finance/
 SELECT * FROM core.create_menu('Finance', 'Journal Verification', '/dashboard/finance/tasks/journal/verification', 'checkmark', 'Tasks');
 SELECT * FROM core.create_menu('Finance', 'Verification Policy', '/dashboard/finance/tasks/verification-policy', 'checkmark box', 'Tasks');
 SELECT * FROM core.create_menu('Finance', 'Auto Verification Policy', '/dashboard/finance/tasks/verification-policy/auto', 'check circle', 'Tasks');
+SELECT * FROM core.create_menu('Finance', 'Account Reconciliation', '/dashboard/finance/tasks/account-reconciliation', 'book', 'Tasks');
 SELECT * FROM core.create_menu('Finance', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'spinner', 'Tasks');
 
 SELECT * FROM core.create_menu('Finance', 'Setup', 'square outline', 'configure', '');
