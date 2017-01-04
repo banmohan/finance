@@ -971,15 +971,21 @@ CREATE FUNCTION finance.eod_required(_office_id integer)
 RETURNS boolean
 AS
 $$
+    DECLARE _value_date     date = finance.get_value_date(_office_id);
 BEGIN
     RETURN finance.fiscal_year.eod_required
     FROM finance.fiscal_year
-    WHERE finance.fiscal_year.office_id = _office_id;
+    WHERE finance.fiscal_year.office_id = _office_id
+    AND NOT finance.fiscal_year.deleted
+    AND finance.fiscal_year.starts_from >= _value_date
+    AND finance.fiscal_year.ends_on <= _value_date;
 END
 $$
 LANGUAGE plpgsql;
 
 --SELECT finance.eod_required(1);
+
+
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_id_by_account_name.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_account_id_by_account_name(text);
@@ -4452,6 +4458,7 @@ DROP VIEW IF EXISTS finance.fiscal_year_scrud_view;
 CREATE VIEW finance.fiscal_year_scrud_view
 AS
 SELECT
+	finance.fiscal_year.fiscal_year_id,
 	finance.fiscal_year.fiscal_year_code,
 	finance.fiscal_year.fiscal_year_name,
 	finance.fiscal_year.starts_from,
@@ -4460,6 +4467,25 @@ SELECT
 	core.get_office_name_by_office_id(finance.fiscal_year.office_id) AS office 
 FROM finance.fiscal_year
 WHERE NOT finance.fiscal_year.deleted;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.frequency_setup_scrud_view.sql --<--<--
+DROP VIEW IF EXISTS finance.frequency_setup_scrud_view;
+
+CREATE VIEW finance.frequency_setup_scrud_view
+AS
+SELECT
+	finance.frequency_setups.frequency_setup_id,
+	finance.frequency_setups.fiscal_year_code,
+	finance.frequency_setups.frequency_setup_code,
+	finance.frequency_setups.value_date,
+	finance.frequencies.frequency_code,
+	core.get_office_name_by_office_id(finance.frequency_setups.office_id) AS office
+FROM finance.frequency_setups
+INNER JOIN finance.frequencies
+ON finance.frequencies.frequency_id = finance.frequency_setups.frequency_id
+WHERE NOT finance.frequency_setups.deleted;
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.scrud-views/finance.journal_verification_policy_scrud_view.sql --<--<--
