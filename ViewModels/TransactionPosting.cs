@@ -20,6 +20,6 @@ namespace MixERP.Finance.ViewModels
         [Required]
         public List<JournalDetail> Details { get; set; }
 
-        public List<Document> Attachemnts { get; set; }
+        public List<Document> Attachements { get; set; }
     }
 }

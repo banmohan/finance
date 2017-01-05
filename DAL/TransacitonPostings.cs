@@ -85,10 +85,7 @@ namespace MixERP.Finance.DAL
                         Deleted = false
                     };
 
-                    var insertedId =
-                        await
-                            db.InsertAsync("finance.transaction_master", "transaction_master_id", true, master)
-                                .ConfigureAwait(true);
+                    var insertedId = await db.InsertAsync("finance.transaction_master", "transaction_master_id", true, master).ConfigureAwait(true);
 
                     transactionMasterId = insertedId.To<long>();
 
@@ -135,9 +132,9 @@ namespace MixERP.Finance.DAL
                         await db.InsertAsync("finance.transaction_details", "transaction_detail_id", true, detail).ConfigureAwait(false);
                     }
 
-                    if (model.Attachemnts != null && model.Attachemnts.Count > 0)
+                    if (model.Attachements != null && model.Attachements.Count > 0)
                     {
-                        foreach (var item in model.Attachemnts)
+                        foreach (var item in model.Attachements)
                         {
                             var document = new TransactionDocument
                             {
