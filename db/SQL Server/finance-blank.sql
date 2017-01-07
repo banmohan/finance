@@ -145,8 +145,8 @@ CREATE TABLE finance.accounts
     account_number                          national character varying(24) NOT NULL,
     external_code                           national character varying(24) NULL CONSTRAINT accounts_external_code_df DEFAULT(''),
     currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
-    account_name                            national character varying(100) NOT NULL,
-    description                             national character varying(200) NULL,
+    account_name                            national character varying(500) NOT NULL,
+    description                             national character varying(1000) NULL,
     confidential                            bit NOT NULL CONSTRAINT accounts_confidential_df DEFAULT(0),
     is_transaction_node                     bit NOT NULL --Non transaction nodes cannot be used in transaction.
                                             CONSTRAINT accounts_is_transaction_node_df DEFAULT(1),
