@@ -156,6 +156,7 @@
     <Compile Include="AreaRegistration.cs" />
     <Compile Include="Cache\Dates.cs" />
     <Compile Include="Controllers\Backend\HomeController.cs" />
+    <Compile Include="Controllers\Backend\Reports\PlAccountController.cs" />
     <Compile Include="Controllers\Backend\Services\AccountController.cs" />
     <Compile Include="Controllers\Backend\Services\CashRepositoryController.cs" />
     <Compile Include="Controllers\Backend\Services\CurrencyController.cs" />
@@ -175,6 +176,11 @@
     <Compile Include="Controllers\Backend\Tasks\ExchangeRateController.cs" />
     <Compile Include="Controllers\Backend\Tasks\JournalEntryController.cs" />
     <Compile Include="Controllers\Backend\Tasks\JournalVerificationController.cs" />
+    <Compile Include="DAL\PlStatement\IPlStatement.cs" />
+    <Compile Include="QueryModels\PlAccountQueryModel.cs" />
+    <Compile Include="DAL\PlStatement\PostgreSQL.cs" />
+    <Compile Include="DAL\PlStatement\SqlServer.cs" />
+    <Compile Include="DAL\ProfitLossStatement.cs" />
     <Compile Include="DAL\Reconciliations.cs" />
     <Compile Include="DAL\Verifications.cs" />
     <Compile Include="DTO\TransactionVerificationStatusView.cs" />
@@ -257,6 +263,7 @@
     <Content Include="Views\Tasks\AccountReconciliation\Index.cshtml" />
     <Content Include="Views\Setup\FiscalYears.cshtml" />
     <Content Include="Views\Setup\FrequencySetups.cshtml" />
+    <Content Include="Views\Reports\PlAccount.cshtml" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -264,10 +271,7 @@
       <DependentUpon>web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Controllers\Backend\Reports\" />
-    <Folder Include="Views\Reports\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

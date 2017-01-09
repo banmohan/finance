@@ -1,0 +1,165 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "Bank Accounts";
+    Layout = ViewBag.Layout;
+}
+
+<div class="ui attached padded segment">
+    <div class="ui huge header">Profit and Loss Statement</div>
+    <div id="PlAccountQueryForm" class="ui form">
+        <div class="fields">
+            <div class="field">
+                <label>From</label>
+                <input id="FromInputText" type="text" class="date" data-persist value="BOY" />
+            </div>
+            <div class="field">
+                <label>To</label>
+                <input id="ToInputText" type="text" class="date" data-persist value="BOM" />
+            </div>
+            <div class="field">
+                <label>Factor</label>
+                <input id="FactorInputText" type="text" class="integer" data-persist value="1" />
+            </div>
+            <div class="field">
+                <label>Show Compact</label>
+                <div class="ui toggle checkbox vpad8">
+                    <input id="CompactCheckbox" tabindex="0" class="hidden" type="checkbox">
+                    <label>Show Compact</label>
+                </div>
+            </div>
+            <div class="field">
+                <label>&nbsp;</label>
+                <button id="ShowButton" class="ui positive show button">Show</button>
+                <button id="PrintButton" class="ui basic print button">Print</button>
+            </div>
+        </div>
+    </div>
+
+    <table id="PLAccountGridView" class="ui definition celled segment table nowrap">
+        <thead></thead>
+        <tbody></tbody>
+    </table>
+</div>
+<style>
+    th[rowspan] {
+        border: 1px solid #D4D4D5;
+    }
+</style>
+<script type="text/javascript">
+    window.loadDatepicker();
+    $(".ui.checkbox").checkbox();
+
+    var plAccountGridView = $("#PLAccountGridView");
+    var compactCheckBox = $("#CompactCheckbox");
+
+    function createTable(model) {
+        const head = $("#PLAccountGridView thead").html("");
+        const body = $("#PLAccountGridView tbody").html("");
+
+        function createHeader() {
+            const row = $("<tr />");
+
+            // ReSharper disable once MissingHasOwnPropertyInForeach
+            for (let key in model[0]) {
+                const cell = $("<th />");
+                cell.html(key).appendTo(row);
+            };
+
+            row.appendTo(head);
+        };
+
+        function createRow(data) {
+            const row = $("<tr />");
+            const keys = Object.keys(data);
+            const length = Object.keys(data).length;
+
+            for (let i = 0; i < length; i++) {
+                const cell = $("<td />");
+                const text = data[keys[i]];
+                cell.html(text).appendTo(row);
+            };
+
+            row.appendTo(body);
+        };
+
+        function createBody() {
+            $.each(model, function() {
+                createRow(this);
+            });
+        };
+
+        createHeader();
+        createBody();
+    };
+
+    $(".show.button").off("click").on("click", function () {
+        function request(model) {
+            const url = "/dashboard/finance/reports/pl-account";
+            const data = JSON.stringify(model);
+
+            return window.getAjaxRequest(url, "POST", data);
+        };
+
+        function getModel() {
+            return window.serializeForm($("#PlAccountQueryForm"));
+        };
+
+        const model = getModel();
+        const ajax = request(model);
+
+        ajax.success(function (response) {
+            createTable(response);
+            prepareGrid();
+        });
+
+        ajax.fail(function (xhr) {
+            window.logAjaxErrorMessage(xhr);
+        });
+    });
+
+    function prepareGrid() {
+        plAccountGridView.find("tr").each(function () {
+            const isSummation = $(this).find("td:last, th:last");
+
+            if (isSummation.find("input").is(":checked") === true) {
+                $(this).addClass("positive");
+                $(this).find("td").addClass("strong");
+            };
+
+            isSummation.remove();
+
+            const isProfit = $(this).find("td:last, th:last");
+
+            if (isProfit.find("input").is(":checked") === true) {
+                $(this).addClass("negative");
+                $(this).find("td").addClass("strong");
+            };
+            isProfit.hide();
+        });
+
+        plAccountGridView.find("tr").each(function () {
+            if ($(this).is(".positive, .negative") === false) {
+                const cell = $(this).find("td:first-child");
+                cell.html("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + cell.html());
+            };
+        });
+    };
+
+    var printButton = $("#PrintButton");
+
+    printButton.click(function () {
+        const templatePath = "/Reports/Print.html";
+        const headerPath = "/Reports/Assets/Header.aspx";
+        const title = $("h2").html();
+        const targetControlId = "PLAccountGridView";
+        const date = now;
+        const windowName = "PLAccountGridView";
+        const offsetFirst = 0;
+        const offsetLast = 1;
+
+        alert("todo");
+        //window.printGridView(templatePath, headerPath, title, targetControlId, date, user, office, windowName, offsetFirst, offsetLast);
+    });
+
+</script>
