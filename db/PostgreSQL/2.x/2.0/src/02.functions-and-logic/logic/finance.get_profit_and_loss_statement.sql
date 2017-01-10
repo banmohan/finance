@@ -25,7 +25,7 @@ $$
     DECLARE _json                   json;
     DECLARE this                    RECORD;
     DECLARE _balance                numeric(30, 6);
-    DECLARE _is_periodic            boolean = finance.is_periodic_inventory(_office_id);
+    DECLARE _is_periodic            boolean = inventory.is_periodic_inventory(_office_id);
 BEGIN    
     DROP TABLE IF EXISTS pl_temp;
     CREATE TEMPORARY TABLE pl_temp
@@ -85,15 +85,15 @@ BEGIN
     UPDATE pl_temp SET is_profit = true WHERE item_id IN(6000,8000, 12000, 14000);
     
     INSERT INTO pl_temp(item_id, account_id, item, parent_item_id, is_debit)
-    SELECT id, account_id, account_name, 1000 as parent_item_id, false as is_debit FROM core.get_account_view_by_account_master_id(20100, 1000) UNION ALL--Sales Accounts
-    SELECT id, account_id, account_name, 2000 as parent_item_id, true as is_debit FROM core.get_account_view_by_account_master_id(20400, 2001) UNION ALL--COGS Accounts
-    SELECT id, account_id, account_name, 5000 as parent_item_id, true as is_debit FROM core.get_account_view_by_account_master_id(20500, 5000) UNION ALL--Direct Cost
-    SELECT id, account_id, account_name, 7000 as parent_item_id, true as is_debit FROM core.get_account_view_by_account_master_id(20600, 7000) UNION ALL--Operating Expenses
-    SELECT id, account_id, account_name, 9000 as parent_item_id, false as is_debit FROM core.get_account_view_by_account_master_id(20200, 9000) UNION ALL--Nonoperating Incomes
-    SELECT id, account_id, account_name, 10000 as parent_item_id, false as is_debit FROM core.get_account_view_by_account_master_id(20300, 10000) UNION ALL--Financial Incomes
-    SELECT id, account_id, account_name, 11000 as parent_item_id, true as is_debit FROM core.get_account_view_by_account_master_id(20700, 11000) UNION ALL--Financial Expenses
-    SELECT id, account_id, account_name, 11100 as parent_item_id, true as is_debit FROM core.get_account_view_by_account_master_id(20701, 11100) UNION ALL--Interest Expenses
-    SELECT id, account_id, account_name, 13000 as parent_item_id, true as is_debit FROM core.get_account_view_by_account_master_id(20800, 13001);--Income Tax Expenses
+    SELECT id, account_id, account_name, 1000 as parent_item_id, false as is_debit FROM finance.get_account_view_by_account_master_id(20100, 1000) UNION ALL--Sales Accounts
+    SELECT id, account_id, account_name, 2000 as parent_item_id, true as is_debit FROM finance.get_account_view_by_account_master_id(20400, 2001) UNION ALL--COGS Accounts
+    SELECT id, account_id, account_name, 5000 as parent_item_id, true as is_debit FROM finance.get_account_view_by_account_master_id(20500, 5000) UNION ALL--Direct Cost
+    SELECT id, account_id, account_name, 7000 as parent_item_id, true as is_debit FROM finance.get_account_view_by_account_master_id(20600, 7000) UNION ALL--Operating Expenses
+    SELECT id, account_id, account_name, 9000 as parent_item_id, false as is_debit FROM finance.get_account_view_by_account_master_id(20200, 9000) UNION ALL--Nonoperating Incomes
+    SELECT id, account_id, account_name, 10000 as parent_item_id, false as is_debit FROM finance.get_account_view_by_account_master_id(20300, 10000) UNION ALL--Financial Incomes
+    SELECT id, account_id, account_name, 11000 as parent_item_id, true as is_debit FROM finance.get_account_view_by_account_master_id(20700, 11000) UNION ALL--Financial Expenses
+    SELECT id, account_id, account_name, 11100 as parent_item_id, true as is_debit FROM finance.get_account_view_by_account_master_id(20701, 11100) UNION ALL--Interest Expenses
+    SELECT id, account_id, account_name, 13000 as parent_item_id, true as is_debit FROM finance.get_account_view_by_account_master_id(20800, 13001);--Income Tax Expenses
 
     IF(NOT _is_periodic) THEN
         DELETE FROM pl_temp WHERE item_id IN(2001, 3000, 4000);
@@ -126,13 +126,13 @@ BEGIN
         --In perpetual accounting system, one would not need to include these headings 
         --because the COGS A/C would be automatically updated on each transaction.
         IF(_is_periodic) THEN
-            _sql := 'UPDATE pl_temp SET "' || this.period_name || '"=finance.get_closing_stock(''' || (this.date_from::TIMESTAMP - INTERVAL '1 day')::text ||  ''', ' || _office_id::text || ') WHERE item_id=2001;';
+            _sql := 'UPDATE pl_temp SET "' || this.period_name || '"=transactions.get_closing_stock(''' || (this.date_from::TIMESTAMP - INTERVAL '1 day')::text ||  ''', ' || _office_id::text || ') WHERE item_id=2001;';
             EXECUTE _sql;
 
-            _sql := 'UPDATE pl_temp SET "' || this.period_name || '"=finance.get_purchase(''' || this.date_from::text ||  ''', ''' || this.date_to::text || ''', ' || _office_id::text || ') *-1 WHERE item_id=3000;';
+            _sql := 'UPDATE pl_temp SET "' || this.period_name || '"=transactions.get_purchase(''' || this.date_from::text ||  ''', ''' || this.date_to::text || ''', ' || _office_id::text || ') *-1 WHERE item_id=3000;';
             EXECUTE _sql;
 
-            _sql := 'UPDATE pl_temp SET "' || this.period_name || '"=finance.get_closing_stock(''' || this.date_from::text ||  ''', ' || _office_id::text || ') WHERE item_id=4000;';
+            _sql := 'UPDATE pl_temp SET "' || this.period_name || '"=transactions.get_closing_stock(''' || this.date_from::text ||  ''', ' || _office_id::text || ') WHERE item_id=4000;';
             EXECUTE _sql;
         END IF;
     END LOOP;
@@ -158,6 +158,7 @@ BEGIN
     INTO _sql
     FROM explode_array(_periods);
     EXECUTE _sql;
+    
 
     --Updating Gross Profit.
     --Gross Profit = Revenue - (Cost of Sales + Direct Costs)
@@ -231,7 +232,8 @@ BEGIN
     SELECT * INTO this FROM pl_temp WHERE item_id = 12000;
     
     _sql := 'UPDATE pl_temp SET amount = finance.get_income_tax_provison_amount(' || _office_id::text || ',' || this.amount::text || ',(SELECT amount FROM pl_temp WHERE item_id = 13000)), ' 
-    || array_to_string(array_agg('"' || period_name || '"=finance.get_income_tax_provison_amount(' || _office_id::text || ',' || core.get_field(hstore(this.*), period_name) || ', (SELECT "' || period_name || '" FROM pl_temp WHERE item_id = 13000))'), ',')
+    || array_to_string(array_agg('"' || period_name || '"=finance.get_income_tax_provison_amount(' || _office_id::text || ',' || 
+    core.get_hstore_field(hstore(this.*), period_name) || ', (SELECT "' || period_name || '" FROM pl_temp WHERE item_id = 13000))'), ',')
             || ' WHERE item_id = 13001;'
     FROM explode_array(_periods);
 
@@ -326,3 +328,13 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+
+-- SELECT * FROM finance.get_profit_and_loss_statement
+-- (
+--     '1-1-2010',
+--     '1-1-2020',
+--     1,
+--     1,
+--     1,
+--     FALSE
+-- );

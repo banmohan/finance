@@ -4,9 +4,9 @@ using Frapid.DataAccess;
 using MixERP.Finance.QueryModels;
 using Newtonsoft.Json;
 
-namespace MixERP.Finance.DAL.PlStatement
+namespace MixERP.Finance.DAL.ProfitLoss
 {
-    public sealed class PostgreSQL : IPlStatement
+    public sealed class PostgreSQL : IProfitLoss
     {
         public async Task<IEnumerable<dynamic>> GetAsync(string tenant, PlAccountQueryModel query)
         {

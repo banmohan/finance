@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using MixERP.Finance.QueryModels;
 
-namespace MixERP.Finance.DAL.PlStatement
+namespace MixERP.Finance.DAL.ProfitLoss
 {
-    public interface IPlStatement
+    public interface IProfitLoss
     {
         Task<IEnumerable<dynamic>> GetAsync(string tenant, PlAccountQueryModel query);
     }

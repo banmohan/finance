@@ -1,13 +1,13 @@
 ﻿@model dynamic
 
 @{
-    ViewBag.Title = "Profit and Loss Statement";
+    ViewBag.Title = "Cash Flow Statement";
     Layout = ViewBag.Layout;
 }
 
 <div class="ui attached padded segment">
-    <div class="ui huge header">Profit and Loss Statement</div>
-    <div id="PlAccountQueryForm" class="ui form">
+    <div class="ui huge header">Cash Flow Statement</div>
+    <div id="CashFlowQueryForm" class="ui form">
         <div class="fields">
             <div class="field">
                 <label>From</label>
@@ -22,13 +22,6 @@
                 <input id="FactorInputText" type="text" class="integer" data-persist value="1" />
             </div>
             <div class="field">
-                <label>Show Compact</label>
-                <div class="ui toggle checkbox vpad8">
-                    <input id="CompactCheckbox" tabindex="0" class="hidden" type="checkbox">
-                    <label>Show Compact</label>
-                </div>
-            </div>
-            <div class="field">
                 <label>&nbsp;</label>
                 <button id="ShowButton" class="ui positive show button">Show</button>
                 <button id="PrintButton" class="ui basic print button">Print</button>
@@ -36,7 +29,7 @@
         </div>
     </div>
 
-    <table id="PLAccountGridView" class="ui definition celled segment table nowrap">
+    <table id="CashFlowGridView" class="ui definition celled segment table nowrap">
         <thead></thead>
         <tbody></tbody>
     </table>
@@ -50,12 +43,12 @@
     window.loadDatepicker();
     $(".ui.checkbox").checkbox();
 
-    var plAccountGridView = $("#PLAccountGridView");
+    var CashFlowGridView = $("#CashFlowGridView");
     var compactCheckBox = $("#CompactCheckbox");
 
     function createTable(model) {
-        const head = $("#PLAccountGridView thead").html("");
-        const body = $("#PLAccountGridView tbody").html("");
+        const head = $("#CashFlowGridView thead").html("");
+        const body = $("#CashFlowGridView tbody").html("");
 
         function createHeader() {
             const row = $("<tr />");
@@ -95,14 +88,14 @@
 
     $(".show.button").off("click").on("click", function () {
         function request(model) {
-            const url = "/dashboard/finance/reports/pl-account";
+            const url = "/dashboard/finance/reports/cash-flow";
             const data = JSON.stringify(model);
 
             return window.getAjaxRequest(url, "POST", data);
         };
 
         function getModel() {
-            return window.serializeForm($("#PlAccountQueryForm"));
+            return window.serializeForm($("#CashFlowQueryForm"));
         };
 
         const model = getModel();
@@ -119,7 +112,7 @@
     });
 
     function prepareGrid() {
-        plAccountGridView.find("tr").each(function () {
+        CashFlowGridView.find("tr").each(function () {
             const isSummation = $(this).find("td:last, th:last");
 
             if (isSummation.find("input").is(":checked") === true) {
@@ -138,7 +131,7 @@
             isProfit.hide();
         });
 
-        plAccountGridView.find("tr").each(function () {
+        CashFlowGridView.find("tr").each(function () {
             if ($(this).is(".positive, .negative") === false) {
                 const cell = $(this).find("td:first-child");
                 cell.html("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + cell.html());
@@ -152,9 +145,9 @@
         const templatePath = "/Reports/Print.html";
         const headerPath = "/Reports/Assets/Header.aspx";
         const title = $("h2").html();
-        const targetControlId = "PLAccountGridView";
+        const targetControlId = "CashFlowGridView";
         const date = now;
-        const windowName = "PLAccountGridView";
+        const windowName = "CashFlowGridView";
         const offsetFirst = 0;
         const offsetLast = 1;
 

@@ -156,6 +156,7 @@
     <Compile Include="AreaRegistration.cs" />
     <Compile Include="Cache\Dates.cs" />
     <Compile Include="Controllers\Backend\HomeController.cs" />
+    <Compile Include="Controllers\Backend\Reports\CashFlowController.cs" />
     <Compile Include="Controllers\Backend\Reports\PlAccountController.cs" />
     <Compile Include="Controllers\Backend\Services\AccountController.cs" />
     <Compile Include="Controllers\Backend\Services\CashRepositoryController.cs" />
@@ -176,10 +177,15 @@
     <Compile Include="Controllers\Backend\Tasks\ExchangeRateController.cs" />
     <Compile Include="Controllers\Backend\Tasks\JournalEntryController.cs" />
     <Compile Include="Controllers\Backend\Tasks\JournalVerificationController.cs" />
-    <Compile Include="DAL\PlStatement\IPlStatement.cs" />
+    <Compile Include="DAL\CashFlowStatement.cs" />
+    <Compile Include="DAL\CashFlow\IProfitLoss.cs" />
+    <Compile Include="DAL\CashFlow\PostgreSQL.cs" />
+    <Compile Include="DAL\CashFlow\SqlServer.cs" />
+    <Compile Include="DAL\ProfitLoss\IProfitLoss.cs" />
+    <Compile Include="QueryModels\CashFlowStatementQueryModel.cs" />
     <Compile Include="QueryModels\PlAccountQueryModel.cs" />
-    <Compile Include="DAL\PlStatement\PostgreSQL.cs" />
-    <Compile Include="DAL\PlStatement\SqlServer.cs" />
+    <Compile Include="DAL\ProfitLoss\PostgreSQL.cs" />
+    <Compile Include="DAL\ProfitLoss\SqlServer.cs" />
     <Compile Include="DAL\ProfitLossStatement.cs" />
     <Compile Include="DAL\Reconciliations.cs" />
     <Compile Include="DAL\Verifications.cs" />
@@ -264,6 +270,7 @@
     <Content Include="Views\Setup\FiscalYears.cshtml" />
     <Content Include="Views\Setup\FrequencySetups.cshtml" />
     <Content Include="Views\Reports\PlAccount.cshtml" />
+    <Content Include="Views\Reports\CashFlow.cshtml" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
