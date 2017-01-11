@@ -3558,7 +3558,7 @@ BEGIN
 
             SELECT @total_rows = MAX(routine_id) FROM @this;
 
-            WHILE @counter<@total_rows
+            WHILE @counter <= @total_rows
             BEGIN
                 SELECT TOP 1 
                     @routine_id = routine_id,
