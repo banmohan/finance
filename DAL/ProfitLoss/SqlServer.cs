@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using Frapid.DataAccess;
 using MixERP.Finance.QueryModels;
 
-namespace MixERP.Finance.DAL.PlStatement
+namespace MixERP.Finance.DAL.ProfitLoss
 {
-    public sealed class SqlServer : IPlStatement
+    public sealed class SqlServer : IProfitLoss
     {
         public async Task<IEnumerable<dynamic>> GetAsync(string tenant, PlAccountQueryModel query)
         {

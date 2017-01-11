@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Frapid.Configuration.Db;
 using Frapid.Mapper.Database;
-using MixERP.Finance.DAL.ProfitLoss;
+using MixERP.Finance.DAL.CashFlow;
 using MixERP.Finance.QueryModels;
 
 namespace MixERP.Finance.DAL
 {
-    public static class ProfitLossStatement
+    public static class CashFlowStatement
     {
-        private static IProfitLoss GetService(string tenant)
+        private static ICashFlow GetService(string tenant)
         {
             string providerName = DbProvider.GetProviderName(tenant);
             var type = DbProvider.GetDbType(providerName);
@@ -29,7 +29,7 @@ namespace MixERP.Finance.DAL
         }
 
 
-        public static async Task<IEnumerable<dynamic>> GetAsync(string tenant, PlAccountQueryModel query)
+        public static async Task<IEnumerable<dynamic>> GetAsync(string tenant, CashFlowStatementQueryModel query)
         {
             var service = GetService(tenant);
             return await service.GetAsync(tenant, query).ConfigureAwait(false);

@@ -76,17 +76,17 @@ BEGIN
     SELECT  60000,  'Cash and cash equivalents, end of period',         false,  true;    
 
     INSERT INTO cf_temp(item_id, item, parent_item_id, is_debit, is_sales, is_purchase)
-    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 20000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'O' UNION ALL
-    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 30000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'I' UNION ALL 
-    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 40000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'F';
+    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 20000,  is_debit,   is_sales,   is_purchase FROM finance.cash_flow_headings WHERE cash_flow_heading_type = 'O' UNION ALL
+    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 30000,  is_debit,   is_sales,   is_purchase FROM finance.cash_flow_headings WHERE cash_flow_heading_type = 'I' UNION ALL 
+    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 40000,  is_debit,   is_sales,   is_purchase FROM finance.cash_flow_headings WHERE cash_flow_heading_type = 'F';
 
     INSERT INTO cf_temp(item_id, item, parent_item_id, is_debit, account_master_id)
-    SELECT core.account_masters.account_master_id + 50000, core.account_masters.account_master_name,  core.cash_flow_setup.cash_flow_heading_id, core.cash_flow_headings.is_debit, core.account_masters.account_master_id
-    FROM core.cash_flow_setup
-    INNER JOIN core.account_masters
-    ON core.cash_flow_setup.account_master_id = core.account_masters.account_master_id
-    INNER JOIN core.cash_flow_headings
-    ON core.cash_flow_setup.cash_flow_heading_id = core.cash_flow_headings.cash_flow_heading_id;
+    SELECT finance.account_masters.account_master_id + 50000, finance.account_masters.account_master_name,  finance.cash_flow_setup.cash_flow_heading_id, finance.cash_flow_headings.is_debit, finance.account_masters.account_master_id
+    FROM finance.cash_flow_setup
+    INNER JOIN finance.account_masters
+    ON finance.cash_flow_setup.account_master_id = finance.account_masters.account_master_id
+    INNER JOIN finance.cash_flow_headings
+    ON finance.cash_flow_setup.cash_flow_heading_id = finance.cash_flow_headings.cash_flow_heading_id;
 
     /**************************************************************************************************************************************************************************************
         CASHFLOW TABLE STRUCTURE END
@@ -176,7 +176,7 @@ BEGIN
         ''' AND office_id IN (SELECT * FROM core.get_office_ids(' || _office_id::text || '))
         )
         WHERE cf_temp.is_sales;';
-        RAISE NOTICE '%', _SQL;
+
         EXECUTE _sql;
 
         --Closing cash balance.
@@ -217,7 +217,7 @@ BEGIN
     INTO _sql
     FROM explode_array(_periods);
 
-        RAISE NOTICE '%', _SQL;
+
     EXECUTE _sql;
 
 
@@ -273,3 +273,6 @@ BEGIN
 END
 $$
 LANGUAGE plpgsql;
+
+
+--SELECT * FROM finance.get_cash_flow_statement('1-1-2000','1-1-2020', 1, 1, 1);
