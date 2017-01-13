@@ -179,11 +179,6 @@ BEGIN
     WHERE temp_account_statement.account_id = finance.accounts.account_id;
 
 
---     UPDATE temp_account_statement SET
---         flag_bg = core.get_flag_background_color(core.get_flag_type_id(_user_id, 'account_statement', 'transaction_code', temp_account_statement.tran_code::text)),
---         flag_fg = core.get_flag_foreground_color(core.get_flag_type_id(_user_id, 'account_statement', 'transaction_code', temp_account_statement.tran_code::text));
-
-
     IF(_normally_debit) THEN
         UPDATE temp_account_statement SET balance = temp_account_statement.balance * -1;
     END IF;

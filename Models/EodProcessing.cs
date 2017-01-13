@@ -54,7 +54,7 @@ namespace MixERP.Finance.Models
         private static async Task SendNotificationAsync(string tenant, LoginView meta)
         {
             string message = "EOD operation has begun now.";
-            await FeedHelper.CreateNotificationFeedAsync(tenant, message, "Finance", meta).ConfigureAwait(false);
+            await FeedHelper.CreateNotificationFeedAsync(tenant, meta.OfficeId, message, "Finance", meta).ConfigureAwait(false);
         }
     }
 }

@@ -2112,441 +2112,6 @@ END;
 GO
 
 
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_profit_and_loss_statement.sql --<--<--
-IF OBJECT_ID('finance.get_profit_and_loss_statement') IS NOT NULL
-DROP PROCEDURE finance.get_profit_and_loss_statement;
-
-GO
-
-CREATE PROCEDURE finance.get_profit_and_loss_statement
-(
-    @date_from                      date,
-    @date_to                        date,
-    @user_id                        integer,
-    @office_id                      integer,
-    @factor                         integer,
-    @compact                        bit = 0
-)
-AS
-BEGIN    
-	SET NOCOUNT ON;
-	SET XACT_ABORT ON;
-
-	DECLARE @periods TABLE
-	(
-		id					integer IDENTITY,
-		period_name			national character varying(1000),
-		date_from			date,
-		date_to				date
-	);
-	
-	DECLARE @cursor					CURSOR;
-	DECLARE @sql					national character varying(MAX);
-	DECLARE @periods_csv			national character varying(MAX);
-	DECLARE @period_name			national character varying(1000);
-	DECLARE @period_from			date;
-	DECLARE @period_to				date;
-    DECLARE @balance                numeric(30, 6);
-    DECLARE @is_periodic            bit = inventory.is_periodic_inventory(@office_id);
-	DECLARE @profit					numeric(30, 6);
-
-    CREATE TABLE #pl_temp
-    (
-        item_id                     integer PRIMARY KEY,
-        item                        text,
-        account_id                  integer,
-        parent_item_id              integer REFERENCES #pl_temp(item_id),
-        is_profit                   bit DEFAULT(0),
-        is_summation                bit DEFAULT(0),
-        is_debit                    bit DEFAULT(0),
-        amount                      decimal(24, 4) DEFAULT(0)
-    );
-
-    IF(COALESCE(@factor, 0) = 0)
-	BEGIN
-        SET @factor = 1;
-    END;
-
-	INSERT INTO @periods(period_name, date_from, date_to)
-    SELECT * FROM finance.get_periods(@date_from, @date_to)
-	ORDER BY date_from;
-
-    IF NOT EXISTS(SELECT TOP 1 0 FROM @periods)
-	BEGIN
-        RAISERROR('Invalid period specified.', 10, 1);
-		RETURN;
-    END;
-
-	SET @cursor = CURSOR FOR 
-	SELECT period_name FROM @periods
-	ORDER BY id
-	OPEN @cursor
-	FETCH NEXT FROM @cursor INTO @period_name
-	WHILE @@FETCH_STATUS = 0
-	BEGIN
-		 EXECUTE('ALTER TABLE #pl_temp ADD "' + @period_name + '" decimal(24, 4) DEFAULT(0);');
-
-		 FETCH NEXT FROM @cursor INTO @period_name;
-	END
-	CLOSE @cursor
-	DEALLOCATE @cursor
-
-
-    --PL structure setup start
-    INSERT INTO #pl_temp(item_id, item, is_summation, parent_item_id)
-    SELECT 1000,   'Revenue',                      1,   NULL	UNION ALL
-    SELECT 2000,   'Cost of Sales',                1,   NULL	UNION ALL
-    SELECT 2001,   'Opening Stock',                0,  1000     UNION ALL
-    SELECT 3000,   'Purchases',                    0,  1000     UNION ALL
-    SELECT 4000,   'Closing Stock',                0,  1000     UNION ALL
-    SELECT 5000,   'Direct Costs',                 1,   NULL	UNION ALL
-    SELECT 6000,   'Gross Profit',                 0,  NULL		UNION ALL
-    SELECT 7000,   'Operating Expenses',           1,   NULL	UNION ALL
-    SELECT 8000,   'Operating Profit',             0,  NULL		UNION ALL
-    SELECT 9000,   'Nonoperating Incomes',         1,   NULL	UNION ALL
-    SELECT 10000,  'Financial Incomes',            1,   NULL	UNION ALL
-    SELECT 11000,  'Financial Expenses',           1,   NULL	UNION ALL
-    SELECT 11100,  'Interest Expenses',            1,   11000	UNION ALL
-    SELECT 12000,  'Profit Before Income Taxes',   0,  NULL		UNION ALL
-    SELECT 13000,  'Income Taxes',                 1,   NULL	UNION ALL
-    SELECT 13001,  'Income Tax Provison',          0,  13000    UNION ALL
-    SELECT 14000,  'Net Profit',                   1,   NULL;
-
-    UPDATE #pl_temp SET is_debit = 1 WHERE item_id IN(2001, 3000, 4000);
-    UPDATE #pl_temp SET is_profit = 1 WHERE item_id IN(6000,8000, 12000, 14000);
-    
-    INSERT INTO #pl_temp(item_id, account_id, item, parent_item_id, is_debit)
-    SELECT id, account_id, account_name, 1000 as parent_item_id, 0 as is_debit FROM finance.get_account_view_by_account_master_id(20100, 1000) UNION ALL--Sales Accounts
-    SELECT id, account_id, account_name, 2000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20400, 2001) UNION ALL--COGS Accounts
-    SELECT id, account_id, account_name, 5000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20500, 5000) UNION ALL--Direct Cost
-    SELECT id, account_id, account_name, 7000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20600, 7000) UNION ALL--Operating Expenses
-    SELECT id, account_id, account_name, 9000 as parent_item_id, 0 as is_debit FROM finance.get_account_view_by_account_master_id(20200, 9000) UNION ALL--Nonoperating Incomes
-    SELECT id, account_id, account_name, 10000 as parent_item_id, 0 as is_debit FROM finance.get_account_view_by_account_master_id(20300, 10000) UNION ALL--Financial Incomes
-    SELECT id, account_id, account_name, 11000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20700, 11000) UNION ALL--Financial Expenses
-    SELECT id, account_id, account_name, 11100 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20701, 11100) UNION ALL--Interest Expenses
-    SELECT id, account_id, account_name, 13000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20800, 13001);--Income Tax Expenses
-
-    IF(@is_periodic = 0)
-	BEGIN
-        DELETE FROM #pl_temp WHERE item_id IN(2001, 3000, 4000);
-    END;
-    --PL structure setup end
-
-
-	SET @cursor = CURSOR FOR 
-	SELECT period_name, date_from, date_to FROM @periods
-	ORDER BY id
-	OPEN @cursor
-	FETCH NEXT FROM @cursor INTO @period_name, @period_from, @period_to
-	WHILE @@FETCH_STATUS = 0
-	BEGIN
-		EXECUTE
-		(
-			'UPDATE #pl_temp SET "' + @period_name + '"="trans".total_amount
-			FROM
-			(
-				SELECT finance.verified_transaction_mat_view.account_id,
-				SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
-				SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
-			FROM finance.verified_transaction_mat_view
-			WHERE value_date >=''' + @period_from + ''' AND value_date <=''' + @period_to +
-			''' AND office_id IN (SELECT * FROM core.get_office_ids(' + @office_id + '))
-			GROUP BY finance.verified_transaction_mat_view.account_id
-			) AS trans
-			WHERE "trans".account_id = #pl_temp.account_id'
-		);
-
-        --Updating credit balances of individual GL accounts.
-        EXECUTE
-		(
-			'UPDATE #pl_temp SET "' + @period_name + '"="trans".total_amount
-			FROM
-			(
-				SELECT finance.verified_transaction_mat_view.account_id,
-				SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
-				SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
-			FROM finance.verified_transaction_mat_view
-			WHERE value_date >=''' + @period_from + ''' AND value_date <=''' + @period_to +
-			''' AND office_id IN (SELECT * FROM core.get_office_ids(' + @office_id + '))
-			GROUP BY finance.verified_transaction_mat_view.account_id
-			) AS trans
-			WHERE "trans".account_id = #pl_temp.account_id'
-		);
-
-        --Reversing to debit balance for expense headings.
-        EXECUTE('UPDATE #pl_temp SET "' + @period_name + '"="' + @period_name + '"*-1 WHERE is_debit = 1;');
-
-        --Getting purchase and stock balances if this is a periodic inventory system.
-        --In perpetual accounting system, one would not need to include these headings 
-        --because the COGS A/C would be automatically updated on each transaction.
-        IF(@is_periodic = 1)
-		BEGIN
-			SET @sql = 'UPDATE #pl_temp 
-				SET "' + @period_name + '"=transactions.get_closing_stock(''' + CAST(DATEADD(DAY, -1, @period_from) AS varchar) +  ''', ' + @office_id + ') 
-				WHERE item_id=2001;'
- 
-            EXECUTE(@sql);
-
-            EXECUTE
-			(
-				'UPDATE #pl_temp 
-				SET "' + @period_name + '"=transactions.get_purchase(''' + @period_from +  ''', ''' + @period_to + ''', ' + @office_id + ') *-1 
-				WHERE item_id=3000;'
-			);
-
-            EXECUTE
-			(			
-				'UPDATE #pl_temp 
-				SET "' + @period_name + '"=transactions.get_closing_stock(''' + @period_from +  ''', ' + @office_id + ') 
-				WHERE item_id=4000;'
-			);
-        END;
-
-		FETCH NEXT FROM @cursor INTO @period_name, @period_from, @period_to;
-	END
-	CLOSE @cursor;
-	DEALLOCATE @cursor;
-
-
-    --Updating the column "amount" on each row by the sum of all periods.
-	SELECT @periods_csv = COALESCE(@periods_csv + '+' , '') + '"' + period_name + '"' FROM @periods;
-    EXECUTE('UPDATE #pl_temp SET amount = ' + @periods_csv + ';');
-
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
-
-    --Updating amount and periodic balances on parent item by the sum of their respective child balances.
-    SET @sql =  'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv + 
-    ' FROM 
-    (
-        SELECT parent_item_id,
-        SUM(amount) AS amount, ';
-
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM("' + period_name + '") AS "' + period_name + '"' FROM @periods;
-	SET @sql = @sql + @periods_csv;
-
-	SET @sql = @sql +  '
-         FROM #pl_temp
-        GROUP BY parent_item_id
-    ) 
-    AS trans
-        WHERE "trans".parent_item_id = #pl_temp.item_id;'
-
-	EXECUTE(@sql);
-
-    --Updating Gross Profit.
-    --Gross Profit = Revenue - (Cost of Sales + Direct Costs)
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
-
-    SET @sql = 'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv;
-	SET @sql = @sql + ' FROM 
-    (
-        SELECT
-        SUM(CASE item_id WHEN 1000 THEN amount ELSE amount * -1 END) AS amount, ';
-	
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM(CASE item_id WHEN 1000 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"' FROM @periods;
-	SET @sql = @sql + @periods_csv;
-
-    SET @sql = @sql + '
-         FROM #pl_temp
-         WHERE item_id IN
-         (
-             1000,2000,5000
-         )
-    ) 
-    AS trans
-    WHERE item_id = 6000;'
-
-    EXECUTE(@sql);
-
-
-    --Updating Operating Profit.
-    --Operating Profit = Gross Profit - Operating Expenses
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
-    SET @sql = 'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv
-    + ' FROM 
-    (
-        SELECT
-        SUM(CASE item_id WHEN 6000 THEN amount ELSE amount * -1 END) AS amount, ';
-
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM(CASE item_id WHEN 6000 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"' FROM @periods;
-
-	SET @sql = @sql + @periods_csv;
-
-    SET @sql = @sql + '
-         FROM #pl_temp
-         WHERE item_id IN
-         (
-             6000, 7000
-         )
-    ) 
-    AS trans
-    WHERE item_id = 8000;'
-
-
-    EXECUTE(@sql);
-
-    --Updating Profit Before Income Taxes.
-    --Profit Before Income Taxes = Operating Profit + Nonoperating Incomes + Financial Incomes - Financial Expenses
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
-    
-	SET @sql = 'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv 
-    + ' FROM 
-    (
-        SELECT
-        SUM(CASE WHEN item_id IN(11000, 11100) THEN amount *-1 ELSE amount END) AS amount, ';
-	
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM(CASE WHEN item_id IN(11000, 11100)  THEN "' + period_name + '" *-1 ELSE "' + period_name + '" END) AS "' + period_name + '"' FROM @periods;
-	SET @sql = @sql + @periods_csv;
-
-    SET @sql = @sql + '
-         FROM #pl_temp
-         WHERE item_id IN
-         (
-             8000, 9000, 10000, 11000, 11100
-         )
-    ) 
-    AS trans
-    WHERE item_id = 12000;';
-
-    EXECUTE(@sql);
-
-    --Updating Income Tax Provison.
-    --Income Tax Provison = Profit Before Income Taxes * Income Tax Rate - Paid Income Taxes
-	/******
-		UPDATE pl_temp 
-		SET 
-			amount = finance.get_income_tax_provison_amount(1,-5300.000000,(SELECT amount FROM pl_temp WHERE item_id = 13000)),
-			"Jul-Aug"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Jul-Aug" FROM pl_temp WHERE item_id = 13000)),
-			"Aug-Sep"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Aug-Sep" FROM pl_temp WHERE item_id = 13000)),
-			"Sep-Oc"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Sep-Oc" FROM pl_temp WHERE item_id = 13000)),
-			"Oct-Nov"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Oct-Nov" FROM pl_temp WHERE item_id = 13000)),
-			"Nov-Dec"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Nov-Dec" FROM pl_temp WHERE item_id = 13000)),
-			"Dec-Jan"=finance.get_income_tax_provison_amount(1,-5300.000000, (SELECT "Dec-Jan" FROM pl_temp WHERE item_id = 13000)),
-			"Jan-Feb"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Jan-Feb" FROM pl_temp WHERE item_id = 13000)),
-			"Feb-Mar"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Feb-Mar" FROM pl_temp WHERE item_id = 13000)),
-			"Mar-Apr"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Mar-Apr" FROM pl_temp WHERE item_id = 13000)),
-			"Apr-May"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Apr-May" FROM pl_temp WHERE item_id = 13000)),
-			"May-Jun"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "May-Jun" FROM pl_temp WHERE item_id = 13000)),
-			"Jun-Jul"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Jun-Jul" FROM pl_temp WHERE item_id = 13000)) 
-		WHERE item_id = 13001;
-	******/
-
-    SELECT @profit = COALESCE(amount, 0) FROM #pl_temp WHERE item_id = 12000;
-
-    
-    SET @sql = 'UPDATE #pl_temp SET amount = finance.get_income_tax_provison_amount(' + CAST(@office_id AS varchar) + ',' + CAST(@profit AS varchar) + ',(SELECT amount FROM #pl_temp WHERE item_id = 13000)), ';
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '" = finance.get_income_tax_provison_amount(1, ' + CAST(@profit AS varchar)
-					+ ', (SELECT "' + period_name + '" FROM #pl_temp WHERE item_id = 13000))'  FROM @periods;
-
-    SET @sql = @sql + @periods_csv;
-	SET @sql = @sql + ' WHERE item_id = 13001;'
-
-    EXECUTE(@sql);
-
-    --Updating amount and periodic balances on parent item by the sum of their respective child balances, once again to add the Income Tax Provison to Income Tax Expenses.
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
-    SET @sql = 'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv
-    + ' FROM 
-    (
-        SELECT parent_item_id,
-        SUM(amount) AS amount, ';
-	
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM("' + period_name + '") AS "' + period_name + '"' FROM @periods;
-	SET @sql = @sql + @periods_csv;
-    SET @sql = @sql + '
-         FROM #pl_temp
-        GROUP BY parent_item_id
-    ) 
-    AS trans
-        WHERE "trans".parent_item_id = #pl_temp.item_id;';
-
-    EXECUTE(@sql);
-
-
-    --Updating Net Profit.
-    --Net Profit = Profit Before Income Taxes - Income Tax Expenses
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
-    SET @sql = 'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv
-    + ' FROM 
-    (
-        SELECT
-        SUM(CASE item_id WHEN 13000 THEN amount *-1 ELSE amount END) AS amount, ';
-
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM(CASE item_id WHEN 13000 THEN "' + period_name + '" *-1 ELSE "' + period_name + '" END) AS "' + period_name + '"' FROM @periods;
-    SET @sql = @sql + @periods_csv;
-
-    SET @sql = @sql + '
-         FROM #pl_temp
-         WHERE item_id IN
-         (
-             12000, 13000
-         )
-    ) 
-    AS trans
-    WHERE item_id = 14000;';
-
-    EXECUTE(@sql);
-
-    --Removing ledgers having zero balances
-    DELETE FROM #pl_temp
-    WHERE COALESCE(amount, 0) = 0
-    AND account_id IS NOT NULL;
-
-
-    --Dividing by the factor.
-    SET @sql = 'UPDATE #pl_temp SET amount = amount /' + CAST(@factor AS varchar) + ',' 
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '" = "' + period_name + '" / ' + CAST(@factor AS varchar) FROM @periods;
-	SET @sql = @sql + @periods_csv + ';';
-
-    EXECUTE(@sql);
-
-
-    --Converting 0's to NULLS.
-    SET @sql = 'UPDATE #pl_temp SET amount = CASE WHEN amount = 0 THEN NULL ELSE amount END,';
-	SET @periods_csv  = NULL;
-	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '" = CASE WHEN "' + period_name + '" = 0 THEN NULL ELSE "' + period_name + '" END'  FROM @periods;
-	SET @sql = @sql + @periods_csv;
-
-    EXECUTE(@sql);
-
-
-    IF(@compact = 1)
-	BEGIN
-        SELECT item, amount, is_profit, is_summation
-        FROM #pl_temp
-        ORDER BY item_id;
-	END
-    ELSE
-	BEGIN
-		SET @periods_csv  = NULL;
-		SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"'  FROM @periods;
-		SET @sql = 'SELECT item, amount,'
-            + @periods_csv +
-            ', is_profit, is_summation FROM #pl_temp
-            ORDER BY item_id';
-		EXECUTE(@sql);
-    END;
-END
-
-GO
-
---EXECUTE finance.get_profit_and_loss_statement '1-1-2017', '1-1-2017', 1, 1, 1, 0;
-
-
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_retained_earnings_statement.sql --<--<--
 IF OBJECT_ID('finance.get_retained_earnings_statement') IS NOT NULL
 DROP FUNCTION finance.get_retained_earnings_statement;
@@ -4136,11 +3701,11 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_cash_flow_statement.sql --<--<--
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_cash_flow_statement.sql --<--<--
 IF OBJECT_ID('finance.get_cash_flow_statement') IS NOT NULL
 DROP PROCEDURE finance.get_cash_flow_statement;
 
 GO
+
 
 CREATE PROCEDURE finance.get_cash_flow_statement
 (
@@ -4151,269 +3716,322 @@ CREATE PROCEDURE finance.get_cash_flow_statement
     @factor                         integer
 )
 AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
+BEGIN    
+	SET ANSI_WARNINGS OFF;
+	SET NOCOUNT ON;
+	SET XACT_ABORT ON;
 
-    --DECLARE @sql                    national character varying(1000);
-    --DECLARE @periods                finance.period;
-    --DECLARE @json                   json;
-    --DECLARE this                    RECORD;
-    --DECLARE @balance                numeric(30, 6);
-    --DECLARE @is_periodic            bit = finance.is_periodic_inventory(@office_id);
+	DECLARE @periods TABLE
+	(
+		id					integer IDENTITY,
+		period_name			national character varying(1000),
+		date_from			date,
+		date_to				date
+	);
+	
+	DECLARE @cursor					CURSOR;
+	DECLARE @sql					national character varying(MAX);
+	DECLARE @periods_csv			national character varying(MAX);
+	DECLARE @period_name			national character varying(1000);
+	DECLARE @period_from			date;
+	DECLARE @period_to				date;
+    DECLARE @balance                numeric(30, 6);
+    DECLARE @is_periodic            bit = finance.is_periodic_inventory(@office_id);
 
-    ----We cannot divide by zero.
-    --IF(COALESCE(@factor, 0) = 0)
-    --BEGIN
-    --    @factor = 1;
-    --END;
+    --We cannot divide by zero.
+    IF(COALESCE(@factor, 0) = 0)
+	BEGIN
+        SET @factor = 1;
+    END;
 
-    --CREATE TABLE #cf_temp
-    --(
-    --    item_id                     integer PRIMARY KEY,
-    --    item                        national character varying(1000),
-    --    account_master_id           integer,
-    --    parent_item_id              integer REFERENCES #cf_temp(item_id),
-    --    is_summation                bit DEFAULT(0),
-    --    is_debit                    bit DEFAULT(0),
-    --    is_sales                    bit DEFAULT(0),
-    --    is_purchase                 bit DEFAULT(0)
-    --) ;
+    CREATE TABLE #cf_temp
+    (
+        item_id                     integer PRIMARY KEY,
+        item                        text,
+        account_master_id           integer,
+        parent_item_id              integer REFERENCES #cf_temp(item_id),
+        is_summation                bit DEFAULT(0),
+        is_debit                    bit DEFAULT(0),
+        is_sales                    bit DEFAULT(0),
+        is_purchase                 bit DEFAULT(0)
+    );
+
+	INSERT INTO @periods(period_name, date_from, date_to)
+    SELECT * FROM finance.get_periods(@date_from, @date_to)
+	ORDER BY date_from;
+
+    IF NOT EXISTS(SELECT TOP 1 0 FROM @periods)
+	BEGIN
+        RAISERROR('Invalid period specified.', 10, 1);
+		RETURN;
+    END;
+
+    /**************************************************************************************************************************************************************************************
+        CREATING PERIODS
+    **************************************************************************************************************************************************************************************/
+	SET @cursor = CURSOR FOR 
+	SELECT period_name FROM @periods
+	ORDER BY id
+	OPEN @cursor
+	FETCH NEXT FROM @cursor INTO @period_name
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		 EXECUTE('ALTER TABLE #cf_temp ADD "' + @period_name + '" decimal(24, 4) DEFAULT(0);');
+
+		 FETCH NEXT FROM @cursor INTO @period_name;
+	END
+	CLOSE @cursor
+	DEALLOCATE @cursor
+
+    /**************************************************************************************************************************************************************************************
+        CASHFLOW TABLE STRUCTURE START
+    **************************************************************************************************************************************************************************************/
+    INSERT INTO #cf_temp(item_id, item, is_summation, is_debit)
+    SELECT  10000,  'Cash and cash equivalents, beginning of period',   0,	1   UNION ALL    
+    SELECT  20000,  'Cash flows from operating activities',             1,  0   UNION ALL    
+    SELECT  30000,  'Cash flows from investing activities',             1,  0   UNION ALL
+    SELECT  40000,  'Cash flows from financing acticities',             1,  0   UNION ALL    
+    SELECT  50000,  'Net increase in cash and cash equivalents',        0,  0   UNION ALL    
+    SELECT  60000,  'Cash and cash equivalents, end of period',         0,  1;    
+
+    INSERT INTO #cf_temp(item_id, item, parent_item_id, is_debit, is_sales, is_purchase)
+    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 20000,  is_debit,   is_sales,   is_purchase FROM finance.cash_flow_headings WHERE cash_flow_heading_type = 'O' UNION ALL
+    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 30000,  is_debit,   is_sales,   is_purchase FROM finance.cash_flow_headings WHERE cash_flow_heading_type = 'I' UNION ALL 
+    SELECT  cash_flow_heading_id,   cash_flow_heading_name, 40000,  is_debit,   is_sales,   is_purchase FROM finance.cash_flow_headings WHERE cash_flow_heading_type = 'F';
+
+    INSERT INTO #cf_temp(item_id, item, parent_item_id, is_debit, account_master_id)
+    SELECT finance.account_masters.account_master_id + 50000, finance.account_masters.account_master_name,  finance.cash_flow_setup.cash_flow_heading_id, finance.cash_flow_headings.is_debit, finance.account_masters.account_master_id
+    FROM finance.cash_flow_setup
+    INNER JOIN finance.account_masters
+    ON finance.cash_flow_setup.account_master_id = finance.account_masters.account_master_id
+    INNER JOIN finance.cash_flow_headings
+    ON finance.cash_flow_setup.cash_flow_heading_id = finance.cash_flow_headings.cash_flow_heading_id;
+
+    /**************************************************************************************************************************************************************************************
+        CASHFLOW TABLE STRUCTURE END
+    **************************************************************************************************************************************************************************************/
 
 
-    --INSERT INTO @periods
-    --SELECT * FROM finance.get_periods(@date_from, @date_to);
+    /**************************************************************************************************************************************************************************************
+        ITERATING THROUGH PERIODS TO UPDATE TRANSACTION BALANCES
+    **************************************************************************************************************************************************************************************/
+	SET @cursor = CURSOR FOR 
+	SELECT period_name, date_from, date_to FROM @periods
+	ORDER BY id
+	OPEN @cursor
+	FETCH NEXT FROM @cursor INTO @period_name, @period_from, @period_to
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+        --
+        --
+        --Opening cash balance.
+        --
+        --
+        SET @sql = 'UPDATE #cf_temp SET "' + @period_name + '"=
+            (
+                SELECT
+                SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
+                SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
+            FROM finance.verified_cash_transaction_mat_view
+            WHERE account_master_id IN(10101, 10102) 
+            AND value_date <''' + CAST(@period_from AS varchar) +
+            ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar) + '))
+            )
+        WHERE #cf_temp.item_id = 10000;';
 
-    --IF NOT EXISTS(SELECT * FROM @periods)
-    --BEGIN
-    --    RAISERROR('Invalid period specified.', 10, 1);
-    --END;
+		--PRINT @sql;
+        EXECUTE(@sql);
 
-    --/**************************************************************************************************************************************************************************************
-    --    CREATING PERIODS
-    --**************************************************************************************************************************************************************************************/
-    --SELECT string_agg(dynamic, '') FROM
-    --(
-    --    SELECT 'ALTER TABLE #cf_temp ADD COLUMN "' + period_name + '" numeric(30, 6) DEFAULT(0);' as dynamic
-    --    FROM @periods         
-    --) periods
-    --INTO @sql;
-    
-    --EXECUTE @sql;
+        --
+        --
+        --Updating debit balances of mapped account master heads.
+        --
+        --
+        SET @sql = 'UPDATE #cf_temp SET "' + @period_name + '"=trans.total_amount
+        FROM
+        (
+            SELECT finance.verified_cash_transaction_mat_view.account_master_id,
+            SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) - 
+            SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
+        FROM finance.verified_cash_transaction_mat_view
+        WHERE finance.verified_cash_transaction_mat_view.book NOT IN (''Sales.Direct'', ''Sales.Receipt'', ''Sales.Delivery'', ''Purchase.Direct'', ''Purchase.Receipt'')
+        AND NOT account_master_id IN(10101, 10102) 
+        AND value_date >=''' + CAST(@period_from AS varchar) + ''' AND value_date <=''' + CAST(@period_to AS varchar)+
+        ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar) + '))
+        GROUP BY finance.verified_cash_transaction_mat_view.account_master_id
+        ) AS trans
+        WHERE trans.account_master_id = #cf_temp.account_master_id';
 
-    --/**************************************************************************************************************************************************************************************
-    --    CASHFLOW TABLE STRUCTURE START
-    --**************************************************************************************************************************************************************************************/
-    --INSERT INTO #cf_temp(item_id, item, is_summation, is_debit)
-    --SELECT  10000,  'Cash and cash equivalents, beginning of period',   0,  1    UNION ALL    
-    --SELECT  20000,  'Cash flows from operating activities',             1,   0   UNION ALL    
-    --SELECT  30000,  'Cash flows from investing activities',             1,   0   UNION ALL
-    --SELECT  40000,  'Cash flows from financing acticities',             1,   0   UNION ALL    
-    --SELECT  50000,  'Net increase in cash and cash equivalents',        0,  0   UNION ALL    
-    --SELECT  60000,  'Cash and cash equivalents, end of period',         0,  1;    
+		--PRINT @sql;
+        EXECUTE(@sql);
 
-    --INSERT INTO #cf_temp(item_id, item, parent_item_id, is_debit, is_sales, is_purchase)
-    --SELECT  cash_flow_heading_id,   cash_flow_heading_name, 20000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'O' UNION ALL
-    --SELECT  cash_flow_heading_id,   cash_flow_heading_name, 30000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'I' UNION ALL 
-    --SELECT  cash_flow_heading_id,   cash_flow_heading_name, 40000,  is_debit,   is_sales,   is_purchase FROM core.cash_flow_headings WHERE cash_flow_heading_type = 'F';
-
-    --INSERT INTO #cf_temp(item_id, item, parent_item_id, is_debit, account_master_id)
-    --SELECT core.account_masters.account_master_id + 50000, core.account_masters.account_master_name,  core.cash_flow_setup.cash_flow_heading_id, core.cash_flow_headings.is_debit, core.account_masters.account_master_id
-    --FROM core.cash_flow_setup
-    --INNER JOIN core.account_masters
-    --ON core.cash_flow_setup.account_master_id = core.account_masters.account_master_id
-    --INNER JOIN core.cash_flow_headings
-    --ON core.cash_flow_setup.cash_flow_heading_id = core.cash_flow_headings.cash_flow_heading_id;
-
-    --/**************************************************************************************************************************************************************************************
-    --    CASHFLOW TABLE STRUCTURE END
-    --**************************************************************************************************************************************************************************************/
-
-
-    --/**************************************************************************************************************************************************************************************
-    --    ITERATING THROUGH PERIODS TO UPDATE TRANSACTION BALANCES
-    --**************************************************************************************************************************************************************************************/
-    --FOR this IN 
-    --SELECT * 
-    --FROM @periods 
-    --ORDER BY date_from ASC
-    --LOOP
-    --    --
-    --    --
-    --    --Opening cash balance.
-    --    --
-    --    --
-    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=
-    --        (
-    --            SELECT
-    --            SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
-    --            SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
-    --        FROM finance.verified_cash_transaction_mat_view
-    --        WHERE account_master_id IN(10101, 10102) 
-    --        AND value_date <''' + CAST(this.date_from AS varchar(24)) +
-    --        ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-    --        )
-    --    WHERE #cf_temp.item_id = 10000;';
-
-    --    EXECUTE @sql;
-
-    --    --
-    --    --
-    --    --Updating debit balances of mapped account master heads.
-    --    --
-    --    --
-    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=tran.total_amount
-    --    FROM
-    --    (
-    --        SELECT finance.verified_cash_transaction_mat_view.account_master_id,
-    --        SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) - 
-    --        SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
-    --    FROM finance.verified_cash_transaction_mat_view
-    --    WHERE finance.verified_cash_transaction_mat_view.book NOT IN (''Sales.Direct'', ''Sales.Receipt'', ''Sales.Delivery'', ''Purchase.Direct'', ''Purchase.Receipt'')
-    --    AND account_master_id NOT IN(10101, 10102) 
-    --    AND value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
-    --    ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-    --    GROUP BY finance.verified_cash_transaction_mat_view.account_master_id
-    --    ) AS tran
-    --    WHERE tran.account_master_id = #cf_temp.account_master_id';
-    --    EXECUTE @sql;
-
-    --    --
-    --    --
-    --    --Updating cash paid to suppliers.
-    --    --
-    --    --
-    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=
+        --
+        --
+        --Updating cash paid to suppliers.
+        --
+        --
+        SET @sql = 'UPDATE #cf_temp SET "' + @period_name + '"=
         
-    --    (
-    --        SELECT
-    --        SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) - 
-    --        SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) 
-    --    FROM finance.verified_cash_transaction_mat_view
-    --    WHERE finance.verified_cash_transaction_mat_view.book IN (''Purchase.Direct'', ''Purchase.Receipt'', ''Purchase.Payment'')
-    --    AND account_master_id NOT IN(10101, 10102) 
-    --    AND value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
-    --    ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-    --    )
-    --    WHERE #cf_temp.is_purchase;';
-    --    EXECUTE @sql;
+        (
+            SELECT
+            SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) - 
+            SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) 
+        FROM finance.verified_cash_transaction_mat_view
+        WHERE finance.verified_cash_transaction_mat_view.book IN (''Purchase.Direct'', ''Purchase.Receipt'', ''Purchase.Payment'')
+        AND NOT account_master_id IN(10101, 10102) 
+        AND value_date >=''' + CAST(@period_from AS varchar) + ''' AND value_date <=''' + CAST(@period_to AS varchar) +
+        ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar) + '))
+        )
+        WHERE #cf_temp.is_purchase = 1;';
 
-    --    --
-    --    --
-    --    --Updating cash received from customers.
-    --    --
-    --    --
-    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"=
+		--PRINT @sql;
+        EXECUTE(@sql);
+
+        --
+        --
+        --Updating cash received from customers.
+        --
+        --
+        SET @sql = 'UPDATE #cf_temp SET "' + @period_name + '"=
         
-    --    (
-    --        SELECT
-    --        SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
-    --        SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) 
-    --    FROM finance.verified_cash_transaction_mat_view
-    --    WHERE finance.verified_cash_transaction_mat_view.book IN (''Sales.Direct'', ''Sales.Receipt'', ''Sales.Delivery'')
-    --    AND account_master_id IN(10101, 10102) 
-    --    AND value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
-    --    ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-    --    )
-    --    WHERE #cf_temp.is_sales;';
-    --    PRINT @SQL;
-    --    EXECUTE @sql;
+        (
+            SELECT
+            SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
+            SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) 
+        FROM finance.verified_cash_transaction_mat_view
+        WHERE finance.verified_cash_transaction_mat_view.book IN (''Sales.Direct'', ''Sales.Receipt'', ''Sales.Delivery'')
+        AND account_master_id IN(10101, 10102) 
+        AND value_date >=''' + CAST(@period_from AS varchar) + ''' AND value_date <=''' + CAST(@period_to AS varchar) +
+        ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar) + '))
+        )
+        WHERE #cf_temp.is_sales = 1;';
 
-    --    --Closing cash balance.
-    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"
-    --    =
-    --    (
-    --        SELECT
-    --        SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
-    --        SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
-    --    FROM finance.verified_cash_transaction_mat_view
-    --    WHERE account_master_id IN(10101, 10102) 
-    --    AND value_date <''' + CAST(this.date_to AS varchar(24)) +
-    --    ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-    --    ) 
-    --    WHERE #cf_temp.item_id = 60000;';
+		--PRINT @sql;
+        EXECUTE(@sql);
 
-    --    EXECUTE @sql;
+        --Closing cash balance.
+        SET @sql = 'UPDATE #cf_temp SET "' + @period_name + '"
+        =
+        (
+            SELECT
+            SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
+            SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
+        FROM finance.verified_cash_transaction_mat_view
+        WHERE account_master_id IN(10101, 10102) 
+        AND value_date <''' + CAST(@period_to AS varchar) +
+        ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar) + '))
+        ) 
+        WHERE #cf_temp.item_id = 60000;';
 
-    --    --Reversing to debit balance for associated headings.
-    --    @sql = 'UPDATE #cf_temp SET "' + this.period_name + '"="' + this.period_name + '"*-1 WHERE is_debit= 1;';
-    --    EXECUTE @sql;
-    --END LOOP;
+		--PRINT @sql;
+        EXECUTE(@sql);
 
+        --Reversing to debit balance for associated headings.
+        SET @sql = 'UPDATE #cf_temp SET "' + @period_name + '"="' + @period_name + '"*-1 WHERE is_debit=1;';
 
-
-    ----Updating periodic balances on parent item by the sum of their respective child balances.
-    --SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"' + '=#cf_temp."' + period_name + '" + tran."' + period_name + '"'), ',') + 
-    --' FROM 
-    --(
-    --    SELECT parent_item_id, '
-    --    + array_to_string(array_agg('SUM("' + period_name + '") AS "' + period_name + '"'), ',') + '
-    --     FROM #cf_temp
-    --    GROUP BY parent_item_id
-    --) 
-    --AS tran
-    --    WHERE tran.parent_item_id = #cf_temp.item_id
-    --    AND #cf_temp.item_id NOT IN (10000, 60000);'
-    --INTO @sql
-    --FROM @periods;
-
-    --PRINT @SQL;
-    --EXECUTE @sql;
+		--PRINT @sql;
+        EXECUTE(@sql);
+		FETCH NEXT FROM @cursor INTO @period_name, @period_from, @period_to;
+	END
+	CLOSE @cursor;
+	DEALLOCATE @cursor;
 
 
-    --SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    --+ ' FROM 
-    --(
-    --    SELECT
-    --        #cf_temp.parent_item_id,'
-    --    + array_to_string(array_agg('SUM(CASE is_debit WHEN 1 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"'), ',') +
-    --'
-    --     FROM #cf_temp
-    --     GROUP BY #cf_temp.parent_item_id
-    --) 
-    --AS tran
-    --WHERE #cf_temp.item_id = tran.parent_item_id
-    --AND #cf_temp.parent_item_id IS NULL;'
-    --INTO @sql
-    --FROM @periods;
 
-    --EXECUTE @sql;
+    --Updating periodic balances on parent item by the sum of their respective child balances.
+    SET @sql = 'UPDATE #cf_temp SET ';
+
+	SET @periods_csv = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"=#cf_temp."' + period_name + '" + "trans"."' + period_name + '"'   FROM @periods;
+
+	SET @sql = @sql + @periods_csv;
+
+    SET @sql = @sql + ' FROM  (
+        SELECT parent_item_id, ';
+
+	SET @periods_csv = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM("' + period_name + '") AS "' + period_name + '"'   FROM @periods;
+
+        SET @sql = @sql + @periods_csv;
+         SET @sql = @sql + 'FROM #cf_temp
+        GROUP BY parent_item_id
+    ) 
+    AS trans
+        WHERE trans.parent_item_id = #cf_temp.item_id
+        AND #cf_temp.item_id NOT IN (10000, 60000);';
+
+	--PRINT @sql;
+    EXECUTE(@sql);
 
 
-    ----Dividing by the factor.
-    --SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"="' + period_name + '"/' + CAST(@factor AS varchar(100))), ',') + ';'
-    --INTO @sql
-    --FROM @periods;
-    --EXECUTE @sql;
+	SET @periods_csv = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '" = "trans"."' + period_name + '"' FROM @periods;
+
+    SET @sql = 'UPDATE #cf_temp SET ';
+	SET @sql = @sql + @periods_csv;
+
+    SET @sql = @sql + ' FROM 
+    (
+        SELECT
+            #cf_temp.parent_item_id,';
+	
+	SET @periods_csv = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM(CASE is_debit WHEN 1 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"'  FROM @periods;
+	SET @sql = @sql + @periods_csv;
+
+    SET @sql = @sql + '
+         FROM #cf_temp
+         GROUP BY #cf_temp.parent_item_id
+    ) 
+    AS trans
+    WHERE #cf_temp.item_id = trans.parent_item_id
+    AND #cf_temp.parent_item_id IS NULL;';
+
+	--PRINT @sql;
+    EXECUTE(@sql);
 
 
-    ----Converting 0's to NULLS.
-    --SELECT 'UPDATE #cf_temp SET ' + array_to_string(array_agg('"' + period_name + '"= CASE WHEN "' + period_name + '" = 0 THEN NULL ELSE "' + period_name + '" END'), ',') + ';'
-    --INTO @sql
-    --FROM @periods;
+    --Dividing by the factor.
+	SET @periods_csv = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '" = "' + period_name + '" / ' + CAST(@factor AS varchar) + ''  FROM @periods;
 
-    --EXECUTE @sql;
+    SET @sql = 'UPDATE #cf_temp SET ';
+	SET @sql = @sql + @periods_csv;
 
-    --SELECT 
-    --'SELECT array_to_json(array_agg(row_to_json(report)))
-    --FROM
-    --(
-    --    SELECT item, '
-    --    + array_to_string(array_agg('"' + period_name + '"'), ',') +
-    --    ', is_summation FROM #cf_temp
-    --    WHERE account_master_id IS NULL
-    --    ORDER BY item_id
-    --) AS report;'
-    --INTO @sql
-    --FROM @periods;
+	--PRINT @sql;
+    EXECUTE(@sql);
 
-    --EXECUTE @sql INTO @json ;
-    --TODO
-    --SELECT @json;
-    RETURN;
+
+    --Converting 0's to NULLS.
+	SET @periods_csv = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '" = CASE WHEN "' + period_name + '" = 0 THEN NULL ELSE "' + period_name + '" END'   FROM @periods;
+
+    SET @sql = 'UPDATE #cf_temp SET ';
+	SET @sql = @sql + @periods_csv;
+
+	--PRINT @sql;
+    EXECUTE(@sql);
+
+    SET @sql = 'SELECT item, ';
+	SET @periods_csv = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"'   FROM @periods;
+    SET @sql = @sql + @periods_csv;
+
+    SET @sql = @sql + ', is_summation FROM #cf_temp
+        WHERE account_master_id IS NULL
+        ORDER BY item_id;';
+
+	--PRINT @sql;
+    EXECUTE(@sql);
+
+	SET ANSI_WARNINGS ON;
 END
 
 GO
+
+
+--EXECUTE finance.get_cash_flow_statement '1-1-2000','1-1-2020', 1, 1, 1;
+
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_net_profit.sql --<--<--
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_net_profit.sql --<--<--
@@ -4478,7 +4096,6 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_profit_and_loss_statement.sql --<--<--
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_profit_and_loss_statement.sql --<--<--
 IF OBJECT_ID('finance.get_profit_and_loss_statement') IS NOT NULL
 DROP PROCEDURE finance.get_profit_and_loss_statement;
 
@@ -4491,330 +4108,427 @@ CREATE PROCEDURE finance.get_profit_and_loss_statement
     @user_id                        integer,
     @office_id                      integer,
     @factor                         integer,
-    @compact                        bit
+    @compact                        bit = 0
 )
 AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
+BEGIN    
+	SET NOCOUNT ON;
+	SET XACT_ABORT ON;
 
-    --DECLARE @sql                    national character varying(1000);
-    --DECLARE @periods                finance.period;
-    --DECLARE @json                   json;
-    --DECLARE this                    RECORD;
-    --DECLARE @balance                numeric(30, 6);
-    --DECLARE @is_periodic            bit = finance.is_periodic_inventory(@office_id);
+	DECLARE @periods TABLE
+	(
+		id					integer IDENTITY,
+		period_name			national character varying(1000),
+		date_from			date,
+		date_to				date
+	);
+	
+	DECLARE @cursor					CURSOR;
+	DECLARE @sql					national character varying(MAX);
+	DECLARE @periods_csv			national character varying(MAX);
+	DECLARE @period_name			national character varying(1000);
+	DECLARE @period_from			date;
+	DECLARE @period_to				date;
+    DECLARE @balance                numeric(30, 6);
+    DECLARE @is_periodic            bit = inventory.is_periodic_inventory(@office_id);
+	DECLARE @profit					numeric(30, 6);
 
-    --CREATE TABLE #pl_temp
-    --(
-    --    item_id                     integer PRIMARY KEY,
-    --    item                        national character varying(1000),
-    --    account_id                  integer,
-    --    parent_item_id              integer,
-    --    is_profit                   bit DEFAULT(0),
-    --    is_summation                bit DEFAULT(0),
-    --    is_debit                    bit DEFAULT(0),
-    --    amount                      numeric(30, 6) DEFAULT(0)
-    --);
+    CREATE TABLE #pl_temp
+    (
+        item_id                     integer PRIMARY KEY,
+        item                        text,
+        account_id                  integer,
+        parent_item_id              integer REFERENCES #pl_temp(item_id),
+        is_profit                   bit DEFAULT(0),
+        is_summation                bit DEFAULT(0),
+        is_debit                    bit DEFAULT(0),
+        amount                      decimal(24, 4) DEFAULT(0)
+    );
 
-    --IF(COALESCE(@factor, 0) = 0)
-    --BEGIN
-    --    @factor = 1;
-    --END;
+    IF(COALESCE(@factor, 0) = 0)
+	BEGIN
+        SET @factor = 1;
+    END;
 
-    --INSERT INTO @periods
-    --SELECT * FROM finance.get_periods(@date_from, @date_to);
+	INSERT INTO @periods(period_name, date_from, date_to)
+    SELECT * FROM finance.get_periods(@date_from, @date_to)
+	ORDER BY date_from;
 
-    --IF NOT EXISTS(SELECT * FROM @periods)
-    --BEGIN
-    --    RAISERROR('Invalid period specified.', 10, 1);
-    --END;
+    IF NOT EXISTS(SELECT TOP 1 0 FROM @periods)
+	BEGIN
+        RAISERROR('Invalid period specified.', 10, 1);
+		RETURN;
+    END;
 
-    --SELECT string_agg(dynamic, '') FROM
-    --(
-    --        SELECT 'ALTER TABLE #pl_temp ADD COLUMN "' + period_name + '" numeric(30, 6) DEFAULT(0);' as dynamic
-    --        FROM @periods
-         
-    --) periods
-    --INTO @sql;
+	SET @cursor = CURSOR FOR 
+	SELECT period_name FROM @periods
+	ORDER BY id
+	OPEN @cursor
+	FETCH NEXT FROM @cursor INTO @period_name
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		 EXECUTE('ALTER TABLE #pl_temp ADD "' + @period_name + '" decimal(24, 4) DEFAULT(0);');
+
+		 FETCH NEXT FROM @cursor INTO @period_name;
+	END
+	CLOSE @cursor;
+	DEALLOCATE @cursor;
+
+
+    --PL structure setup start
+    INSERT INTO #pl_temp(item_id, item, is_summation, parent_item_id)
+    SELECT 1000,   'Revenue',                      1,   NULL	UNION ALL
+    SELECT 2000,   'Cost of Sales',                1,   NULL	UNION ALL
+    SELECT 2001,   'Opening Stock',                0,  1000     UNION ALL
+    SELECT 3000,   'Purchases',                    0,  1000     UNION ALL
+    SELECT 4000,   'Closing Stock',                0,  1000     UNION ALL
+    SELECT 5000,   'Direct Costs',                 1,   NULL	UNION ALL
+    SELECT 6000,   'Gross Profit',                 0,  NULL		UNION ALL
+    SELECT 7000,   'Operating Expenses',           1,   NULL	UNION ALL
+    SELECT 8000,   'Operating Profit',             0,  NULL		UNION ALL
+    SELECT 9000,   'Nonoperating Incomes',         1,   NULL	UNION ALL
+    SELECT 10000,  'Financial Incomes',            1,   NULL	UNION ALL
+    SELECT 11000,  'Financial Expenses',           1,   NULL	UNION ALL
+    SELECT 11100,  'Interest Expenses',            1,   11000	UNION ALL
+    SELECT 12000,  'Profit Before Income Taxes',   0,  NULL		UNION ALL
+    SELECT 13000,  'Income Taxes',                 1,   NULL	UNION ALL
+    SELECT 13001,  'Income Tax Provison',          0,  13000    UNION ALL
+    SELECT 14000,  'Net Profit',                   1,   NULL;
+
+    UPDATE #pl_temp SET is_debit = 1 WHERE item_id IN(2001, 3000, 4000);
+    UPDATE #pl_temp SET is_profit = 1 WHERE item_id IN(6000,8000, 12000, 14000);
     
-    --EXECUTE @sql;
+    INSERT INTO #pl_temp(item_id, account_id, item, parent_item_id, is_debit)
+    SELECT id, account_id, account_name, 1000 as parent_item_id, 0 as is_debit FROM finance.get_account_view_by_account_master_id(20100, 1000) UNION ALL--Sales Accounts
+    SELECT id, account_id, account_name, 2000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20400, 2001) UNION ALL--COGS Accounts
+    SELECT id, account_id, account_name, 5000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20500, 5000) UNION ALL--Direct Cost
+    SELECT id, account_id, account_name, 7000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20600, 7000) UNION ALL--Operating Expenses
+    SELECT id, account_id, account_name, 9000 as parent_item_id, 0 as is_debit FROM finance.get_account_view_by_account_master_id(20200, 9000) UNION ALL--Nonoperating Incomes
+    SELECT id, account_id, account_name, 10000 as parent_item_id, 0 as is_debit FROM finance.get_account_view_by_account_master_id(20300, 10000) UNION ALL--Financial Incomes
+    SELECT id, account_id, account_name, 11000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20700, 11000) UNION ALL--Financial Expenses
+    SELECT id, account_id, account_name, 11100 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20701, 11100) UNION ALL--Interest Expenses
+    SELECT id, account_id, account_name, 13000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20800, 13001);--Income Tax Expenses
 
-    ----PL structure setup start
-    --INSERT INTO #pl_temp(item_id, item, is_summation, parent_item_id)
-    --SELECT 1000,   'Revenue',                      1,   NULL     UNION ALL
-    --SELECT 2000,   'Cost of Sales',                1,   NULL     UNION ALL
-    --SELECT 2001,   'Opening Stock',                0,  1000     UNION ALL
-    --SELECT 3000,   'Purchases',                    0,  1000     UNION ALL
-    --SELECT 4000,   'Closing Stock',                0,  1000     UNION ALL
-    --SELECT 5000,   'Direct Costs',                 1,   NULL     UNION ALL
-    --SELECT 6000,   'Gross Profit',                 0,  NULL     UNION ALL
-    --SELECT 7000,   'Operating Expenses',           1,   NULL     UNION ALL
-    --SELECT 8000,   'Operating Profit',             0,  NULL     UNION ALL
-    --SELECT 9000,   'Nonoperating Incomes',         1,   NULL     UNION ALL
-    --SELECT 10000,  'Financial Incomes',            1,   NULL     UNION ALL
-    --SELECT 11000,  'Financial Expenses',           1,   NULL     UNION ALL
-    --SELECT 11100,  'Interest Expenses',            1,   11000    UNION ALL
-    --SELECT 12000,  'Profit Before Income Taxes',   0,  NULL     UNION ALL
-    --SELECT 13000,  'Income Taxes',                 1,   NULL     UNION ALL
-    --SELECT 13001,  'Income Tax Provison',          0,  13000    UNION ALL
-    --SELECT 14000,  'Net Profit',                   1,   NULL;
+    IF(@is_periodic = 0)
+	BEGIN
+        DELETE FROM #pl_temp WHERE item_id IN(2001, 3000, 4000);
+    END;
+    --PL structure setup end
 
-    --UPDATE #pl_temp SET is_debit = 1 WHERE item_id IN(2001, 3000, 4000);
-    --UPDATE #pl_temp SET is_profit = 1 WHERE item_id IN(6000,8000, 12000, 14000);
+
+	SET @cursor = CURSOR FOR 
+	SELECT period_name, date_from, date_to FROM @periods
+	ORDER BY id
+	OPEN @cursor
+	FETCH NEXT FROM @cursor INTO @period_name, @period_from, @period_to
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+		EXECUTE
+		(
+			'UPDATE #pl_temp SET "' + @period_name + '"="trans".total_amount
+			FROM
+			(
+				SELECT finance.verified_transaction_mat_view.account_id,
+				SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
+				SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
+			FROM finance.verified_transaction_mat_view
+			WHERE value_date >=''' + @period_from + ''' AND value_date <=''' + @period_to +
+			''' AND office_id IN (SELECT * FROM core.get_office_ids(' + @office_id + '))
+			GROUP BY finance.verified_transaction_mat_view.account_id
+			) AS trans
+			WHERE "trans".account_id = #pl_temp.account_id'
+		);
+
+        --Updating credit balances of individual GL accounts.
+        EXECUTE
+		(
+			'UPDATE #pl_temp SET "' + @period_name + '"="trans".total_amount
+			FROM
+			(
+				SELECT finance.verified_transaction_mat_view.account_id,
+				SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
+				SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
+			FROM finance.verified_transaction_mat_view
+			WHERE value_date >=''' + @period_from + ''' AND value_date <=''' + @period_to +
+			''' AND office_id IN (SELECT * FROM core.get_office_ids(' + @office_id + '))
+			GROUP BY finance.verified_transaction_mat_view.account_id
+			) AS trans
+			WHERE "trans".account_id = #pl_temp.account_id'
+		);
+
+        --Reversing to debit balance for expense headings.
+        EXECUTE('UPDATE #pl_temp SET "' + @period_name + '"="' + @period_name + '"*-1 WHERE is_debit = 1;');
+
+        --Getting purchase and stock balances if this is a periodic inventory system.
+        --In perpetual accounting system, one would not need to include these headings 
+        --because the COGS A/C would be automatically updated on each transaction.
+        IF(@is_periodic = 1)
+		BEGIN
+			SET @sql = 'UPDATE #pl_temp 
+				SET "' + @period_name + '"=transactions.get_closing_stock(''' + CAST(DATEADD(DAY, -1, @period_from) AS varchar) +  ''', ' + @office_id + ') 
+				WHERE item_id=2001;'
+ 
+            EXECUTE(@sql);
+
+            EXECUTE
+			(
+				'UPDATE #pl_temp 
+				SET "' + @period_name + '"=transactions.get_purchase(''' + @period_from +  ''', ''' + @period_to + ''', ' + @office_id + ') *-1 
+				WHERE item_id=3000;'
+			);
+
+            EXECUTE
+			(			
+				'UPDATE #pl_temp 
+				SET "' + @period_name + '"=transactions.get_closing_stock(''' + @period_from +  ''', ' + @office_id + ') 
+				WHERE item_id=4000;'
+			);
+        END;
+
+		FETCH NEXT FROM @cursor INTO @period_name, @period_from, @period_to;
+	END
+	CLOSE @cursor;
+	DEALLOCATE @cursor;
+
+
+    --Updating the column "amount" on each row by the sum of all periods.
+	SELECT @periods_csv = COALESCE(@periods_csv + '+' , '') + '"' + period_name + '"' FROM @periods;
+    EXECUTE('UPDATE #pl_temp SET amount = ' + @periods_csv + ';');
+
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
+
+    --Updating amount and periodic balances on parent item by the sum of their respective child balances.
+    SET @sql =  'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv + 
+    ' FROM 
+    (
+        SELECT parent_item_id,
+        SUM(amount) AS amount, ';
+
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM("' + period_name + '") AS "' + period_name + '"' FROM @periods;
+	SET @sql = @sql + @periods_csv;
+
+	SET @sql = @sql +  '
+         FROM #pl_temp
+        GROUP BY parent_item_id
+    ) 
+    AS trans
+        WHERE "trans".parent_item_id = #pl_temp.item_id;'
+
+	EXECUTE(@sql);
+
+    --Updating Gross Profit.
+    --Gross Profit = Revenue - (Cost of Sales + Direct Costs)
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
+
+    SET @sql = 'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv;
+	SET @sql = @sql + ' FROM 
+    (
+        SELECT
+        SUM(CASE item_id WHEN 1000 THEN amount ELSE amount * -1 END) AS amount, ';
+	
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM(CASE item_id WHEN 1000 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"' FROM @periods;
+	SET @sql = @sql + @periods_csv;
+
+    SET @sql = @sql + '
+         FROM #pl_temp
+         WHERE item_id IN
+         (
+             1000,2000,5000
+         )
+    ) 
+    AS trans
+    WHERE item_id = 6000;'
+
+    EXECUTE(@sql);
+
+
+    --Updating Operating Profit.
+    --Operating Profit = Gross Profit - Operating Expenses
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
+    SET @sql = 'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv
+    + ' FROM 
+    (
+        SELECT
+        SUM(CASE item_id WHEN 6000 THEN amount ELSE amount * -1 END) AS amount, ';
+
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM(CASE item_id WHEN 6000 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"' FROM @periods;
+
+	SET @sql = @sql + @periods_csv;
+
+    SET @sql = @sql + '
+         FROM #pl_temp
+         WHERE item_id IN
+         (
+             6000, 7000
+         )
+    ) 
+    AS trans
+    WHERE item_id = 8000;'
+
+
+    EXECUTE(@sql);
+
+    --Updating Profit Before Income Taxes.
+    --Profit Before Income Taxes = Operating Profit + Nonoperating Incomes + Financial Incomes - Financial Expenses
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
     
-    --INSERT INTO #pl_temp(item_id, account_id, item, parent_item_id, is_debit)
-    --SELECT id, account_id, account_name, 1000 as parent_item_id, 0 as is_debit FROM finance.get_account_view_by_account_master_id(20100, 1000) UNION ALL--Sales Accounts
-    --SELECT id, account_id, account_name, 2000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20400, 2001) UNION ALL--COGS Accounts
-    --SELECT id, account_id, account_name, 5000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20500, 5000) UNION ALL--Direct Cost
-    --SELECT id, account_id, account_name, 7000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20600, 7000) UNION ALL--Operating Expenses
-    --SELECT id, account_id, account_name, 9000 as parent_item_id, 0 as is_debit FROM finance.get_account_view_by_account_master_id(20200, 9000) UNION ALL--Nonoperating Incomes
-    --SELECT id, account_id, account_name, 10000 as parent_item_id, 0 as is_debit FROM finance.get_account_view_by_account_master_id(20300, 10000) UNION ALL--Financial Incomes
-    --SELECT id, account_id, account_name, 11000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20700, 11000) UNION ALL--Financial Expenses
-    --SELECT id, account_id, account_name, 11100 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20701, 11100) UNION ALL--Interest Expenses
-    --SELECT id, account_id, account_name, 13000 as parent_item_id, 1 as is_debit FROM finance.get_account_view_by_account_master_id(20800, 13001);--Income Tax Expenses
+	SET @sql = 'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv 
+    + ' FROM 
+    (
+        SELECT
+        SUM(CASE WHEN item_id IN(11000, 11100) THEN amount *-1 ELSE amount END) AS amount, ';
+	
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM(CASE WHEN item_id IN(11000, 11100)  THEN "' + period_name + '" *-1 ELSE "' + period_name + '" END) AS "' + period_name + '"' FROM @periods;
+	SET @sql = @sql + @periods_csv;
 
-    --IF(NOT @is_periodic)
-    --BEGIN
-    --    DELETE FROM #pl_temp WHERE item_id IN(2001, 3000, 4000);
-    --END;
-    ----PL structure setup END;
+    SET @sql = @sql + '
+         FROM #pl_temp
+         WHERE item_id IN
+         (
+             8000, 9000, 10000, 11000, 11100
+         )
+    ) 
+    AS trans
+    WHERE item_id = 12000;';
 
+    EXECUTE(@sql);
 
-    --FOR this IN 
-    --SELECT * FROM @periods 
-    --ORDER BY date_from ASC
-    --LOOP
-    --    --Updating credit balances of individual GL accounts.
-    --    @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=tran.total_amount
-    --    FROM
-    --    (
-    --        SELECT finance.verified_transaction_mat_view.account_id,
-    --        SUM(CASE tran_type WHEN ''Cr'' THEN amount_in_local_currency ELSE 0 END) - 
-    --        SUM(CASE tran_type WHEN ''Dr'' THEN amount_in_local_currency ELSE 0 END) AS total_amount
-    --    FROM finance.verified_transaction_mat_view
-    --    WHERE value_date >=''' + CAST(this.date_from AS varchar(24)) + ''' AND value_date <=''' + CAST(this.date_to AS varchar(24)) +
-    --    ''' AND office_id IN (SELECT * FROM core.get_office_ids(' + CAST(@office_id AS varchar(100)) + '))
-    --    GROUP BY finance.verified_transaction_mat_view.account_id
-    --    ) AS tran
-    --    WHERE tran.account_id = #pl_temp.account_id';
-    --    EXECUTE @sql;
+    --Updating Income Tax Provison.
+    --Income Tax Provison = Profit Before Income Taxes * Income Tax Rate - Paid Income Taxes
+	/******
+		UPDATE pl_temp 
+		SET 
+			amount = finance.get_income_tax_provison_amount(1,-5300.000000,(SELECT amount FROM pl_temp WHERE item_id = 13000)),
+			"Jul-Aug"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Jul-Aug" FROM pl_temp WHERE item_id = 13000)),
+			"Aug-Sep"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Aug-Sep" FROM pl_temp WHERE item_id = 13000)),
+			"Sep-Oc"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Sep-Oc" FROM pl_temp WHERE item_id = 13000)),
+			"Oct-Nov"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Oct-Nov" FROM pl_temp WHERE item_id = 13000)),
+			"Nov-Dec"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Nov-Dec" FROM pl_temp WHERE item_id = 13000)),
+			"Dec-Jan"=finance.get_income_tax_provison_amount(1,-5300.000000, (SELECT "Dec-Jan" FROM pl_temp WHERE item_id = 13000)),
+			"Jan-Feb"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Jan-Feb" FROM pl_temp WHERE item_id = 13000)),
+			"Feb-Mar"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Feb-Mar" FROM pl_temp WHERE item_id = 13000)),
+			"Mar-Apr"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Mar-Apr" FROM pl_temp WHERE item_id = 13000)),
+			"Apr-May"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Apr-May" FROM pl_temp WHERE item_id = 13000)),
+			"May-Jun"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "May-Jun" FROM pl_temp WHERE item_id = 13000)),
+			"Jun-Jul"=finance.get_income_tax_provison_amount(1,0.000000, (SELECT "Jun-Jul" FROM pl_temp WHERE item_id = 13000)) 
+		WHERE item_id = 13001;
+	******/
 
-    --    --Reversing to debit balance for expense headings.
-    --    @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"="' + this.period_name + '"*-1 WHERE is_debit;';
-    --    EXECUTE @sql;
+    SELECT @profit = COALESCE(amount, 0) FROM #pl_temp WHERE item_id = 12000;
 
-    --    --Getting purchase and stock balances if this is a periodic inventory system.
-    --    --In perpetual accounting system, one would not need to include these headings 
-    --    --because the COGS A/C would be automatically updated on each transaction.
-    --    IF(@is_periodic)
-    --    BEGIN
-    --        @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=finance.get_closing_stock(''' + CAST(DATEADD(day,-1,this.date_from) AS varchar(24)) +  ''', ' + CAST(@office_id AS varchar(100)) + ') WHERE item_id=2001;';
-    --        EXECUTE @sql;
-
-    --        @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=finance.get_purchase(''' + CAST(this.date_from AS varchar(24)) +  ''', ''' + CAST(this.date_to AS varchar(24)) + ''', ' + CAST(@office_id AS varchar(100)) + ') *-1 WHERE item_id=3000;';
-    --        EXECUTE @sql;
-
-    --        @sql = 'UPDATE #pl_temp SET "' + this.period_name + '"=finance.get_closing_stock(''' + CAST(this.date_from AS varchar(24)) +  ''', ' + CAST(@office_id AS varchar(100)) + ') WHERE item_id=4000;';
-    --        EXECUTE @sql;
-    --    END;
-    --END LOOP;
-
-    ----Updating the column "amount" on each row by the sum of all periods.
-    --SELECT 'UPDATE #pl_temp SET amount = ' + array_to_string(array_agg('COALESCE("' + period_name + '", 0)'), ' +') + ';' INTO @sql
-    --FROM @periods;
-
-    --EXECUTE @sql;
-
-    ----Updating amount and periodic balances on parent item by the sum of their respective child balances.
-    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') + 
-    --' FROM 
-    --(
-    --    SELECT parent_item_id,
-    --    SUM(amount) AS amount, '
-    --    + array_to_string(array_agg('SUM("' + period_name + '") AS "' + period_name + '"'), ',') + '
-    --     FROM #pl_temp
-    --    GROUP BY parent_item_id
-    --) 
-    --AS tran
-    --    WHERE tran.parent_item_id = #pl_temp.item_id;'
-    --INTO @sql
-    --FROM @periods;
-    --EXECUTE @sql;
-
-    ----Updating Gross Profit.
-    ----Gross Profit = Revenue - (Cost of Sales + Direct Costs)
-    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    --+ ' FROM 
-    --(
-    --    SELECT
-    --    SUM(CASE item_id WHEN 1000 THEN amount ELSE amount * -1 END) AS amount, '
-    --    + array_to_string(array_agg('SUM(CASE item_id WHEN 1000 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"'), ',') +
-    --'
-    --     FROM #pl_temp
-    --     WHERE item_id IN
-    --     (
-    --         1000,2000,5000
-    --     )
-    --) 
-    --AS tran
-    --WHERE item_id = 6000;'
-    --INTO @sql
-    --FROM @periods;
-
-    --EXECUTE @sql;
-
-
-    ----Updating Operating Profit.
-    ----Operating Profit = Gross Profit - Operating Expenses
-    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    --+ ' FROM 
-    --(
-    --    SELECT
-    --    SUM(CASE item_id WHEN 6000 THEN amount ELSE amount * -1 END) AS amount, '
-    --    + array_to_string(array_agg('SUM(CASE item_id WHEN 6000 THEN "' + period_name + '" ELSE "' + period_name + '" *-1 END) AS "' + period_name + '"'), ',') +
-    --'
-    --     FROM #pl_temp
-    --     WHERE item_id IN
-    --     (
-    --         6000, 7000
-    --     )
-    --) 
-    --AS tran
-    --WHERE item_id = 8000;'
-    --INTO @sql
-    --FROM @periods;
-
-    --EXECUTE @sql;
-
-    ----Updating Profit Before Income Taxes.
-    ----Profit Before Income Taxes = Operating Profit + Nonoperating Incomes + Financial Incomes - Financial Expenses
-    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    --+ ' FROM 
-    --(
-    --    SELECT
-    --    SUM(CASE WHEN item_id IN(11000, 11100) THEN amount *-1 ELSE amount END) AS amount, '
-    --    + array_to_string(array_agg('SUM(CASE WHEN item_id IN(11000, 11100) THEN "' + period_name + '"*-1  ELSE "' + period_name + '" END) AS "' + period_name + '"'), ',') +
-    --'
-    --     FROM #pl_temp
-    --     WHERE item_id IN
-    --     (
-    --         8000, 9000, 10000, 11000, 11100
-    --     )
-    --) 
-    --AS tran
-    --WHERE item_id = 12000;'
-    --INTO @sql
-    --FROM @periods;
-
-    --EXECUTE @sql;
-
-    ----Updating Income Tax Provison.
-    ----Income Tax Provison = Profit Before Income Taxes * Income Tax Rate - Paid Income Taxes
-    --SELECT * INTO this FROM #pl_temp WHERE item_id = 12000;
     
-    --@sql = 'UPDATE #pl_temp SET amount = finance.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + CAST(this.amount AS varchar(100)) + ',(SELECT amount FROM #pl_temp WHERE item_id = 13000)), ' 
-    --+ array_to_string(array_agg('"' + period_name + '"= finance.get_income_tax_provison_amount(' + CAST(@office_id AS varchar(100)) + ',' + core.get_field(hstore(this.*), period_name) + ', (SELECT "' + period_name + '" FROM #pl_temp WHERE item_id = 13000))'), ',')
-    --        + ' WHERE item_id = 13001;'
-    --FROM @periods;
+    SET @sql = 'UPDATE #pl_temp SET amount = finance.get_income_tax_provison_amount(' + CAST(@office_id AS varchar) + ',' + CAST(@profit AS varchar) + ',(SELECT amount FROM #pl_temp WHERE item_id = 13000)), ';
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '" = finance.get_income_tax_provison_amount(1, ' + CAST(@profit AS varchar)
+					+ ', (SELECT "' + period_name + '" FROM #pl_temp WHERE item_id = 13000))'  FROM @periods;
 
-    --EXECUTE @sql;
+    SET @sql = @sql + @periods_csv;
+	SET @sql = @sql + ' WHERE item_id = 13001;'
 
-    ----Updating amount and periodic balances on parent item by the sum of their respective child balances, once again to add the Income Tax Provison to Income Tax Expenses.
-    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    --+ ' FROM 
-    --(
-    --    SELECT parent_item_id,
-    --    SUM(amount) AS amount, '
-    --    + array_to_string(array_agg('SUM("' + period_name + '") AS "' + period_name + '"'), ',') +
-    --'
-    --     FROM #pl_temp
-    --    GROUP BY parent_item_id
-    --) 
-    --AS tran
-    --    WHERE tran.parent_item_id = #pl_temp.item_id;'
-    --INTO @sql
-    --FROM @periods;
-    --EXECUTE @sql;
+    EXECUTE(@sql);
 
+    --Updating amount and periodic balances on parent item by the sum of their respective child balances, once again to add the Income Tax Provison to Income Tax Expenses.
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
+    SET @sql = 'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv
+    + ' FROM 
+    (
+        SELECT parent_item_id,
+        SUM(amount) AS amount, ';
+	
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM("' + period_name + '") AS "' + period_name + '"' FROM @periods;
+	SET @sql = @sql + @periods_csv;
+    SET @sql = @sql + '
+         FROM #pl_temp
+        GROUP BY parent_item_id
+    ) 
+    AS trans
+        WHERE "trans".parent_item_id = #pl_temp.item_id;';
 
-    ----Updating Net Profit.
-    ----Net Profit = Profit Before Income Taxes - Income Tax Expenses
-    --SELECT 'UPDATE #pl_temp SET amount = tran.amount, ' + array_to_string(array_agg('"' + period_name + '"=tran."' + period_name + '"'), ',') 
-    --+ ' FROM 
-    --(
-    --    SELECT
-    --    SUM(CASE item_id WHEN 13000 THEN amount *-1 ELSE amount END) AS amount, '
-    --    + array_to_string(array_agg('SUM(CASE item_id WHEN 13000 THEN "' + period_name + '"*-1  ELSE "' + period_name + '" END) AS "' + period_name + '"'), ',') +
-    --'
-    --     FROM #pl_temp
-    --     WHERE item_id IN
-    --     (
-    --         12000, 13000
-    --     )
-    --) 
-    --AS tran
-    --WHERE item_id = 14000;'
-    --INTO @sql
-    --FROM @periods;
-
-    --EXECUTE @sql;
-
-    ----Removing ledgers having zero balances
-    --DELETE FROM #pl_temp
-    --WHERE COALESCE(amount, 0) = 0
-    --AND account_id IS NOT NULL;
+    EXECUTE(@sql);
 
 
-    ----Dividing by the factor.
-    --SELECT 'UPDATE #pl_temp SET amount = amount /' + CAST(@factor varchar(100)) + ',' + array_to_string(array_agg('"' + period_name + '"="' + period_name + '"/' + CAST(@factor varchar(100))), ',') + ';'
-    --INTO @sql
-    --FROM @periods;
-    --EXECUTE @sql;
+    --Updating Net Profit.
+    --Net Profit = Profit Before Income Taxes - Income Tax Expenses
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"= "trans"."' + period_name + '"' FROM @periods;
+    SET @sql = 'UPDATE #pl_temp SET amount = "trans".amount, ' + @periods_csv
+    + ' FROM 
+    (
+        SELECT
+        SUM(CASE item_id WHEN 13000 THEN amount *-1 ELSE amount END) AS amount, ';
+
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + 'SUM(CASE item_id WHEN 13000 THEN "' + period_name + '" *-1 ELSE "' + period_name + '" END) AS "' + period_name + '"' FROM @periods;
+    SET @sql = @sql + @periods_csv;
+
+    SET @sql = @sql + '
+         FROM #pl_temp
+         WHERE item_id IN
+         (
+             12000, 13000
+         )
+    ) 
+    AS trans
+    WHERE item_id = 14000;';
+
+    EXECUTE(@sql);
+
+    --Removing ledgers having zero balances
+    DELETE FROM #pl_temp
+    WHERE COALESCE(amount, 0) = 0
+    AND account_id IS NOT NULL;
 
 
-    ----Converting 0's to NULLS.
-    --SELECT 'UPDATE #pl_temp SET amount = CASE WHEN amount = 0 THEN NULL ELSE amount END,' + array_to_string(array_agg('"' + period_name + '"= CASE WHEN "' + period_name + '" = 0 THEN NULL ELSE "' + period_name + '" END'), ',') + ';'
-    --INTO @sql
-    --FROM @periods;
+    --Dividing by the factor.
+    SET @sql = 'UPDATE #pl_temp SET amount = amount /' + CAST(@factor AS varchar) + ',' 
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '" = "' + period_name + '" / ' + CAST(@factor AS varchar) FROM @periods;
+	SET @sql = @sql + @periods_csv + ';';
 
-    --EXECUTE @sql;
+    EXECUTE(@sql);
 
-    --IF(@compact)
-    --BEGIN
-    --    SELECT array_to_json(array_agg(row_to_json(report)))
-    --    INTO @json
-    --    FROM
-    --    (
-    --        SELECT item, amount, is_profit, is_summation
-    --        FROM #pl_temp
-    --        ORDER BY item_id
-    --    ) AS report;
-    --END
-    --ELSE
-    --BEGIN
-    --    SELECT 
-    --    'SELECT array_to_json(array_agg(row_to_json(report)))
-    --    FROM
-    --    (
-    --        SELECT item, amount,'
-    --        + array_to_string(array_agg('"' + period_name + '"'), ',') +
-    --        ', is_profit, is_summation FROM #pl_temp
-    --        ORDER BY item_id
-    --    ) AS report;'
-    --    INTO @sql
-    --    FROM @periods;
 
-    --    EXECUTE @sql INTO @json ;
-    --END;    
+    --Converting 0's to NULLS.
+    SET @sql = 'UPDATE #pl_temp SET amount = CASE WHEN amount = 0 THEN NULL ELSE amount END,';
+	SET @periods_csv  = NULL;
+	SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '" = CASE WHEN "' + period_name + '" = 0 THEN NULL ELSE "' + period_name + '" END'  FROM @periods;
+	SET @sql = @sql + @periods_csv;
 
-    --SELECT @json;
+    EXECUTE(@sql);
 
-    --TODO
-    RETURN;
+
+    IF(@compact = 1)
+	BEGIN
+        SELECT item, amount, is_profit, is_summation
+        FROM #pl_temp
+        ORDER BY item_id;
+	END
+    ELSE
+	BEGIN
+		SET @periods_csv  = NULL;
+		SELECT @periods_csv = COALESCE(@periods_csv + ',' , '') + '"' + period_name + '"'  FROM @periods;
+		SET @sql = 'SELECT item, amount,'
+            + @periods_csv +
+            ', is_profit, is_summation FROM #pl_temp
+            ORDER BY item_id';
+		EXECUTE(@sql);
+    END;
 END
 
 GO
+
+--EXECUTE finance.get_profit_and_loss_statement '1-1-2000', '1-1-2020', 1, 1, 1, 0;
+
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/logic/finance.get_retained_earnings.sql --<--<--
 IF OBJECT_ID('finance.get_retained_earnings') IS NOT NULL

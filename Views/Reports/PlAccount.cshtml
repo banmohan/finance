@@ -6,7 +6,7 @@
 }
 
 <div class="ui attached padded segment">
-    <div class="ui huge header">Profit and Loss Statement</div>
+    <h2 class="ui huge header">Profit and Loss Statement</h2>
     <div id="PlAccountQueryForm" class="ui form">
         <div class="fields">
             <div class="field">
@@ -152,14 +152,14 @@
         const templatePath = "/Reports/Print.html";
         const headerPath = "/Reports/Assets/Header.aspx";
         const title = $("h2").html();
-        const targetControlId = "PLAccountGridView";
         const date = now;
         const windowName = "PLAccountGridView";
         const offsetFirst = 0;
         const offsetLast = 1;
 
-        console.log("todo");
-        //window.printGridView(templatePath, headerPath, title, targetControlId, date, user, office, windowName, offsetFirst, offsetLast);
+		var table = $("#PLAccountGridView").clone();
+
+		window.printGridView(title, table, windowName, offsetFirst, offsetLast);
     });
 
 </script>
