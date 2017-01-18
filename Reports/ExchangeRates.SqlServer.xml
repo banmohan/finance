@@ -5,19 +5,19 @@
   <TopSection>
     <table class="table horizontal">
       <tr>
-        <td>{Resources.Titles.OfficeCode}</td>
+        <td>{i18n.OfficeCode}</td>
         <td>{DataSource[0].office_code}</td>
       </tr>
       <tr>
-        <td>{Resources.Titles.OfficeName}</td>
+        <td>{i18n.OfficeName}</td>
         <td>{DataSource[0].office_name}</td>
       </tr>
       <tr>
-        <td>{Resources.Titles.BaseCurrency}</td>
+        <td>{i18n.BaseCurrency}</td>
         <td>{DataSource[0].currency_code}</td>
       </tr>
       <tr>
-        <td>{Resources.Titles.UpdatedOn}</td>
+        <td>{i18n.UpdatedOn}</td>
         <td>{DataSource[0].updated_on}</td>
       </tr>
     </table>

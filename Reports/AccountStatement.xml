@@ -6,23 +6,23 @@
 	<h1>{DataSource[0].account_number} ({DataSource[0].account_name})</h1>
     <table class="table horizontal">
       <tr>
-        <td>{Resources.Titles.AccountNumber}</td>
+        <td>{i18n.AccountNumber}</td>
         <td>
           {DataSource[0].account_number} <br />
         </td>
       </tr>
       <tr>
-        <td>{Resources.Titles.AccountName}</td>
+        <td>{i18n.AccountName}</td>
         <td>
           {DataSource[0].account_name} <br />
         </td>
       </tr>
       <tr>
-        <td>{Resources.Titles.OfficeName}</td>
+        <td>{i18n.OfficeName}</td>
         <td>{DataSource[0].office_name}</td>
       </tr>
       <tr>
-        <td>{Resources.Titles.BaseCurrency}</td>
+        <td>{i18n.BaseCurrency}</td>
         <td>{DataSource[0].currency_code}</td>
       </tr>
     </table>
