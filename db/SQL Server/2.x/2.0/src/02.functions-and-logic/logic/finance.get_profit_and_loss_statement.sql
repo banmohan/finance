@@ -58,7 +58,7 @@ BEGIN
 
     IF NOT EXISTS(SELECT TOP 1 0 FROM @periods)
 	BEGIN
-        RAISERROR('Invalid period specified.', 10, 1);
+        RAISERROR('Invalid period specified.', 13, 1);
 		RETURN;
     END;
 

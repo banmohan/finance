@@ -11,17 +11,17 @@ BEGIN
 
     IF(@value_date IS NULL)
     BEGIN
-        RAISERROR('Invalid date.', 10, 1);
+        RAISERROR('Invalid date.', 13, 1);
     END;
 
     IF(account.is_admin(@user_id) = 0)
     BEGIN
-        RAISERROR('Access is denied.', 10, 1);
+        RAISERROR('Access is denied.', 13, 1);
     END;
 
     IF(@value_date != finance.get_value_date(@office_id))
     BEGIN
-        RAISERROR('Invalid value date.', 10, 1);
+        RAISERROR('Invalid value date.', 13, 1);
     END;
 
 
@@ -37,7 +37,7 @@ BEGIN
     END
     ELSE    
     BEGIN
-        RAISERROR('EOD operation was already initialized.', 10, 1);
+        RAISERROR('EOD operation was already initialized.', 13, 1);
     END;
 
     RETURN;

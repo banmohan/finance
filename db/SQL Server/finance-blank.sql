@@ -617,7 +617,8 @@ BEGIN
     END
     ELSE
     BEGIN
-        RAISERROR('No auto verification policy found for this user.', 10, 1);
+		--RAISERROR('No auto verification policy found for this user.', 13, 1);
+		PRINT 'No auto verification policy found for this user.';
     END;
     RETURN;
 END;
@@ -2789,17 +2790,17 @@ BEGIN
 
     IF(@value_date IS NULL)
     BEGIN
-        RAISERROR('Invalid date.', 10, 1);
+        RAISERROR('Invalid date.', 13, 1);
     END;
 
     IF(account.is_admin(@user_id) = 0)
     BEGIN
-        RAISERROR('Access is denied.', 10, 1);
+        RAISERROR('Access is denied.', 13, 1);
     END;
 
     IF(@value_date != finance.get_value_date(@office_id))
     BEGIN
-        RAISERROR('Invalid value date.', 10, 1);
+        RAISERROR('Invalid value date.', 13, 1);
     END;
 
 
@@ -2815,7 +2816,7 @@ BEGIN
     END
     ELSE    
     BEGIN
-        RAISERROR('EOD operation was already initialized.', 10, 1);
+        RAISERROR('EOD operation was already initialized.', 13, 1);
     END;
 
     RETURN;
@@ -3054,17 +3055,17 @@ BEGIN
         
         IF(@value_date IS NULL)
         BEGIN
-            RAISERROR('Invalid date.', 10, 1);
+            RAISERROR('Invalid date.', 13, 1);
         END;
 
         IF(account.is_admin(@user_id) = 0)
         BEGIN
-            RAISERROR('Access is denied.', 10, 1);
+            RAISERROR('Access is denied.', 13, 1);
         END;
 
         IF(@value_date != finance.get_value_date(@office_id))
         BEGIN
-            RAISERROR('Invalid value date.', 10, 1);
+            RAISERROR('Invalid value date.', 13, 1);
         END;
 
         SELECT 
@@ -3076,13 +3077,13 @@ BEGIN
 
         IF(@completed IS NULL)
         BEGIN
-            RAISERROR('Invalid value date.', 10, 1);
+            RAISERROR('Invalid value date.', 13, 1);
         END
         ELSE
         BEGIN    
             IF(@completed = 1 OR @completed_on IS NOT NULL)
             BEGIN
-                RAISERROR('End of day operation was already performed.', 10, 1);
+                RAISERROR('End of day operation was already performed.', 13, 1);
                 SET @is_error        = 1;
             END;
         END;
@@ -3094,7 +3095,7 @@ BEGIN
             AND verification_status_id = 0
         )
         BEGIN
-            RAISERROR('Past dated transactions in verification queue.', 10, 1);
+            RAISERROR('Past dated transactions in verification queue.', 13, 1);
             SET @is_error        = 1;
         END;
 
@@ -3105,7 +3106,7 @@ BEGIN
             AND verification_status_id = 0
         )
         BEGIN
-            RAISERROR('Please verify transactions before performing end of day operation.', 10, 1);
+            RAISERROR('Please verify transactions before performing end of day operation.', 13, 1);
             SET @is_error        = 1;
         END;
         
@@ -3273,7 +3274,6 @@ GO
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--
--->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--
 IF OBJECT_ID('finance.verify_transaction') IS NOT NULL
 DROP PROCEDURE finance.verify_transaction;
 
@@ -3318,7 +3318,7 @@ BEGIN
 
     IF(@journal_office_id <> @office_id)
     BEGIN
-        RAISERROR('Access is denied. You cannot verify a transaction of another office.', 10, 1);
+        RAISERROR('Access is denied. You cannot verify a transaction of another office.', 13, 1);
     END;
         
     SELECT @posted_amount = SUM(amount_in_local_currency)
@@ -3383,12 +3383,12 @@ BEGIN
         END
         ELSE
         BEGIN
-            RAISERROR('Please ask someone else to verify your transaction.', 10, 1);
+            RAISERROR('Please ask someone else to verify your transaction.', 13, 1);
         END;
     END
     ELSE
     BEGIN
-        RAISERROR('No verification policy found for this user.', 10, 1);
+        RAISERROR('No verification policy found for this user.', 13, 1);
     END;
 
     SELECT 0;
@@ -3762,7 +3762,7 @@ BEGIN
 
     IF NOT EXISTS(SELECT TOP 1 0 FROM @periods)
 	BEGIN
-        RAISERROR('Invalid period specified.', 10, 1);
+        RAISERROR('Invalid period specified.', 13, 1);
 		RETURN;
     END;
 
@@ -4156,7 +4156,7 @@ BEGIN
 
     IF NOT EXISTS(SELECT TOP 1 0 FROM @periods)
 	BEGIN
-        RAISERROR('Invalid period specified.', 10, 1);
+        RAISERROR('Invalid period specified.', 13, 1);
 		RETURN;
     END;
 
@@ -4607,7 +4607,7 @@ BEGIN
     IF(@date_from IS NULL)
     BEGIN
         SET @date_from = finance.get_fiscal_year_start_date(@office_id);
-        --RAISERROR('Invalid date.', 10, 1);
+        --RAISERROR('Invalid date.', 13, 1);
     END;
 
     IF NOT EXISTS
@@ -4620,7 +4620,7 @@ BEGIN
         HAVING count(DISTINCT currency_code) = 1
     )
     BEGIN
-        --RAISERROR('Cannot produce trial balance of office(s) having different base currencies.', 10, 1);
+        --RAISERROR('Cannot produce trial balance of office(s) having different base currencies.', 13, 1);
         RETURN;
     END;
 

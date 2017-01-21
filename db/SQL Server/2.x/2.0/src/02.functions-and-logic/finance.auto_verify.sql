@@ -80,7 +80,8 @@ BEGIN
     END
     ELSE
     BEGIN
-        RAISERROR('No auto verification policy found for this user.', 10, 1);
+		--RAISERROR('No auto verification policy found for this user.', 13, 1);
+		PRINT 'No auto verification policy found for this user.';
     END;
     RETURN;
 END;

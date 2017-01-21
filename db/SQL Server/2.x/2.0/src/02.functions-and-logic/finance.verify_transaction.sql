@@ -1,5 +1,4 @@
-﻿-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.verify_transaction.sql --<--<--
-IF OBJECT_ID('finance.verify_transaction') IS NOT NULL
+﻿IF OBJECT_ID('finance.verify_transaction') IS NOT NULL
 DROP PROCEDURE finance.verify_transaction;
 
 GO
@@ -43,7 +42,7 @@ BEGIN
 
     IF(@journal_office_id <> @office_id)
     BEGIN
-        RAISERROR('Access is denied. You cannot verify a transaction of another office.', 10, 1);
+        RAISERROR('Access is denied. You cannot verify a transaction of another office.', 13, 1);
     END;
         
     SELECT @posted_amount = SUM(amount_in_local_currency)
@@ -108,12 +107,12 @@ BEGIN
         END
         ELSE
         BEGIN
-            RAISERROR('Please ask someone else to verify your transaction.', 10, 1);
+            RAISERROR('Please ask someone else to verify your transaction.', 13, 1);
         END;
     END
     ELSE
     BEGIN
-        RAISERROR('No verification policy found for this user.', 10, 1);
+        RAISERROR('No verification policy found for this user.', 13, 1);
     END;
 
     SELECT 0;

@@ -33,7 +33,7 @@ BEGIN
     IF(@date_from IS NULL)
     BEGIN
         SET @date_from = finance.get_fiscal_year_start_date(@office_id);
-        --RAISERROR('Invalid date.', 10, 1);
+        --RAISERROR('Invalid date.', 13, 1);
     END;
 
     IF NOT EXISTS
@@ -46,7 +46,7 @@ BEGIN
         HAVING count(DISTINCT currency_code) = 1
     )
     BEGIN
-        --RAISERROR('Cannot produce trial balance of office(s) having different base currencies.', 10, 1);
+        --RAISERROR('Cannot produce trial balance of office(s) having different base currencies.', 13, 1);
         RETURN;
     END;
 

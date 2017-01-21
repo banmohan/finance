@@ -36,17 +36,17 @@ BEGIN
         
         IF(@value_date IS NULL)
         BEGIN
-            RAISERROR('Invalid date.', 10, 1);
+            RAISERROR('Invalid date.', 13, 1);
         END;
 
         IF(account.is_admin(@user_id) = 0)
         BEGIN
-            RAISERROR('Access is denied.', 10, 1);
+            RAISERROR('Access is denied.', 13, 1);
         END;
 
         IF(@value_date != finance.get_value_date(@office_id))
         BEGIN
-            RAISERROR('Invalid value date.', 10, 1);
+            RAISERROR('Invalid value date.', 13, 1);
         END;
 
         SELECT 
@@ -58,13 +58,13 @@ BEGIN
 
         IF(@completed IS NULL)
         BEGIN
-            RAISERROR('Invalid value date.', 10, 1);
+            RAISERROR('Invalid value date.', 13, 1);
         END
         ELSE
         BEGIN    
             IF(@completed = 1 OR @completed_on IS NOT NULL)
             BEGIN
-                RAISERROR('End of day operation was already performed.', 10, 1);
+                RAISERROR('End of day operation was already performed.', 13, 1);
                 SET @is_error        = 1;
             END;
         END;
@@ -76,7 +76,7 @@ BEGIN
             AND verification_status_id = 0
         )
         BEGIN
-            RAISERROR('Past dated transactions in verification queue.', 10, 1);
+            RAISERROR('Past dated transactions in verification queue.', 13, 1);
             SET @is_error        = 1;
         END;
 
@@ -87,7 +87,7 @@ BEGIN
             AND verification_status_id = 0
         )
         BEGIN
-            RAISERROR('Please verify transactions before performing end of day operation.', 10, 1);
+            RAISERROR('Please verify transactions before performing end of day operation.', 13, 1);
             SET @is_error        = 1;
         END;
         
