@@ -84,27 +84,27 @@ namespace MixERP.Finance
 		public static string Checklist => I18NResource.GetString(ResourceDirectory, "Checklist");
 
 		/// <summary>
-		///The transaction was posted successfully
+		///The transaction was posted successfully.
 		/// </summary>
 		public static string TransactionPostedSuccessfully => I18NResource.GetString(ResourceDirectory, "TransactionPostedSuccessfully");
 
 		/// <summary>
-		///Why do you want to withdraw this transaction
+		///Why do you want to withdraw this transaction?
 		/// </summary>
 		public static string WhyDoYouWantWithdrawTransaction => I18NResource.GetString(ResourceDirectory, "WhyDoYouWantWithdrawTransaction");
 
 		/// <summary>
-		///Are you sure
+		///Are you sure?
 		/// </summary>
 		public static string AreYouSure => I18NResource.GetString(ResourceDirectory, "AreYouSure");
 
 		/// <summary>
-		///You haven't left a note yet
+		///You haven't left a note yet.
 		/// </summary>
 		public static string YouHaventLeftNoteYet => I18NResource.GetString(ResourceDirectory, "YouHaventLeftNoteYet");
 
 		/// <summary>
-		///No document(s) found
+		///No document(s) found.
 		/// </summary>
 		public static string NoDocumentFound => I18NResource.GetString(ResourceDirectory, "NoDocumentFound");
 
@@ -164,7 +164,7 @@ namespace MixERP.Finance
 		public static string RemindMeAbout => I18NResource.GetString(ResourceDirectory, "RemindMeAbout");
 
 		/// <summary>
-		///Whom to Remind
+		///Whom to Remind?
 		/// </summary>
 		public static string WhomToRemind => I18NResource.GetString(ResourceDirectory, "WhomToRemind");
 
@@ -209,7 +209,7 @@ namespace MixERP.Finance
 		public static string EnterDescriptionReminder => I18NResource.GetString(ResourceDirectory, "EnterDescriptionReminder");
 
 		/// <summary>
-		///Repeat
+		///Repeat?
 		/// </summary>
 		public static string Repeat => I18NResource.GetString(ResourceDirectory, "Repeat");
 
@@ -329,9 +329,9 @@ namespace MixERP.Finance
 		public static string BookDate => I18NResource.GetString(ResourceDirectory, "BookDate");
 
 		/// <summary>
-		///Ref#
+		///Ref #
 		/// </summary>
-		public static string Ref => I18NResource.GetString(ResourceDirectory, "Ref");
+		public static string RefererenceNumberAbbreviated => I18NResource.GetString(ResourceDirectory, "RefererenceNumberAbbreviated");
 
 		/// <summary>
 		///StatementReference
