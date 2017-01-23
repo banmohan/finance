@@ -1,37 +1,37 @@
 ﻿@model dynamic
 
 @{
-    ViewBag.Title = "Profit and Loss Statement";
+    ViewBag.Title = I18N.ProfitLossStatement;
     Layout = ViewBag.Layout;
 }
 
 <div class="ui attached padded segment">
-    <h2 class="ui huge header">Profit and Loss Statement</h2>
+    <h2 class="ui huge header">@I18N.ProfitLossStatement</h2>
     <div id="PlAccountQueryForm" class="ui form">
         <div class="fields">
             <div class="field">
-                <label>From</label>
+                <label>@I18N.From</label>
                 <input id="FromInputText" type="text" class="date" data-persist value="BOY" />
             </div>
             <div class="field">
-                <label>To</label>
+                <label>@I18N.To</label>
                 <input id="ToInputText" type="text" class="date" data-persist value="BOM" />
             </div>
             <div class="field">
-                <label>Factor</label>
+                <label>@I18N.Factor</label>
                 <input id="FactorInputText" type="text" class="integer" data-persist value="1" />
             </div>
             <div class="field">
-                <label>Show Compact</label>
+                <label>@I18N.ShowCompact</label>
                 <div class="ui toggle checkbox vpad8">
                     <input id="CompactCheckbox" tabindex="0" class="hidden" type="checkbox">
-                    <label>Show Compact</label>
+                    <label>@I18N.ShowCompact</label>
                 </div>
             </div>
             <div class="field">
                 <label>&nbsp;</label>
-                <button id="ShowButton" class="ui positive show button">Show</button>
-                <button id="PrintButton" class="ui basic print button">Print</button>
+                <button id="ShowButton" class="ui positive show button">@I18N.Show</button>
+                <button id="PrintButton" class="ui basic print button">@I18N.Print</button>
             </div>
         </div>
     </div>

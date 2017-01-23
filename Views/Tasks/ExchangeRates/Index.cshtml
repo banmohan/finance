@@ -2,14 +2,14 @@
 @model dynamic
 
 @{
-    ViewBag.Title = "Exchange Rates";
+    ViewBag.Title = I18N.ExchangeRates;
     Layout = ViewBag.FinanceLayoutPath;
     var meta = AppUsers.GetCurrent();
 }
 
 <div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
     <div class="ui huge header">
-        Exchange Rates
+        @I18N.ExchangeRates
     </div>
     <div class="ui divider"></div>
 
@@ -17,20 +17,20 @@
         <div class="fields">
             <div class="field">
                 <label for="OfficeInputText">
-                    Office
+                    @I18N.Office
                 </label>
                 <input type="text" id="OfficeInputText" readonly="readonly" value="@meta.OfficeName" runat="server" />
             </div>
             <div class="field">
                 <label for="CurrencyInputText">
-                    Base Currency
+                    @I18N.BaseCurrency
                 </label>
                 <input type="text" id="CurrencyInputText" readonly="readonly" value="@meta.CurrencyCode" runat="server" />
             </div>
 
             <div class="field">
                 <label for="ApiSelect">
-                    Select API
+                    @I18N.SelectAPI
                 </label>
                 <select id="ApiSelect" class="ui dropdown"></select>
             </div>
@@ -46,12 +46,12 @@
     <table class="ui very compact small striped collapsing table" id="ExchangeRatesGridView">
         <thead>
             <tr>
-                <th>Currency Code</th>
-                <th>Symbol</th>
-                <th>Currency Name</th>
-                <th>Hundredth Name</th>
-                <th>Exchange Rate</th>
-                <th>Description</th>
+                <th>@I18N.CurrencyCode</th>
+                <th>@I18N.Symbol</th>
+                <th>@I18N.CurrencyName</th>
+                <th>@I18N.HundredthName</th>
+                <th>@I18N.ExchangeRate</th>
+                <th>@I18N.Description</th>
             </tr>
         </thead>
         <tbody></tbody>

@@ -1,32 +1,32 @@
 ﻿@model dynamic
 
 @{
-    ViewBag.Title = "Exchange Rates";
+    ViewBag.Title = I18N.ExchangeRates;
     Layout = ViewBag.FinanceLayoutPath;
 }
 <script src="/signalr/hubs"></script>
 
 <div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
-    <div class="ui large header" data-localize="AccountReconciliation"></div>
+    <div class="ui large header" data-localize="@I18N.AccountReconciliation"></div>
     <div class="ui divider"></div>
 
     <div class="ui form">
         <div class="fields">
             <div class="four wide field">
-                <label>Select Account</label>
+                <label>@I18N.SelectAccount</label>
                 <select id="AccountSelect" class="ui dropdown" data-persist></select>
             </div>
             <div class="field">
-                <label>From</label>
+                <label>@I18N.From</label>
                 <input id="FromInputDate" type="text" class="date" data-persist value="-3m" />
             </div>
             <div class="field">
-                <label>To</label>
+                <label>@I18N.To</label>
                 <input id="ToInputDate" type="text" class="date" data-persist value="3m" />
             </div>
             <div class="field">
                 <label>&nbsp;</label>
-                <div id="ShowButton" class="ui positive button">Show</div>
+                <div id="ShowButton" class="ui positive button">@I18N.Show</div>
             </div>
         </div>
     </div>
@@ -34,33 +34,33 @@
     <table id="ReconciliationTable" class="ui celled striped table">
         <thead>
             <tr>
-                <th data-localize="Reconcile" style="width: 40px;"></th>
-                <th data-localize="Book"></th>
-                <th data-localize="BookDate"></th>
-                <th data-localize="TranId"></th>                
-                <th data-localize="ReconciliationMemo"></th>
-                <th data-localize="ReferenceNumber"></th>
-                <th data-localize="StatementReference"></th>
-                <th data-localize="Office"></th>
-                <th data-localize="Debit"></th>
-                <th data-localize="Credit"></th>
-                <th data-localize="Balance"></th>
+                <th data-localize="@I18N.Reconcile" style="width: 40px;"></th>
+                <th data-localize="@I18N.Book"></th>
+                <th data-localize="@I18N.BookDate"></th>
+                <th data-localize="@I18N.TranId"></th>                
+                <th data-localize="@I18N.ReconciliationMemo"></th>
+                <th data-localize="@I18N.ReferenceNumber"></th>
+                <th data-localize="@I18N.StatementReference"></th>
+                <th data-localize="@I18N.Office"></th>
+                <th data-localize="@I18N.Debit"></th>
+                <th data-localize="@I18N.Credit"></th>
+                <th data-localize="@I18N.Balance"></th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
     <div class="ui reconciliation padded segment" style="max-width: 600px;">
-        <div class="ui big header" data-localize="ReconcileTransaction"></div>
+        <div class="ui big header" data-localize="@I18N.ReconcileTransaction"></div>
         <div class="ui divider"></div>
         <div class="ui form">
             <div class="two fields">
                 <div class="field">
-                    <label data-localize="EnterNewBookDate"></label>
+                    <label data-localize="@I18N.EnterNewBookDate"></label>
                     <input  id="NewBookDateInputText" type="text" data-target="data-book-date" class="date"/>
                 </div>
                 <div class="field">
-                    <label data-localize="ReconciliationMemo"></label>
+                    <label data-localize="@I18N.ReconciliationMemo"></label>
                     <input  id="MemoInputText" type="text" data-target="data-reconciliation-memo"/>
                 </div>
             </div>
@@ -72,81 +72,81 @@
         <div class="ui form">
             <div class="two fields">
                 <div class="field">
-                    <label data-localize="TransactionId"></label>
+                    <label data-localize="@I18N.TransactionId"></label>
                     <input type="text" data-target="data-transaction-id" disabled/>
                 </div>
                 <div class="field">
-                    <label data-localize="TransactionDetailId"></label>
+                    <label data-localize="@I18N.TransactionDetailId"></label>
                     <input id="TransactionDetailIdInputText" type="text" data-target="data-transaction-detail-id" disabled/>
                 </div>
             </div>
             <div class="three fields">
                 <div class="field">
-                    <label data-localize="AccountId"></label>
+                    <label data-localize="@I18N.AccountId"></label>
                     <input type="text" data-target="data-account-id" disabled/>
                 </div>
                 <div class="field">
-                    <label data-localize="AccountNumber"></label>
+                    <label data-localize="@I18N.AccountNumber"></label>
                     <input type="text" data-target="data-account-number" disabled/>
                 </div>
                 <div class="field">
-                    <label data-localize="Account"></label>
+                    <label data-localize="@I18N.Account"></label>
                     <input type="text" data-target="data-account" disabled/>
                 </div>
             </div>
             <div class="two fields">
                 <div class="field">
-                    <label data-localize="TransactionCode"></label>
+                    <label data-localize="@I18N.TransactionCode"></label>
                     <input type="text" data-target="data-tran-code" disabled/>
                 </div>
                 <div class="field">
-                    <label data-localize="ReferenceNumber"></label>
+                    <label data-localize="@I18N.ReferenceNumber"></label>
                     <input type="text" data-target="data-reference-number" disabled/>
                 </div>
             </div>
             <div class="field">
-                <label data-localize="Book"></label>
+                <label data-localize="@I18N.Book"></label>
                 <input type="text" data-target="data-book" disabled/>
             </div>
             <div class="two fields">
                 <div class="field">
-                    <label data-localize="ValueDate"></label>
+                    <label data-localize="@I18N.ValueDate"></label>
                     <input type="text" data-target="data-value-date" disabled/>
                 </div>
                 <div class="field">
-                    <label data-localize="BookDate"></label>
+                    <label data-localize="@I18N.BookDate"></label>
                     <input type="text" data-target="data-book-date" disabled/>
                 </div>
             </div>
             <div class="field">
-                <label data-localize="StatementReference"></label>
+                <label data-localize="@I18N.StatementReference"></label>
                 <input type="text" data-target="data-statement-reference" disabled/>
             </div>
             <div class="field">
-                <label data-localize="ReconciliationMemo"></label>
+                <label data-localize="@I18N.ReconciliationMemo"></label>
                 <input type="text" data-target="data-reconciliation-memo" disabled/>
             </div>
             <div class="two fields">
                 <div class="field">
-                    <label data-localize="Debit"></label>
+                    <label data-localize="@I18N.Debit"></label>
                     <input type="text" data-target="data-debit" disabled/>
                 </div>
                 <div class="field">
-                    <label data-localize="Credit"></label>
+                    <label data-localize="@I18N.Credit"></label>
                     <input type="text" data-target="data-credit" disabled/>
                 </div>
             </div>
             <div class="two fields">
                 <div class="field">
-                    <label data-localize="PostedOn"></label>
+                    <label data-localize="@I18N.PostedOn"></label>
                     <input type="text" data-target="data-posted-on" disabled/>
                 </div>
                 <div class="field">
-                    <label data-localize="PostedBy"></label>
+                    <label data-localize="@I18N.PostedBy"></label>
                     <input type="text" data-target="data-posted-by" disabled/>
                 </div>
                 <div class="field">
-                    <label data-localize="ApprovedBy"></label>
+                    <label data-localize="@I18N.ApprovedBy"></label>
                     <input type="text" data-target="data-approved-by" disabled/>
                 </div>
             </div>
