@@ -1,14 +1,14 @@
 ﻿@model dynamic
 
 @{
-    ViewBag.Title = "Cash Repositories";
+    ViewBag.Title = I18N.CashRepositories;
     Layout = ViewBag.Layout;
 }
 
 <script>
     var scrudFactory = new Object();
 
-    scrudFactory.title = window.translate("CashRepositories");
+    scrudFactory.title = window.translate("Cash Repositories");
 
     scrudFactory.viewAPI = "/api/views/finance/cash-repository-scrud-view";
     scrudFactory.viewTableName = "finance.cash_repository_scrud_view";

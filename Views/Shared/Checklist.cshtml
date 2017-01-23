@@ -1,7 +1,7 @@
 ﻿@model dynamic
 
 @{
-    ViewBag.Title = "Checklist";
+    ViewBag.Title = I18N.Checklist;
     Layout = ViewBag.FinanceLayoutPath;
 }
 <style>
@@ -47,7 +47,7 @@
     <div class="ui huge title header"></div>
     <div class="ui divider"></div>
 
-    <div class="ui positive message">The transaction was posted successfully.</div>
+    <div class="ui positive message">@I18N.TransactionPostedSuccessfully.</div>
 
     <div class="ui basic buttons">
         <a class="ui basic view transaction button"></a>
@@ -57,7 +57,7 @@
 
     <div id="WithdrawDiv" style="display: none;" class="ui basic segment">
         <div class="ui attached message" style="display: block;">
-            <div class="header">Why do you want to withdraw this transaction?</div>
+            <div class="header">@I18N.WhyDoYouWantWithdrawTransaction?</div>
         </div>
         <div class="ui form attached fluid segment">
             <p>When you withdraw a transaction, it won't be forwarded to the workflow module. This means that your withdrawn transactions are rejected and require no further verification. However, you won't be able to unwithdraw this transaction later.</p>
@@ -65,71 +65,71 @@
                 <input type="hidden" id="TranIdInputHidden" value="" />
                 <textarea rows="5" id="ReasonTextarea"></textarea>
             </div>
-            <div class="ui message">Are you sure?</div>
-            <button id="WithdrawOKButton" class="ui red small submit button" type="submit">OK</button>
-            <button class="ui green small submit button" type="button">Cancel</button>
+            <div class="ui message">@I18N.AreYouSure?</div>
+            <button id="WithdrawOKButton" class="ui red small submit button" type="submit">@I18N.OK</button>
+            <button class="ui green small submit button" type="button">@I18N.Cancel</button>
         </div>
     </div>
 
     <section class="notes" style="display: none;">
-        <div class="ui header">Notes</div>
-        <div class="ui warning message">You haven't left a note yet.</div>
+        <div class="ui header">@I18N.Notes</div>
+        <div class="ui warning message">@I18N.YouHaven'tLeftNoteYet.</div>
         <div class="ui form">
             <div class="field">
                 <textarea rows="2"></textarea>
             </div>
-            <div class="ui green button">Add Note</div>
+            <div class="ui green button">@I18N.AddNote</div>
         </div>
     </section>
 
 
     <section class="documents" style="display: none;">
-        <div class="ui header">Documents</div>
-        <div class="ui warning message">No document(s) found.</div>
-        <div class="ui green button">Upload a New Document</div>
+        <div class="ui header">@I18N.Documents</div>
+        <div class="ui warning message">@I18N.NoDocumentFound.</div>
+        <div class="ui green button">@I18N.UploadNewDocument</div>
     </section>
 
     <section class="reminders" style="display: none;">
-        <div class="ui header">Reminder</div>
-        <div class="ui warning message">No reminder was set.</div>
-        <div class="ui green add reminder button">Create a New Reminder</div>
+        <div class="ui header">@I18N.Reminder</div>
+        <div class="ui warning message">@I18N.NoReminderSet</div>
+        <div class="ui green add reminder button">@I18N.CreateNewReminder</div>
     </section>
 
 
-    <div class="ui header">Advice</div>
+    <div class="ui header">@I18N.Advice</div>
     <iframe id="ReportIFrame"></iframe>
-    <div class="ui green button">Email Me This Document</div>
+    <div class="ui green button">@I18N.EmailMeDocument</div>
 </div>
 
 <div class="ui reminder small modal">
     <i class="close icon"></i>
-    <div class="header">Create a New Reminder</div>
+    <div class="header">@I18N.CreateNewReminder</div>
     <div class="content">
         <div class="ui padded unstyled form">
             <div class="field">
-                <label>Title</label>
-                <input placeholder="Remind Me About" />
+                <label>@I18N.Title</label>
+                <input placeholder="@I18N.RemindMeAbout" />
             </div>
             <div class="selection group">
                 <div class="field">
-                    <label>Whom to Remind?</label>
+                    <label>@I18N.WhomToRemind?</label>
                     <div class="single selection choices">
-                        <div tabindex="0" data-selection="" class="active choice">Only Me</div>
-                        <div tabindex="0" data-selection="role" class="choice">Selected Role(s)</div>
-                        <div tabindex="0" data-selection="user" class="choice">Selected Users(s)</div>
+                        <div tabindex="0" data-selection="" class="active choice">@I18N.OnlyMe</div>
+                        <div tabindex="0" data-selection="role" class="choice">@I18N.SelectedRole</div>
+                        <div tabindex="0" data-selection="user" class="choice">@I18N.SelectedUsers</div>
                     </div>
                 </div>
                 <div class="role selection field" style="display: none;">
-                    <label>Select Roles</label>
+                    <label>@I18N.SelectRoles</label>
                     <select class="ui collapsing select dropdown"></select>
                 </div>
                 <div class="user selection field" style="display: none;">
-                    <label>Select Users</label>
+                    <label>@I18N.SelectUsers</label>
                     <select class="ui collapsing select dropdown"></select>
                 </div>
             </div>
             <div class="field">
-                <label>Starts From</label>
+                <label>@I18N.StartsFrom</label>
                 <div class="fields">
                     <div class="three wide field">
                         <input type="text" class="date" value="d" />
@@ -140,7 +140,7 @@
                 </div>
             </div>
             <div class="field">
-                <label>Ends On</label>
+                <label>@I18N.EndsOn</label>
                 <div class="fields">
                     <div class="three wide field">
                         <input type="text" class="date" value="7d" />
@@ -151,34 +151,34 @@
                 </div>
             </div>
             <div class="field">
-                <label>Enter Description for Reminder</label>
+                <label>@I18N.EnterDescriptionReminder</label>
                 <textarea></textarea>
             </div>
             <div class="selection group">
                 <div class="field">
-                    <label>Repeat?</label>
+                    <label>@I18N.Repeat?</label>
                     <div class="single selection choices">
-                        <div tabindex="0" data-selection="" class="active choice">No</div>
-                        <div tabindex="0" data-selection="repeat.hour.value" class="choice">Hour</div>
-                        <div tabindex="0" data-selection="repeat.day.value" class="choice">Day</div>
+                        <div tabindex="0" data-selection="" class="active choice">@I18N.No</div>
+                        <div tabindex="0" data-selection="repeat.hour.value" class="choice">@I18N.Hour</div>
+                        <div tabindex="0" data-selection="repeat.day.value" class="choice">@I18N.Day</div>
                     </div>
                 </div>
                 <div class="field">
                     <div class="four fields">
                         <div class="repeat hour value selection field" style="display: none;">
-                            <label>Repeat Every</label>
+                            <label>@I18N.RepeatEvery</label>
                             <input />
-                            <label>hours</label>
+                            <label>@I18N.Hours</label>
                         </div>
                         <div class="repeat day value selection field" style="display: none;">
-                            <label>Repeat Every</label>
+                            <label>@I18N.RepeatEvery</label>
                             <input />
-                            <label>days</label>
+                            <label>@I18N.Days</label>
                         </div>
                         <div class="field">
-                            <label>Remind Me at Least</label>
+                            <label>@I18N.RemindMeLeast</label>
                             <input type="text" value="2" />
-                            <label>hours before the schedule</label>
+                            <label>@I18N.HoursBeforeSchedule</label>
                         </div>
                     </div>
                 </div>
@@ -186,34 +186,34 @@
             <div class="field">
                 <div class="ui checkbox">
                     <input type="checkbox" checked="checked" />
-                    <label>Display This Reminder to Other Users</label>
+                    <label>@I18N.DisplayReminderOtherUsers</label>
                 </div>
             </div>
 
             <div class="field">
                 <div class="ui checkbox">
                     <input type="checkbox" checked="checked" />
-                    <label>Send Me an Email</label>
+                    <label>@I18N.SendMeEmail</label>
                 </div>
             </div>
 
             <div class="field">
                 <div class="ui checkbox">
                     <input type="checkbox" />
-                    <label>Including Other Participants</label>
+                    <label>@I18N.IncludingOtherParticipants</label>
                 </div>
             </div>
             <div class="field">
                 <div class="ui checkbox">
                     <input type="checkbox" />
-                    <label>Attach All Documents</label>
+                    <label>@I18N.AttachAllDocuments</label>
                 </div>
             </div>
         </div>
     </div>
     <div class="actions">
-        <div class="ui deny button">Cancel</div>
-        <div class="ui positive button">OK</div>
+        <div class="ui deny button">@I18N.Cancel</div>
+        <div class="ui positive button">@I18N.OK</div>
     </div>
 </div>
 <script>

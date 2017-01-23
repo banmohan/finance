@@ -1,7 +1,7 @@
 ﻿@model MixERP.Finance.DTO.FrequencyDates
 
 @{
-    ViewBag.Title = "Exchange Rates";
+    ViewBag.Title = I18N.ExchangeRates;
     Layout = ViewBag.FinanceLayoutPath;
 }
 <script src="/signalr/hubs"></script>
@@ -45,7 +45,7 @@
                 <div class="eight wide column">
 
                     <div class="ui huge header">
-                        Initialize EOD Processing for @Model.Today.ToString("d")
+                        @I18N.InitializeEODProcessing @Model.Today.ToString("d")
                     </div>
 
                     <div class="ui warning message">
@@ -61,14 +61,14 @@
 
 
 
-                    <button id="InitializeEODButton" disabled="disabled" class="ui blue button">Initialize EOD</button>
+                    <button id="InitializeEODButton" disabled="disabled" class="ui blue button">@I18N.InitializeEOD</button>
                 </div>
             }
             @if (Model.NewDayStarted)
             {
                 <div class="eight wide column">
                     <div class="ui huge header">
-                        <div class="content">Perform EOD Operation (@Model.Today.ToString("d"))</div>
+                        <div class="content">@I18N.PerformEODOperation (@Model.Today.ToString("d"))</div>
                     </div>
                     <div class="ui warning message">
                         <p>When you perform EOD operation for a particular date, no transaction on that date or before can be altered, changed, or deleted.</p>
@@ -93,7 +93,7 @@
 
         @if (Model.NewDayStarted)
         {
-            <h2 class="ui blue header">EOD Console</h2>
+            <h2 class="ui blue header">@I18N.EODConsole</h2>
             <div id="EODSegment" class="ui segment" style="height: 600px; overflow: auto;">
                 <div class="eod messages">
                 </div>

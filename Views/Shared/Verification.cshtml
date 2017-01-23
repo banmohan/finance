@@ -2,7 +2,7 @@
 @model dynamic
 
 @{
-    ViewBag.Title = "Verification";
+    ViewBag.Title = I18N.Verification;
     Layout = ViewBag.FinanceLayoutPath;
 }
 
@@ -14,7 +14,7 @@
         <div class="ui form">
             <div class="ui blue large dividing header"></div>
             <div class="field">
-                <label for="ReasonTextArea">Verification Reason</label>
+                <label for="ReasonTextArea">@I18N.VerificationReason</label>
                 <textarea id="ReasonTextArea"></textarea>
             </div>
         </div>

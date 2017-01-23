@@ -182,6 +182,7 @@
     <Compile Include="DAL\CashFlow\PostgreSQL.cs" />
     <Compile Include="DAL\CashFlow\SqlServer.cs" />
     <Compile Include="DAL\ProfitLoss\IProfitLoss.cs" />
+    <Compile Include="I18N.cs" />
     <Compile Include="QueryModels\CashFlowStatementQueryModel.cs" />
     <Compile Include="QueryModels\PlAccountQueryModel.cs" />
     <Compile Include="DAL\ProfitLoss\PostgreSQL.cs" />
