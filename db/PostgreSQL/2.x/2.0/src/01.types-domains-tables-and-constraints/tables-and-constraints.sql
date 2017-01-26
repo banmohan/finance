@@ -195,6 +195,7 @@ WHERE NOT deleted;
 CREATE TABLE finance.bank_accounts
 (
 	bank_account_id							SERIAL PRIMARY KEY,
+	bank_account_name						national character varying(1000) NOT NULL,
     account_id                              integer REFERENCES finance.accounts,                                            
     maintained_by_user_id                   integer NOT NULL REFERENCES account.users,
 	is_merchant_account 					boolean NOT NULL DEFAULT(false),

@@ -17,10 +17,14 @@ BEGIN
         RETURN 1;
     END;
         
-    RETURN @from_source_currency / @from_destination_currency ; 
+	IF(@from_destination_currency = 0)
+	BEGIN
+		RETURN NULL;
+	END;
+
+    RETURN @from_source_currency / @from_destination_currency; 
 END;
 
---SELECT * FROM  finance.convert_exchange_rate(1, 'USD', 'NPR')
-
-
 GO
+
+--SELECT  finance.convert_exchange_rate(1, 'USD', 'NPR')

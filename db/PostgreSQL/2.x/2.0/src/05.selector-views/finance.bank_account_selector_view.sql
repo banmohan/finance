@@ -6,5 +6,5 @@ SELECT
     finance.account_scrud_view.account_id AS bank_account_id,
     finance.account_scrud_view.account_name AS bank_account_name
 FROM finance.account_scrud_view
-WHERE account_master_id = 10102
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10102))
 ORDER BY account_id;

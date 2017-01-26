@@ -196,7 +196,8 @@ WHERE deleted = 0;
 
 CREATE TABLE finance.bank_accounts
 (
-    bank_account_id                            int IDENTITY PRIMARY KEY,
+    bank_account_id                         int IDENTITY PRIMARY KEY,
+	bank_account_name						national character varying(1000) NOT NULL,
     account_id                              integer REFERENCES finance.accounts,                                            
     maintained_by_user_id                   integer NOT NULL REFERENCES account.users,
     is_merchant_account                     bit NOT NULL DEFAULT(0),

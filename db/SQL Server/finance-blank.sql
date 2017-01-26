@@ -197,7 +197,8 @@ WHERE deleted = 0;
 
 CREATE TABLE finance.bank_accounts
 (
-    bank_account_id                            int IDENTITY PRIMARY KEY,
+    bank_account_id                         int IDENTITY PRIMARY KEY,
+	bank_account_name						national character varying(1000) NOT NULL,
     account_id                              integer REFERENCES finance.accounts,                                            
     maintained_by_user_id                   integer NOT NULL REFERENCES account.users,
     is_merchant_account                     bit NOT NULL DEFAULT(0),
@@ -741,13 +742,58 @@ BEGIN
         RETURN 1;
     END;
         
-    RETURN @from_source_currency / @from_destination_currency ; 
+	IF(@from_destination_currency = 0)
+	BEGIN
+		RETURN NULL;
+	END;
+
+    RETURN @from_source_currency / @from_destination_currency; 
 END;
 
---SELECT * FROM  finance.convert_exchange_rate(1, 'USD', 'NPR')
+GO
 
+--SELECT  finance.convert_exchange_rate(1, 'USD', 'NPR')
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.create_card_type.sql --<--<--
+IF OBJECT_ID('finance.create_card_type') IS NOT NULL
+DROP PROCEDURE finance.create_card_type;
 
 GO
+
+CREATE PROCEDURE finance.create_card_type
+(
+    @card_type_id       integer, 
+    @card_type_code     national character varying(12),
+    @card_type_name     national character varying(100)
+)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	SET XACT_ABORT ON;
+
+    IF NOT EXISTS
+    (
+        SELECT * FROM finance.card_types
+        WHERE card_type_id = @card_type_id
+    )
+	BEGIN
+        INSERT INTO finance.card_types(card_type_id, card_type_code, card_type_name)
+        SELECT @card_type_id, @card_type_code, @card_type_name;
+		
+		RETURN;
+	END
+
+    UPDATE finance.card_types
+    SET 
+        card_type_id =      @card_type_id, 
+        card_type_code =    @card_type_code, 
+        card_type_name =    @card_type_name
+    WHERE card_type_id =      @card_type_id;
+END
+
+GO
+
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.create_routine.sql --<--<--
 IF OBJECT_ID('finance.create_routine') IS NOT NULL
@@ -1199,6 +1245,44 @@ END;
 
 
 GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_account_master_ids.sql --<--<--
+IF OBJECT_ID('finance.get_account_master_ids') IS NOT NULL
+DROP FUNCTION finance.get_account_master_ids;
+
+GO
+
+CREATE FUNCTION finance.get_account_master_ids(@root_account_master_id integer)
+RETURNS @result TABLE
+(
+    account_master_id              integer
+)
+AS
+BEGIN
+    WITH account_cte(account_master_id, path) AS 
+    (
+        SELECT
+            tn.account_master_id,  CAST(tn.account_master_id AS varchar(2000)) AS path
+        FROM finance.account_masters AS tn 
+        WHERE tn.account_master_id = @root_account_master_id
+        AND tn.deleted = 0
+
+        UNION ALL
+
+        SELECT
+            c.account_master_id, CAST((p.path + '->' + CAST(c.account_master_id AS varchar(50))) AS varchar(2000))
+        FROM account_cte AS p, finance.account_masters AS c WHERE parent_account_master_id = p.account_master_id
+    )
+
+    INSERT INTO @result
+    SELECT account_master_id FROM account_cte
+    RETURN;
+END;
+GO
+
+--SELECT * FROM finance.get_account_master_ids(1);
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/02.functions-and-logic/finance.get_account_name.sql --<--<--
@@ -5290,7 +5374,308 @@ SELECT
     finance.account_scrud_view.account_id AS bank_account_id,
     finance.account_scrud_view.account_name AS bank_account_name
 FROM finance.account_scrud_view
-WHERE account_master_id = 10102;
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10102));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.cash_account_selector_view.sql --<--<--
+IF OBJECT_ID('finance.cash_account_selector_view') IS NOT NULL
+DROP VIEW finance.cash_account_selector_view;
+
+GO
+
+CREATE VIEW finance.cash_account_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS cash_account_id,
+    finance.account_scrud_view.account_name AS cash_account_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10101));
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.cost_of_sale_selector_view.sql --<--<--
+IF OBJECT_ID('finance.cost_of_sale_selector_view') IS NOT NULL
+DROP VIEW finance.cost_of_sale_selector_view;
+
+GO
+
+
+CREATE VIEW finance.cost_of_sale_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS cost_of_sale_id,
+    finance.account_scrud_view.account_name AS cost_of_sale_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20400));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.current_asset_selector_view.sql --<--<--
+IF OBJECT_ID('finance.current_asset_selector_view') IS NOT NULL
+DROP VIEW finance.current_asset_selector_view;
+
+GO
+
+CREATE VIEW finance.current_asset_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS current_asset_id,
+    finance.account_scrud_view.account_name AS current_asset_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10100));
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.current_liability_selector_view.sql --<--<--
+IF OBJECT_ID('finance.current_liability_selector_view') IS NOT NULL
+DROP VIEW finance.current_liability_selector_view;
+
+GO
+
+
+CREATE VIEW finance.current_liability_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS current_liability_id,
+    finance.account_scrud_view.account_name AS current_liability_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15000));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.direct_cost_selector_view.sql --<--<--
+IF OBJECT_ID('finance.direct_cost_selector_view') IS NOT NULL
+DROP VIEW finance.direct_cost_selector_view;
+
+GO
+
+
+CREATE VIEW finance.direct_cost_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS direct_cost_id,
+    finance.account_scrud_view.account_name AS direct_cost_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20500));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.dividends_paid_selector_view.sql --<--<--
+IF OBJECT_ID('finance.dividends_paid_selector_view') IS NOT NULL
+DROP VIEW finance.dividends_paid_selector_view;
+
+GO
+
+
+CREATE VIEW finance.dividends_paid_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS dividends_paid_id,
+    finance.account_scrud_view.account_name AS dividends_paid_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15400));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.dividends_received_selector_view.sql --<--<--
+IF OBJECT_ID('finance.dividends_received_selector_view') IS NOT NULL
+DROP VIEW finance.dividends_received_selector_view;
+
+GO
+
+
+CREATE VIEW finance.dividends_received_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS dividends_received_id,
+    finance.account_scrud_view.account_name AS dividends_received_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20301));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.financial_expense_selector_view.sql --<--<--
+IF OBJECT_ID('finance.financial_expense_selector_view') IS NOT NULL
+DROP VIEW finance.financial_expense_selector_view;
+
+GO
+
+
+CREATE VIEW finance.financial_expense_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS financial_expense_id,
+    finance.account_scrud_view.account_name AS financial_expense_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20700));
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.financial_income_selector_view.sql --<--<--
+IF OBJECT_ID('finance.financial_income_selector_view') IS NOT NULL
+DROP VIEW finance.financial_income_selector_view;
+
+GO
+
+
+CREATE VIEW finance.financial_income_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS financial_income_id,
+    finance.account_scrud_view.account_name AS financial_income_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20300));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.fixed_asset_selector_view.sql --<--<--
+IF OBJECT_ID('finance.fixed_asset_selector_view') IS NOT NULL
+DROP VIEW finance.fixed_asset_selector_view;
+
+GO
+
+
+
+CREATE VIEW finance.fixed_asset_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS fixed_asset_id,
+    finance.account_scrud_view.account_name AS fixed_asset_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10200));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.income_tax_expense_selector_view.sql --<--<--
+IF OBJECT_ID('finance.income_tax_expense_selector_view') IS NOT NULL
+DROP VIEW finance.income_tax_expense_selector_view;
+
+GO
+
+
+CREATE VIEW finance.income_tax_expense_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS income_tax_expense_id,
+    finance.account_scrud_view.account_name AS income_tax_expense_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20800));
+
+GO
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.interest_expense_selector_view.sql --<--<--
+IF OBJECT_ID('finance.interest_expense_selector_view') IS NOT NULL
+DROP VIEW finance.interest_expense_selector_view;
+
+GO
+
+
+CREATE VIEW finance.interest_expense_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS interest_expense_id,
+    finance.account_scrud_view.account_name AS interest_expense_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20701));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.long_term_liability_selector_view.sql --<--<--
+IF OBJECT_ID('finance.long_term_liability_selector_view') IS NOT NULL
+DROP VIEW finance.long_term_liability_selector_view;
+
+GO
+
+
+CREATE VIEW finance.long_term_liability_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS long_term_liability_id,
+    finance.account_scrud_view.account_name AS long_term_liability_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15100));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.non_operating_income_selector_view.sql --<--<--
+IF OBJECT_ID('finance.non_operating_income_selector_view') IS NOT NULL
+DROP VIEW finance.non_operating_income_selector_view;
+
+GO
+
+
+CREATE VIEW finance.non_operating_income_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS non_operating_income_id,
+    finance.account_scrud_view.account_name AS non_operating_income_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20200));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.operating_expense_selector_view.sql --<--<--
+IF OBJECT_ID('finance.operating_expense_selector_view') IS NOT NULL
+DROP VIEW finance.operating_expense_selector_view;
+
+GO
+
+
+CREATE VIEW finance.operating_expense_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS operating_expense_id,
+    finance.account_scrud_view.account_name AS operating_expense_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20600));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.other_asset_selector_view.sql --<--<--
+IF OBJECT_ID('finance.other_asset_selector_view') IS NOT NULL
+DROP VIEW finance.other_asset_selector_view;
+
+GO
+
+
+CREATE VIEW finance.other_asset_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS other_asset_id,
+    finance.account_scrud_view.account_name AS other_asset_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10300));
+
 
 
 GO
@@ -5310,7 +5695,26 @@ SELECT
     finance.account_scrud_view.account_id AS payable_account_id,
     finance.account_scrud_view.account_name AS payable_account_name
 FROM finance.account_scrud_view
-WHERE account_master_id = 15010;
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15010));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.property_plant_equipment_selector_view.sql --<--<--
+IF OBJECT_ID('finance.property_plant_equipment_selector_view') IS NOT NULL
+DROP VIEW finance.property_plant_equipment_selector_view;
+
+GO
+
+
+CREATE VIEW finance.property_plant_equipment_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS property_plant_equipment_id,
+    finance.account_scrud_view.account_name AS property_plant_equipment_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10201));
 
 
 GO
@@ -5330,7 +5734,83 @@ SELECT
     finance.account_scrud_view.account_id AS receivable_account_id,
     finance.account_scrud_view.account_name AS receivable_account_name
 FROM finance.account_scrud_view
-WHERE account_master_id = 10110;
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10110));
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.retained_earning_selector_view.sql --<--<--
+IF OBJECT_ID('finance.retained_earning_selector_view') IS NOT NULL
+DROP VIEW finance.retained_earning_selector_view;
+
+GO
+
+
+CREATE VIEW finance.retained_earning_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS retained_earning_id,
+    finance.account_scrud_view.account_name AS retained_earning_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15300));
+
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.revenue_selector_view.sql --<--<--
+IF OBJECT_ID('finance.revenue_selector_view') IS NOT NULL
+DROP VIEW finance.revenue_selector_view;
+
+GO
+
+
+CREATE VIEW finance.revenue_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS revenue_id,
+    finance.account_scrud_view.account_name AS revenue_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20100));
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.salary_payable_selector_view.sql --<--<--
+IF OBJECT_ID('finance.salary_payable_selector_view') IS NOT NULL
+DROP VIEW finance.salary_payable_selector_view;
+
+GO
+
+
+CREATE VIEW finance.salary_payable_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS salary_payable_id,
+    finance.account_scrud_view.account_name AS salary_payable_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15011));
+
+
+GO
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/SQL Server/2.x/2.0/src/05.selector-views/finance.shareholders_equity_selector_view.sql --<--<--
+IF OBJECT_ID('finance.shareholders_equity_selector_view') IS NOT NULL
+DROP VIEW finance.shareholders_equity_selector_view;
+
+GO
+
+
+CREATE VIEW finance.shareholders_equity_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS shareholders_equity_id,
+    finance.account_scrud_view.account_name AS shareholders_equity_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15200));
+
 
 GO
 

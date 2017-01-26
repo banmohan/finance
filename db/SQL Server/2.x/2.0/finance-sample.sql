@@ -605,6 +605,27 @@ SELECT office_id, 25, finance.get_account_id_by_account_number('20770'), 13, fin
 FROM core.offices;
 
 
+EXECUTE finance.create_card_type 1, 'CRC', 'Credit Card';
+EXECUTE finance.create_card_type 2, 'DRC', 'Debit Card';
+EXECUTE finance.create_card_type 3, 'CHC', 'Charge Card';
+EXECUTE finance.create_card_type 4, 'ATM', 'ATM Card';
+EXECUTE finance.create_card_type 5, 'SVC', 'Store-value Card';
+EXECUTE finance.create_card_type 6, 'FLC', 'Fleet Card';
+EXECUTE finance.create_card_type 7, 'GFC', 'Gift Card';
+EXECUTE finance.create_card_type 8, 'SCR', 'Scrip';
+EXECUTE finance.create_card_type 9, 'ELP', 'Electronic Purse';
+
+
+EXECUTE finance.create_payment_card 'CR-VSA', 'Visa',                1;
+EXECUTE finance.create_payment_card 'CR-AME', 'American Express',    1;
+EXECUTE finance.create_payment_card 'CR-MAS', 'MasterCard',          1;
+EXECUTE finance.create_payment_card 'DR-MAE', 'Maestro',             2;
+EXECUTE finance.create_payment_card 'DR-MAS', 'MasterCard Debit',    2;
+EXECUTE finance.create_payment_card 'DR-VSE', 'Visa Electron',       2;
+EXECUTE finance.create_payment_card 'DR-VSD', 'Visa Debit',          2;
+EXECUTE finance.create_payment_card 'DR-DEL', 'Delta',               2;
+
+
 --ROLLBACK TRANSACTION;
 
 

@@ -196,6 +196,7 @@ WHERE NOT deleted;
 CREATE TABLE finance.bank_accounts
 (
 	bank_account_id							SERIAL PRIMARY KEY,
+	bank_account_name						national character varying(1000) NOT NULL,
     account_id                              integer REFERENCES finance.accounts,                                            
     maintained_by_user_id                   integer NOT NULL REFERENCES account.users,
 	is_merchant_account 					boolean NOT NULL DEFAULT(false),
@@ -708,9 +709,9 @@ LANGUAGE plpgsql;
 --SELECT finance.can_post_transaction(1, 1, 1, 'Sales', '1-1-2020');
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.convert_exchange_rate.sql --<--<--
-DROP FUNCTION IF EXISTS finance.convert_exchange_rate(office_id integer, source_currency_code national character varying(12), destination_currency_code national character varying(12));
+DROP FUNCTION IF EXISTS finance.convert_exchange_rate(_office_id integer, _source_currency_code national character varying(12), _destination_currency_code national character varying(12));
 
-CREATE FUNCTION finance.convert_exchange_rate(office_id integer, source_currency_code national character varying(12), destination_currency_code national character varying(12))
+CREATE FUNCTION finance.convert_exchange_rate(_office_id integer, _source_currency_code national character varying(12), _destination_currency_code national character varying(12))
 RETURNS decimal_strict2
 AS
 $$
@@ -724,15 +725,59 @@ BEGIN
     END IF;
 
 
-    _from_source_currency := finance.get_exchange_rate($1, $2);
-    _from_destination_currency := finance.get_exchange_rate($1, $3);
-        
-    RETURN _from_source_currency / _from_destination_currency ; 
+    _from_source_currency := finance.get_exchange_rate(_office_id, _source_currency_code);
+    _from_destination_currency := finance.get_exchange_rate(_office_id, _destination_currency_code);
+
+	IF(_from_destination_currency = 0) THEN
+		RETURN NULL;
+	END IF;
+
+    RETURN _from_source_currency / _from_destination_currency;
 END
 $$
 LANGUAGE plpgsql;
 
---SELECT * FROM  finance.convert_exchange_rate(1, 'USD', 'NPR');
+--SELECT * FROM finance.convert_exchange_rate(1, 'NPR', 'NPR');
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.create_card_type.sql --<--<--
+DROP FUNCTION IF EXISTS finance.create_card_type
+(
+    _card_type_id       integer, 
+    _card_type_code     national character varying(12),
+    _card_type_name     national character varying(100)
+);
+
+CREATE FUNCTION finance.create_card_type
+(
+    _card_type_id       integer, 
+    _card_type_code     national character varying(12),
+    _card_type_name     national character varying(100)
+)
+RETURNS void
+AS
+$$
+BEGIN
+    IF NOT EXISTS
+    (
+        SELECT * FROM finance.card_types
+        WHERE card_type_id = _card_type_id
+    ) THEN
+        INSERT INTO finance.card_types(card_type_id, card_type_code, card_type_name)
+        SELECT _card_type_id, _card_type_code, _card_type_name;
+    ELSE
+        UPDATE finance.card_types
+        SET 
+            card_type_id =      _card_type_id, 
+            card_type_code =    _card_type_code, 
+            card_type_name =    _card_type_name
+        WHERE
+            card_type_id =      _card_type_id;
+    END IF;
+END
+$$
+LANGUAGE plpgsql;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.create_routine.sql --<--<--
@@ -1096,6 +1141,35 @@ END
 $$
 LANGUAGE plpgsql;
 
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_master_ids.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_account_master_ids(root_account_master_id integer);
+
+CREATE FUNCTION finance.get_account_master_ids(root_account_master_id integer)
+RETURNS SETOF smallint
+STABLE
+AS
+$$
+BEGIN
+    RETURN QUERY 
+    (
+        WITH RECURSIVE account_cte(account_master_id, path) AS (
+         SELECT
+            tn.account_master_id,  tn.account_master_id::TEXT AS path
+            FROM finance.account_masters AS tn 
+			WHERE tn.account_master_id =$1
+			AND NOT tn.deleted
+        UNION ALL
+         SELECT
+            c.account_master_id, (p.path || '->' || c.account_master_id::TEXT)
+            FROM account_cte AS p, finance.account_masters AS c WHERE parent_account_master_id = p.account_master_id
+        )
+
+        SELECT account_master_id FROM account_cte
+    );
+END
+$$LANGUAGE plpgsql;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_name.sql --<--<--
@@ -4619,8 +4693,235 @@ SELECT
     finance.account_scrud_view.account_id AS bank_account_id,
     finance.account_scrud_view.account_name AS bank_account_name
 FROM finance.account_scrud_view
-WHERE account_master_id = 10102
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10102))
 ORDER BY account_id;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.cash_account_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.cash_account_selector_view;
+
+CREATE VIEW finance.cash_account_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS cash_account_id,
+    finance.account_scrud_view.account_name AS cash_account_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10101))
+ORDER BY account_id;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.cost_of_sale_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.cost_of_sale_selector_view;
+
+CREATE VIEW finance.cost_of_sale_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS cost_of_sale_id,
+    finance.account_scrud_view.account_name AS cost_of_sale_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20400))
+ORDER BY account_id;
+
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.current_asset_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.current_asset_selector_view;
+
+CREATE VIEW finance.current_asset_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS current_asset_id,
+    finance.account_scrud_view.account_name AS current_asset_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10100))
+ORDER BY account_id;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.current_liability_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.current_liability_selector_view;
+
+CREATE VIEW finance.current_liability_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS current_liability_id,
+    finance.account_scrud_view.account_name AS current_liability_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15000))
+ORDER BY account_id;
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.direct_cost_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.direct_cost_selector_view;
+
+CREATE VIEW finance.direct_cost_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS direct_cost_id,
+    finance.account_scrud_view.account_name AS direct_cost_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20500))
+ORDER BY account_id;
+
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.dividends_paid_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.dividends_paid_selector_view;
+
+CREATE VIEW finance.dividends_paid_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS dividends_paid_id,
+    finance.account_scrud_view.account_name AS dividends_paid_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15400))
+ORDER BY account_id;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.dividends_received_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.dividends_received_selector_view;
+
+CREATE VIEW finance.dividends_received_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS dividends_received_id,
+    finance.account_scrud_view.account_name AS dividends_received_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20301))
+ORDER BY account_id;
+
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.financial_expense_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.financial_expense_selector_view;
+
+CREATE VIEW finance.financial_expense_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS financial_expense_id,
+    finance.account_scrud_view.account_name AS financial_expense_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20700))
+ORDER BY account_id;
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.financial_income_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.financial_income_selector_view;
+
+CREATE VIEW finance.financial_income_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS financial_income_id,
+    finance.account_scrud_view.account_name AS financial_income_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20300))
+ORDER BY account_id;
+
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.fixed_asset_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.fixed_asset_selector_view;
+
+CREATE VIEW finance.fixed_asset_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS fixed_asset_id,
+    finance.account_scrud_view.account_name AS fixed_asset_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10200))
+ORDER BY account_id;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.income_tax_expense_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.income_tax_expense_selector_view;
+
+CREATE VIEW finance.income_tax_expense_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS income_tax_expense_id,
+    finance.account_scrud_view.account_name AS income_tax_expense_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20800))
+ORDER BY account_id;
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.interest_expense_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.interest_expense_selector_view;
+
+CREATE VIEW finance.interest_expense_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS interest_expense_id,
+    finance.account_scrud_view.account_name AS interest_expense_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20701))
+ORDER BY account_id;
+
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.long_term_liability_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.long_term_liability_selector_view;
+
+CREATE VIEW finance.long_term_liability_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS long_term_liability_id,
+    finance.account_scrud_view.account_name AS long_term_liability_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15100))
+ORDER BY account_id;
+
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.non_operating_income_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.non_operating_income_selector_view;
+
+CREATE VIEW finance.non_operating_income_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS non_operating_income_id,
+    finance.account_scrud_view.account_name AS non_operating_income_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20200))
+ORDER BY account_id;
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.operating_expense_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.operating_expense_selector_view;
+
+CREATE VIEW finance.operating_expense_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS operating_expense_id,
+    finance.account_scrud_view.account_name AS operating_expense_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20600))
+ORDER BY account_id;
+
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.other_asset_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.other_asset_selector_view;
+
+CREATE VIEW finance.other_asset_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS other_asset_id,
+    finance.account_scrud_view.account_name AS other_asset_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10300))
+ORDER BY account_id;
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.payable_account_selector_view.sql --<--<--
@@ -4632,8 +4933,22 @@ SELECT
     finance.account_scrud_view.account_id AS payable_account_id,
     finance.account_scrud_view.account_name AS payable_account_name
 FROM finance.account_scrud_view
-WHERE account_master_id = 15010
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15010))
 ORDER BY account_id;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.property_plant_equipment_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.property_plant_equipment_selector_view;
+
+CREATE VIEW finance.property_plant_equipment_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS property_plant_equipment_id,
+    finance.account_scrud_view.account_name AS property_plant_equipment_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10201))
+ORDER BY account_id;
+
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.receivable_account_selector_view.sql --<--<--
@@ -4645,8 +4960,64 @@ SELECT
     finance.account_scrud_view.account_id AS receivable_account_id,
     finance.account_scrud_view.account_name AS receivable_account_name
 FROM finance.account_scrud_view
-WHERE account_master_id = 10110
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10110))
 ORDER BY account_id;
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.retained_earning_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.retained_earning_selector_view;
+
+CREATE VIEW finance.retained_earning_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS retained_earning_id,
+    finance.account_scrud_view.account_name AS retained_earning_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15300))
+ORDER BY account_id;
+
+
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.revenue_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.revenue_selector_view;
+
+CREATE VIEW finance.revenue_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS revenue_id,
+    finance.account_scrud_view.account_name AS revenue_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20100))
+ORDER BY account_id;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.salary_payable_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.salary_payable_selector_view;
+
+CREATE VIEW finance.salary_payable_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS salary_payable_id,
+    finance.account_scrud_view.account_name AS salary_payable_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15011))
+ORDER BY account_id;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.shareholders_equity_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.shareholders_equity_selector_view;
+
+CREATE VIEW finance.shareholders_equity_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS shareholders_equity_id,
+    finance.account_scrud_view.account_name AS shareholders_equity_name
+FROM finance.account_scrud_view
+WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(15200))
+ORDER BY account_id;
+
 
 
 
