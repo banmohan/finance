@@ -18,14 +18,14 @@ namespace MixERP.Finance.Models
 
             if (isRestrictedTransactionMode)
             {
-                throw new JournalWithdrawalException("Cannot withdraw transaction during restricted transaction mode.");
+                throw new JournalWithdrawalException(I18N.CannotWithdrawTransactionDuringRestrictedTransactionMode);
             }
 
             var status = await Verifications.GetVerificationStatusAsync(tenant, tranId, meta.OfficeId).ConfigureAwait(false);
 
             if (status.UserId != meta.UserId)
             {
-                throw new JournalWithdrawalException("Access is denied. You cannot withdraw someone else's transaction.");
+                throw new JournalWithdrawalException(I18N.AccessDeniedCannotWithdrawSomeoneElseTransaction);
             }
 
             if (
@@ -37,7 +37,7 @@ namespace MixERP.Finance.Models
                 await TransacitonPostings.WithdrawAsync(tenant, reason, meta.UserId, tranId, meta.OfficeId).ConfigureAwait(false);
             }
 
-            throw new JournalWithdrawalException("Access is denied.");
+            throw new JournalWithdrawalException(I18N.AccessIsDenied);
         }
     }
 }

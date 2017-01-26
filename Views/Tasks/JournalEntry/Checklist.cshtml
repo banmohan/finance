@@ -10,10 +10,10 @@
 
     window.prepareChecklist({
         TranId: "@Model",
-        Title: "Journal Entry #@Model",
-        ViewText: "View Journal Entries",
+        Title: window.translate("JournalEntry") + " #@Model",
+        ViewText: window.translate("ViewJournalEntries"),
         ViewUrl: "/dashboard/finance/tasks/journal/entry",
-        AddNewText: "Add New Journal Entry",
+        AddNewText: window.translate("AddNewJournalEntry"),
         AddNewUrl: "/dashboard/finance/tasks/journal/entry/new",
         ReportPath: "/dashboard/reports/source/Areas/MixERP.Finance/Reports/JournalEntry.xml?transaction_master_id=@Model"
     });

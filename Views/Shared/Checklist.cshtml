@@ -52,15 +52,15 @@
     <div class="ui basic buttons">
         <a class="ui basic view transaction button"></a>
         <a class="ui basic add new button"></a>
-        <a class="ui basic withdraw button" onclick="$('#WithdrawDiv').fadeToggle(1000);">Cancel/Withdraw Transaction</a>
+        <a class="ui basic withdraw button" onclick="$('#WithdrawDiv').fadeToggle(1000);">@I18N.CancelWithdrawTransaction</a>
     </div>
 
     <div id="WithdrawDiv" style="display: none;" class="ui basic segment">
         <div class="ui attached message" style="display: block;">
-            <div class="header">@I18N.WhyDoYouWantWithdrawTransaction</div>
+            <div class="header">@I18N.WithdrawalReason</div>
         </div>
         <div class="ui form attached fluid segment">
-            <p>When you withdraw a transaction, it won't be forwarded to the workflow module. This means that your withdrawn transactions are rejected and require no further verification. However, you won't be able to unwithdraw this transaction later.</p>
+            @Html.Raw(I18N.TransactionWithdrawalInformation)
             <div class="field">
                 <input type="hidden" id="TranIdInputHidden" value="" />
                 <textarea rows="5" id="ReasonTextarea"></textarea>

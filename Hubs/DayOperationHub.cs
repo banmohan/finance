@@ -13,7 +13,7 @@ namespace MixERP.Finance.Hubs
         {
             if (!this.IsValidRequest())
             {
-                this.Clients.Caller.getNotification("Access is denied", "Access is denied");
+                this.Clients.Caller.getNotification(I18N.AccessIsDenied, I18N.AccessIsDenied);
                 return;
             }
 
@@ -38,7 +38,7 @@ namespace MixERP.Finance.Hubs
 
             if (this.Context == null)
             {
-                this.Clients.Caller.getNotification("Access is denied");
+                this.Clients.Caller.getNotification(I18N.AccessIsDenied);
                 return false;
             }
 
@@ -48,7 +48,7 @@ namespace MixERP.Finance.Hubs
 
             if (loginId <= 0)
             {
-                this.Clients.Caller.getNotification("Access is denied");
+                this.Clients.Caller.getNotification(I18N.AccessIsDenied);
                 return false;
             }
 
