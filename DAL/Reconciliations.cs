@@ -17,7 +17,7 @@ namespace MixERP.Finance.DAL
         {
             if (string.IsNullOrWhiteSpace(model.Memo))
             {
-                model.Memo = string.Format("Reconciled by {0}.", meta.Name);
+                model.Memo = string.Format(I18N.ReconciledByName, meta.Name);
             }
 
             using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())

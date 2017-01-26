@@ -66,17 +66,17 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
             {
                 if (item.Debit > 0 && item.Credit > 0)
                 {
-                    throw new InvalidOperationException("Invalid data");
+                    throw new InvalidOperationException(I18N.InvalidData);
                 }
 
                 if (item.Debit == 0 && item.Credit == 0)
                 {
-                    throw new InvalidOperationException("Invalid data");
+                    throw new InvalidOperationException(I18N.InvalidData);
                 }
 
                 if (item.Credit < 0 || item.Debit < 0)
                 {
-                    throw new InvalidOperationException("Invalid data");
+                    throw new InvalidOperationException(I18N.InvalidData);
                 }
 
                 if (item.Credit > 0)
@@ -87,7 +87,7 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
                             await CashRepositories.GetBalanceAsync(this.Tenant, item.CashRepositoryCode,
                                 item.CurrencyCode).ConfigureAwait(true) < item.Credit)
                         {
-                            throw new InvalidOperationException("Insufficient balance in cash repository.");
+                            throw new InvalidOperationException(I18N.InsufficientBalanceInCashRepository);
                         }
                     }
                 }
@@ -98,7 +98,7 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
 
             if (drTotal != crTotal)
             {
-                throw new InvalidOperationException("Referencing sides are not equal.");
+                throw new InvalidOperationException(I18N.ReferencingSidesNotEqual);
             }
 
             int decimalPlaces = CultureManager.GetCurrencyDecimalPlaces();
@@ -111,7 +111,7 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
                     decimal.Round(detail.LocalCurrencyDebit, decimalPlaces)
                 select detail).Any())
             {
-                throw new InvalidOperationException("Referencing sides are not equal.");
+                throw new InvalidOperationException(I18N.ReferencingSidesNotEqual);
             }
 
             var user = await AppUsers.GetCurrentAsync().ConfigureAwait(true);

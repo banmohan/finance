@@ -1,7 +1,7 @@
 ﻿@model dynamic
 
 @{
-    ViewBag.Title = "Journal View";
+    ViewBag.Title = I18N.JournalView;
     Layout = ViewBag.FinanceLayoutPath;
 }
 <style>
@@ -20,73 +20,73 @@
         <a id="ReturnButton" class="ui basic button" style=""></a>
         <div class="ui icon top left pointing dropdown basic button" id="ExportDropDown" tabindex="0">
             <span>
-                Export
+                @I18N.Export
             </span>
             <div class="menu" tabindex="-1">
                 <div class="header">
-                    Export This Document
+                    @I18N.ExportThisDocument
                 </div>
                 <a class="item" href="javascript:void(0);" onclick="createDoc();">
-                    <i class="file word outline blue icon"></i> Export to Doc
+                    <i class="file word outline blue icon"></i> @I18N.ExportToDoc
                 </a>
                 <a class="item" href="javascript:void(0);" onclick="createXls();">
-                    <i class="file excel outline green icon"></i> Export to Excel
+                    <i class="file excel outline green icon"></i> @I18N.ExportToExcel
                 </a>
                 <a class="item" href="javascript:void(0);" onclick="createPDF();">
-                    <i class="file pdf outline red icon"></i> Export to PDF
+                    <i class="file pdf outline red icon"></i> @I18N.ExportToPDF
                 </a>
             </div>
         </div>
         <a id="PrintButton" href="javascript:void(0);" onclick="print()" class="ui basic button">
-            Print
+            @I18N.Print
         </a>
     </div>
 
     <div class="ui stackable form segment" id="Annotation" style="">
         <div class="eight fields">
             <div class="field">
-                <input class="date" data-persist placeholder="From" id="FromInputDate" title="From" type="date">
+                <input class="date" data-persist placeholder="@I18N.From" id="FromInputDate" title="@I18N.From" type="date">
             </div>
             <div class="field">
-                <input class="date" data-persist placeholder="To" id="ToInputDate" title="To" type="date">
+                <input class="date" data-persist placeholder="@I18N.To" id="ToInputDate" title="@I18N.To" type="date">
             </div>
             <div class="field">
-                <input placeholder="TranId" id="TranIdInputText" title="TranId" type="text">
+                <input placeholder="@I18N.TranId" id="TranIdInputText" title="@I18N.TranId" type="text">
             </div>
             <div class="field">
-                <input placeholder="TranCode" id="TranCodeInputText" title="TranCode" type="text">
+                <input placeholder="@I18N.TranCode" id="TranCodeInputText" title="@I18N.TranCode" type="text">
             </div>
             <div class="field">
-                <input placeholder="ReferenceNumber" id="ReferenceNumberInputText" title="ReferenceNumber" type="text">
+                <input placeholder="@I18N.ReferenceNumber" id="ReferenceNumberInputText" title="@I18N.ReferenceNumber" type="text">
             </div>
             <div class="field">
-                <input placeholder="StatementReference" id="StatementReferenceInputText" title="StatementReference" type="text">
+                <input placeholder="@I18N.StatementReference" id="StatementReferenceInputText" title="@I18N.StatementReference" type="text">
             </div>
             <div class="field">
-                <input placeholder="PostedBy" id="PostedByInputText" title="PostedBy" type="text">
+                <input placeholder="@I18N.PostedBy" id="PostedByInputText" title="@I18N.PostedBy" type="text">
             </div>
         </div>
         <div class="eight fields">
             <div class="field">
-                <input placeholder="Office" id="OfficeInputText" title="Office" type="text">
+                <input placeholder="@I18N.Office" id="OfficeInputText" title="@I18N.Office" type="text">
             </div>
             <div class="field">
-                <input placeholder="Status" id="StatusInputText" title="Status" type="text">
+                <input placeholder="@I18N.Status" id="StatusInputText" title="@I18N.Status" type="text">
             </div>
             <div class="field">
-                <input placeholder="VerifiedBy" id="VerifiedByInputText" title="VerifiedBy" type="text">
+                <input placeholder="@I18N.VerifiedBy" id="VerifiedByInputText" title="@I18N.VerifiedBy" type="text">
             </div>
             <div class="field">
-                <input placeholder="Reason" id="ReasonInputText" title="Reason" type="text">
+                <input placeholder="@I18N.Reason" id="ReasonInputText" title="@I18N.Reason" type="text">
             </div>
             <div class="field hidden">
-                <input placeholder="UserId" id="UserIdInputText" title="UserId" type="text">
+                <input placeholder="@I18N.UserId" id="UserIdInputText" title="@I18N.UserId" type="text">
             </div>
             <div class="field hidden">
-                <input placeholder="OfficeId" id="OfficeIdInputText" title="OfficeId" type="text">
+                <input placeholder="@I18N.OfficeId" id="OfficeIdInputText" title="@I18N.OfficeId" type="text">
             </div>
             <div class="field">
-                <div class="ui green button" id="ShowButton">Show</div>
+                <div class="ui green button" id="ShowButton">@I18N.Show</div>
             </div>
         </div>
 
@@ -97,20 +97,20 @@
         <table id="JournalView" class="ui nowrap table segment">
             <thead>
                 <tr>
-                    <th>Actions</th>
-                    <th>Select</th>
-                    <th>TranId</th>
-                    <th>TranCode</th>
-                    <th>Value Date</th>
-                    <th>Book Date</th>
-                    <th>Ref#</th>
-                    <th>Statement Reference</th>
-                    <th>Posted By</th>
-                    <th>Office</th>
-                    <th>Status</th>
-                    <th>Verified By</th>
-                    <th>Verified On</th>
-                    <th>Reason</th>
+                    <th>@I18N.Actions</th>
+                    <th>@I18N.Select</th>
+                    <th>@I18N.TranId</th>
+                    <th>@I18N.TranCode</th>
+                    <th>@I18N.ValueDate</th>
+                    <th>@I18N.BookDate</th>
+                    <th>@I18N.RefererenceNumberAbbreviated</th>
+                    <th>@I18N.StatementReference</th>
+                    <th>@I18N.PostedBy</th>
+                    <th>@I18N.Office</th>
+                    <th>@I18N.Status</th>
+                    <th>@I18N.VerifiedBy</th>
+                    <th>@I18N.VerifiedOn</th>
+                    <th>@I18N.Reason</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -145,10 +145,10 @@
             function getActionCell(tranId) {
                 const cell = $("<td />");
 
-                const checklistAnchor = $("<a title='Checklist Window'><i class='list icon'></i></a>");
+                const checklistAnchor = $("<a title='" + window.translate("ChecklistWindow") + "'><i class='list icon'></i></a>");
                 checklistAnchor.attr("href", model.ChecklistUrl.replace("{tranId}", tranId));
 
-                const journalAdviceAnchor = $("<a title='View Journal Advice'><i class='print icon'></i></a>");
+                const journalAdviceAnchor = $("<a title='" + window.translate("ViewJournalAdvice") + "'><i class='print icon'></i></a>");
                 journalAdviceAnchor.attr("href", "javascript:void(0);");
                 journalAdviceAnchor.attr("onclick", "showJournalAdvice(" + tranId + ");");
 

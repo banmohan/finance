@@ -30,7 +30,7 @@
 
             <div class="field">
                 <label for="ApiSelect">
-                    @I18N.SelectAPI
+                    @I18N.SelectApi
                 </label>
                 <select id="ApiSelect" class="ui dropdown"></select>
             </div>
@@ -38,7 +38,7 @@
                 <label for="RequestButton">
                     &nbsp;
                 </label>
-                <input type="button" id="RequestButton" value="Request" class="ui pink button" />
+                <input type="button" id="RequestButton" value=@I18N.Request class="ui pink button" />
             </div>
         </div>
     </div>
@@ -57,7 +57,7 @@
         <tbody></tbody>
     </table>
 
-    <input type="button" id="SaveButton" value="Save" class="ui green button" />
+    <input type="button" id="SaveButton" value=@I18N.Save class="ui green button" />
 
     <script>
         var exchangeRatesGridView = $("#ExchangeRatesGridView");
@@ -119,7 +119,7 @@
         };
 
         requestButton.click(function () {
-            window.displayMessage("Not implemented");
+            window.displayMessage(window.translate("NotImplemented"));
         });
 
         function updateExchangeRates(result) {

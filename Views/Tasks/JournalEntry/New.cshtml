@@ -1,30 +1,30 @@
 ﻿@model dynamic
 
 @{
-    ViewBag.Title = "Bank Accounts";
+    ViewBag.Title = I18N.JournalEntries;
     Layout = ViewBag.FinanceLayoutPath;
 }
 <div class="ui attached page segment" style="min-height: 100%;padding:3em;">
-    <div class="ui huge header">Add a New Journal Entry</div>
+    <div class="ui huge header">@I18N.AddNewJournalEntry</div>
     <div class="ui divider"></div>
 
     <div class="ui form segment" style="width:700px;">
         <div class="three fields">
             <div class="field">
                 <label for="ValueDateTextBox">
-                    Value Date
+                    @I18N.ValueDate
                 </label>
                 <input id="ValueDateTextBox" class="date" type="text">
             </div>
             <div class="field">
                 <label for="BookDateTextBox">
-                    Book Date
+                    @I18N.BookDate
                 </label>
                 <input id="BookDateTextBox" class="date" type="text">
             </div>
             <div class="field">
                 <label for="ReferenceNumberInputText">
-                    Reference Number
+                    @I18N.ReferenceNumber
                 </label>
                 <input id="ReferenceNumberInputText" type="text">
             </div>
@@ -39,69 +39,69 @@
                 <tr>
                     <th style="width: 9%">
                         <label for="StatementReferenceInputText">
-                            Statement Reference
+                            @I18N.StatementReference
                         </label>
                     </th>
                     <th scope="col" style="width: 7%;">
                         <label for="AccountNumberInputText">
-                            Account Number
+                            @I18N.AccountNumber
                         </label>
                     </th>
                     <th style="width: 15%;">
                         <label for="AccountSelect">
-                            Account
+                            @I18N.Account
                         </label>
                     </th>
                     <th style="width: 8%;">
                         <label for="CashRepositorySelect">
-                            Cash Repository
+                            @I18N.CashRepository
                         </label>
                     </th>
                     <th style="width: 8%;">
                         <label for="CurrencySelect">
-                            Currency
+                            @I18N.Currency
                         </label>
                     </th>
                     <th class="text-right" style="width: 10%;">
                         <label for="DebitInputText">
-                            Debit
+                            @I18N.Debit
                         </label>
                     </th>
                     <th class="text-right" style="width: 9%;">
                         <label for="CreditInputText">
-                            Credit
+                            @I18N.Credit
                         </label>
                     </th>
                     <th class="text-right" style="width: 7%;">
                         <label for="ERInputText">
-                            ER
+                            @I18N.Er
                         </label>
                     </th>
                     <th class="text-right" style="width: 9%;">
                         <label for="LCDebitInputText">
-                            LC Debit
+                            @I18N.LCDebit
                         </label>
                     </th>
                     <th class="text-right" style="width: 9%;">
                         <label for="LCCreditInputText">
-                            LC Credit
+                            @I18N.LCCredit
                         </label>
                     </th>
                     <th style="width: 9%;">
-                        Action
+                        @I18N.Action
                     </th>
                 </tr>
             </thead>
             <tbody>
                 <tr class="ui form footer-row">
                     <td>
-                        <input id="StatementReferenceInputText" title="Ctrl + Alt +S" type="text">
+                        <input id="StatementReferenceInputText" title=@I18N.CtrlAltS type="text">
                     </td>
                     <td>
-                        <input id="AccountNumberInputText" title="Ctrl + Alt + T" type="text">
+                        <input id="AccountNumberInputText" title=@I18N.CtrlAltT type="text">
                     </td>
                     <td>
-                        <select id="AccountSelect" title="Ctrl + Alt + A"></select>
+                        <select id="AccountSelect" title=@I18N.CtrlAltA></select>
                     </td>
                     <td>
                         <select id="CashRepositorySelect"></select>
@@ -110,22 +110,22 @@
                         <select id="CurrencySelect"></select>
                     </td>
                     <td>
-                        <input id="DebitInputText" class="text-right currency" title="Ctrl + Alt + D" type="text">
+                        <input id="DebitInputText" class="text-right currency" title=@I18N.CtrlAltD type="text">
                     </td>
                     <td>
-                        <input id="CreditInputText" class="text-right currency" title="Ctrl + Alt + C" type="text">
+                        <input id="CreditInputText" class="text-right currency" title=@I18N.CtrlAltC type="text">
                     </td>
                     <td>
                         <input id="ERInputText" class="text-right decimal" type="text">
                     </td>
                     <td>
-                        <input id="LCDebitInputText" class="text-right currency" readonly="readonly" title="Ctrl + Alt + D" type="text">
+                        <input id="LCDebitInputText" class="text-right currency" readonly="readonly" title=@I18N.CtrlAltD type="text">
                     </td>
                     <td>
-                        <input id="LCCreditInputText" class="text-right currency" readonly="readonly" title="Ctrl + Alt + C" type="text">
+                        <input id="LCCreditInputText" class="text-right currency" readonly="readonly" title=@I18N.CtrlAltC type="text">
                     </td>
                     <td>
-                        <input id="AddInputButton" class="ui small blue button" title="Ctrl + Return" value="Add" type="button">
+                        <input id="AddInputButton" class="ui small blue button" title=@I18N.CtrlReturn value=@I18N.Add type="button">
                     </td>
                 </tr>
             </tbody>
@@ -135,27 +135,27 @@
     <div class="ui form segment" style="width: 700px;">
         <div class="field">
             <label for="CostCenterSelect">
-                Cost Center
+                @I18N.CostCenter
             </label>
             <select id="CostCenterSelect"></select>
         </div>
         <div class="field">
             <label for="DebitTotalTextBox">
-                Debit Total
+                @I18N.DebitTotal
             </label>
             <input id="DebitTotalTextBox" readonly="readonly" class="text-right currency" type="text">
         </div>
         <div class="field">
             <label for="CreditTotalLiteral">
-                Credit Total
+                @I18N.CreditTotal
             </label>
             <input id="CreditTotalTextBox" readonly="readonly" class="text-right currency" type="text">
         </div>
         <div class="ui buttons">
             <button id="PostButton" type="button"  class="ui small positive button">
-                Post Transaction
+                @I18N.PostTransaction
             </button>
-            <a href="/dashboard/finance/tasks/journal/entry" onclick="return (confirm('Are you sure?'))" class="ui small blue button">Return Back</a>            
+            <a href="/dashboard/finance/tasks/journal/entry" onclick="return (confirm(window.translate('AreYouSure')))" class="ui small blue button">@I18N.ReturnBack</a>            
         </div>
     </div>
     <span id="ErrorLabelBottom" class="big error"></span>
@@ -319,7 +319,7 @@
         const ajax = request();
 
         ajax.success(function (response) {
-            var options = "<option>Select</option>";
+            var options = `<option>${window.translate("Select")}</option>`;
 
             $.each(response, function () {
                 var option = "<option value='{accountNumber}' data-account-master-id='{accountMasterId}' data-currency-code='{currencyCode}'>{accountName}</option>";
@@ -466,7 +466,7 @@
         window.removeDirty(cashRepositorySelect);
 
         if (cashRepositorySelect.find("option").size() > 1 && window.isNullOrWhiteSpace(cashRepositorySelect.getSelectedValue())) {
-            window.displayMessage("Invalid cash repository specified.");
+            window.displayMessage(window.translate("InvalidCashRepositorySpecified"));
             return;
         };
 
@@ -475,12 +475,12 @@
         if (isCash) {
             if (window.isNullOrWhiteSpace(cashRepositoryCode)) {
                 window.makeDirty(cashRepositorySelect);
-                window.displayMessage("Invalid cash repository specified.", "error");
+                window.displayMessage(window.translate("InvalidCashRepositorySpecified"), "error");
                 return;
             };
         } else {
             if (!window.isNullOrWhiteSpace(cashRepositoryCode)) {
-                window.displayMessage("Invalid cash repository specified.");
+                window.displayMessage(window.translate("InvalidCashRepositorySpecified"));
                 window.makeDirty(cashRepositorySelect);
                 return;
             };
@@ -510,7 +510,7 @@
                     const hasBalance = response;
 
                     if (!hasBalance) {
-                        window.displayMessage("Not enough balance in the cash repository " + cashRepositoryCode, "error");
+                        window.displayMessage(window.translate("NotEnoughBalanceCashRepository") + " " + cashRepositoryCode, "error");
                         removeLoader(transactionGridView);
                         window.makeDirty(cashRepositorySelect);
                         return;
@@ -540,7 +540,7 @@
 
             if (!isCash) {
                 if (window.getColumnText(row, 1) === accountNumber) {
-                    window.displayMessage("Duplicate entry.");
+                    window.displayMessage(window.translate("DuplicateEntry"));
                     window.makeDirty(accountNumberInputText);
                     duplicateEntry = true;
 
@@ -551,7 +551,7 @@
 
             if (isCash) {
                 if (window.getColumnText(row, 3) === cashRepository) {
-                    window.displayMessage("Duplicate entry");
+                    window.displayMessage(window.translate("DuplicateEntry"));
                     window.makeDirty(accountNumberInputText);
                     duplicateEntry = true;
                 };
@@ -726,19 +726,19 @@
 
         if (!window.isDate(valueDate)) {
             window.makeDirty(valueDateTextBox);
-            errorLabelBottom.html("Invalid Date");
+            errorLabelBottom.html(window.translate("InvalidDate"));
             return false;
         };
 
         if (parseInt(costCenterSelect.getSelectedValue() || 0) <= 0) {
             window.makeDirty(costCenterSelect);
-            errorLabelBottom.html("Invalid cost center.");
+            errorLabelBottom.html(window.translate("InvalidCostCenter"));
             return false;
         };
 
 
         if (transactionGridView.find("tr").length === 2) {
-            errorLabelBottom.html("Gridview is empty.");
+            errorLabelBottom.html(window.translate("GridViewEmpty"));
             return false;
         };
 
@@ -773,7 +773,7 @@
         summate();
 
         if (parseFloat(debitTotalTextBox.val() || 0) !== parseFloat(creditTotalTextBox.val() || 0)) {
-            window.displayMessage("Referencing sides are not equal.", "error");
+            window.displayMessage(window.translate("ReferencingSidesNotEqual"), "error");
             return false;
         };
 
