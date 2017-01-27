@@ -616,6 +616,11 @@ SELECT * FROM finance.create_payment_card('DR-VSE', 'Visa Electron',       2);
 SELECT * FROM finance.create_payment_card('DR-VSD', 'Visa Debit',          2);
 SELECT * FROM finance.create_payment_card('DR-DEL', 'Delta',               2);
 
+
+INSERT INTO finance.bank_accounts(bank_account_name, account_id, maintained_by_user_id, is_merchant_account, office_id, bank_name, bank_branch)
+SELECT 'ABN AMRO Savings A/C', finance.get_account_id_by_account_number('10102'), 1, false, core.get_office_id_by_office_name('Default'), 'ABN AMRO Bank', '';
+
+
 --ROLLBACK TRANSACTION;
 
 
