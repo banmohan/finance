@@ -168,7 +168,9 @@
                 return;
             };
 
-            $("#AccountSelect").dropdown("set selected", value);
+            //Todo: Remove Semantic UI Dropdown dependency 
+            //$("#AccountSelect").dropdown("set selected", value);
+            $("#AccountSelect").val(value);
 
             $("#ShowButton").trigger("click");
         });
@@ -360,7 +362,8 @@
             };
         };
 
-        const model = getModel();
+        const model = getModel();
+
         if (!model) {
             return;            
         };
