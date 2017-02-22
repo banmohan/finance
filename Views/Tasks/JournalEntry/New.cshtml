@@ -37,12 +37,12 @@
         <table id="TransactionGridView" class="ui nowrap table segment" style="min-width: 1200px; max-width: 2000px;">
             <thead>
                 <tr>
-                    <th style="width: 9%">
+                    <th style="width: 17%">
                         <label for="StatementReferenceInputText">
                             @I18N.StatementReference
                         </label>
                     </th>
-                    <th scope="col" style="width: 7%;">
+                    <th scope="col" style="width: 5%;">
                         <label for="AccountNumberInputText">
                             @I18N.AccountNumber
                         </label>
@@ -52,7 +52,7 @@
                             @I18N.Account
                         </label>
                     </th>
-                    <th style="width: 8%;">
+                    <th style="width: 7%;">
                         <label for="CashRepositorySelect">
                             @I18N.CashRepository
                         </label>
@@ -62,7 +62,7 @@
                             @I18N.Currency
                         </label>
                     </th>
-                    <th class="text-right" style="width: 10%;">
+                    <th class="text-right" style="width: 9%;">
                         <label for="DebitInputText">
                             @I18N.Debit
                         </label>
@@ -77,12 +77,12 @@
                             @I18N.Er
                         </label>
                     </th>
-                    <th class="text-right" style="width: 9%;">
+                    <th class="text-right" style="width: 7%;">
                         <label for="LCDebitInputText">
                             @I18N.LCDebit
                         </label>
                     </th>
-                    <th class="text-right" style="width: 9%;">
+                    <th class="text-right" style="width: 7%;">
                         <label for="LCCreditInputText">
                             @I18N.LCCredit
                         </label>
@@ -335,23 +335,23 @@
         });
 
         ajax.fail(function (xhr) {
-            alert(JSON.stringify(xhr));
+            window.logAjaxErrorMessage(xhr);
         });
     };
 
     function loadCashRepositories() {
         const url = "/api/forms/finance/cash-repositories/lookup-fields";
-        window.ajaxDataBind(url, cashRepositorySelect, null, null, null, null, "Key", "Value");
+        window.ajaxDataBind(url, cashRepositorySelect, null, "Key", "Value");
     };
 
     function loadCostCenters() {
         url = "/api/forms/finance/cost-centers/display-fields";
-        window.ajaxDataBind(url, costCenterSelect, null, null, null, null, "Key", "Value");
+        window.ajaxDataBind(url, costCenterSelect, null, "Key", "Value");
     };
 
     function loadCurrencies() {
         url = "/api/forms/core/currencies/lookup-fields";
-        window.ajaxDataBind(url, currencySelect, null, null, null, null, "Key", "Key");
+        window.ajaxDataBind(url, currencySelect, null, "Key", "Key");
     };
 
     //Control Events
@@ -652,14 +652,17 @@
 
         const model = getModel();
 
+        postButton.addClass("loading");
         const ajax = request(model);
 
         ajax.success(function (response) {
+            postButton.removeClass("loading");
             const id = response;
             window.location = "/dashboard/finance/tasks/journal/checklist/" + id;
         });
 
         ajax.fail(function (xhr) {
+            postButton.removeClass("loading");
             window.logAjaxErrorMessage(xhr);
 
             const errorMessage = window.getAjaxErrorMessage(xhr);
