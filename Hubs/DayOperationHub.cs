@@ -22,7 +22,7 @@ namespace MixERP.Finance.Hubs
             operation.NotificationReceived += this.EOD_NotificationReceived;
 
             string tenant = AppUsers.GetTenant();
-            long loginId = HubAuthorizationManger.GetLoginIdAsync(tenant, this.Context).Result;
+            long loginId = HubAuthorizationManger.GetLoginIdAsync(tenant, this.Context).GetAwaiter().GetResult();
 
             operation.Perform(tenant, loginId);
         }
@@ -43,7 +43,7 @@ namespace MixERP.Finance.Hubs
             }
 
             string tenant = AppUsers.GetTenant();
-            long loginId = HubAuthorizationManger.GetLoginIdAsync(tenant, this.Context).Result;
+            long loginId = HubAuthorizationManger.GetLoginIdAsync(tenant, this.Context).GetAwaiter().GetResult();
             var meta = AppUsers.GetCurrent(tenant, loginId);
 
             if (loginId <= 0)

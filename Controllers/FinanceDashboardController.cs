@@ -19,7 +19,7 @@ namespace MixERP.Finance.Controllers
         {
             string tenant = TenantConvention.GetTenant();
             var meta = AppUsers.GetCurrent(tenant);
-            this.FrequencyDates = Dates.GetFrequencyDatesAsync(tenant, meta.OfficeId).Result;
+            this.FrequencyDates = Dates.GetFrequencyDatesAsync(tenant, meta.OfficeId).GetAwaiter().GetResult();
 
             base.OnActionExecuting(filterContext);
         }
