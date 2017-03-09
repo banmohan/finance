@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<FrapidReport>
+  <Header />
+  <Title>Account Receivable By Customer Report</Title>
+  <Body>
+    <Content>
+      <div class='center aligned'>
+        <h3>As of {Query.From} and {Query.To}</h3>
+      </div>
+    </Content>
+    <GridViews>
+      <GridView>
+        <GridViewDataSource Index="0">
+        </GridViewDataSource>
+      </GridView>
+    </GridViews>
+  </Body>
+  <BottomSection>
+  </BottomSection>
+  <DataSources>
+    <DataSource>
+      <Query>
+        WITH total_sales AS
+        (
+	        SELECT 
+                sales_view.customer_id, 
+                SUM(COALESCE(total_amount, 0)) AS amount
+	        FROM sales.sales_view
+	        WHERE verification_status_id &gt; 0
+	        AND value_date BETWEEN @From AND @To
+	        GROUP BY sales_view.customer_id
+        ), bank AS
+        (
+            SELECT 
+                customer_receipts.customer_id,
+                SUM(COALESCE(check_amount, 0)) AS amount
+            FROM sales.customer_receipts
+	        WHERE check_amount &gt; 0
+	        AND customer_receipts.posted_date BETWEEN @From AND @To
+	        GROUP BY customer_receipts.customer_id
+        ), gift_card AS
+        (
+            SELECT 
+                customer_receipts.customer_id,
+                SUM(COALESCE(customer_receipts.tender, 0) - COALESCE(customer_receipts.change, 0)) AS amount
+            FROM sales.customer_receipts
+	        WHERE COALESCE(gift_card_number, '') &lt;&gt; ''
+	        AND customer_receipts.posted_date BETWEEN @From AND @To
+	        GROUP BY customer_receipts.customer_id
+        ), cash AS
+        (
+            SELECT 
+                customer_receipts.customer_id,
+                SUM(COALESCE(customer_receipts.tender, 0) - COALESCE(customer_receipts.change, 0)) AS amount
+            FROM sales.customer_receipts
+	        WHERE COALESCE(customer_receipts.cash_repository_id, 0) &gt; 0
+	        AND customer_receipts.posted_date BETWEEN @From AND @To
+            GROUP BY customer_receipts.customer_id
+        ), all_data AS
+        (
+            SELECT 
+                customer_id, 
+                amount AS total_sales, 
+                null AS cash,
+                null AS bank,
+                null AS gift_card
+            FROM total_sales
+            UNION ALL
+
+            SELECT 
+                customer_id, 
+                null, 
+                amount AS cash,
+                null AS bank,
+                null AS gift_card
+            FROM cash
+            UNION ALL
+
+            SELECT 
+                customer_id, 
+                null, 
+                null AS cash,
+                amount AS bank,
+                null AS gift_card
+            FROM bank
+            UNION ALL
+
+            SELECT 
+                customer_id, 
+                null, 
+                null AS cash,
+                null AS bank,
+                amount AS gift_card
+            FROM gift_card
+        )
+        SELECT 
+            customers.customer_code,
+            customers.customer_name,
+            SUM(COALESCE(total_sales, 0)) AS total_sales,
+            SUM(COALESCE(cash, 0)) AS cash,
+            SUM(COALESCE(bank, 0)) AS bank,
+            SUM(COALESCE(gift_card, 0)) AS gift_card,
+            SUM(COALESCE(cash, 0)) + SUM(COALESCE(bank, 0)) + SUM(COALESCE(gift_card, 0)) AS total_payment,
+            SUM(COALESCE(total_sales, 0)) - (SUM(COALESCE(cash, 0)) + SUM(COALESCE(bank, 0)) + SUM(COALESCE(gift_card, 0))) AS balance 
+        FROM all_data
+        JOIN inventory.customers ON all_data.customer_id = customers.customer_id
+        WHERE COALESCE(@CustomerId, 0) = 0 OR all_data.customer_id = @CustomerId
+	AND customers.deleted = 0
+        GROUP BY customers.customer_code, customers.customer_name
+      </Query>
+      <Parameters>
+        <Parameter Name="@CustomerId" FieldLabel="Customer" Type="integer" PopulateFrom="/api/views/inventory/customers/display-fields" KeyField="Key" ValueField="Value"/>
+        <Parameter Name="@From" FieldLabel="From Date" Type="System.DateTime" />
+        <Parameter Name="@To" FieldLabel="To Date" Type="System.DateTime" />
+      </Parameters>
+      <RunningTotalTextColumnIndex>1</RunningTotalTextColumnIndex>
+      <RunningTotalFieldIndices>2, 3, 4, 5, 6, 7</RunningTotalFieldIndices>
+    </DataSource>
+  </DataSources>
+</FrapidReport>

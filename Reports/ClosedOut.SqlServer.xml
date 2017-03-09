@@ -1,0 +1,186 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<FrapidReport>
+  <Header />
+  <Title>Close Out</Title>
+  <TopSection>
+  </TopSection>
+  <Body>
+    <Content>
+      <div class='center aligned'>
+        <h3>As of {Query.ValueDate}</h3>
+      </div>
+      <table class="table horizontal" width="100%">
+        <tr>
+          <td colspan="2">
+            <h3>{i18n.Sales}</h3>
+          </td>
+          <td colspan="2">
+            <h3>{i18n.Returns}</h3>
+          </td>
+        </tr>
+        <tr>
+          <td>{i18n.TotalSales}</td>
+          <td>
+            {DataSource[0].total_sales_amount} <br />
+          </td>
+          <td>{i18n.TotalReturns}</td>
+          <td>
+            {DataSource[1].total_return_amount} <br />
+          </td>
+        </tr>
+        <tr>
+          <td>{i18n.No of Sales Transaction}</td>
+          <td>
+            {DataSource[0].no_of_sales_transaction} <br />
+          </td>
+          <td>{i18n.No of Sales Transaction}</td>
+          <td>
+            {DataSource[1].no_of_returned_transaction} <br />
+          </td>
+        </tr>
+        <tr>
+          <td>{i18n.No of Items Sold}</td>
+          <td>{DataSource[0].no_of_items_sold}</td>
+          <td>{i18n.No of Items Sold}</td>
+          <td>{DataSource[1].no_of_items_returned}</td>
+        </tr>
+      </table>
+      <br/>
+    </Content>
+    <GridViews>
+      <GridView>
+        <GridViewDataSource Index="2" Style="white-space:nowrap;">
+        </GridViewDataSource>
+      </GridView>
+    </GridViews>
+  </Body>
+  <BottomSection>
+  </BottomSection>
+  <DataSources>
+    <DataSource>
+      <Query>
+        WITH total_sales AS
+        (
+            SELECT 
+                SUM(COALESCE(total_amount, 0)) AS total_sales_amount,
+                COUNT(transaction_master_id) AS no_of_sales_transaction
+            FROM sales.sales_view
+            WHERE verification_status_id &gt; 0
+	        AND value_date = @ValueDate
+        ),
+        no_of_items_sold AS
+        (
+            SELECT 
+                COUNT(checkout_details.item_id) AS no_of_items_sold
+            FROM sales.sales_view
+            LEFT JOIN inventory.checkout_details
+                ON checkout_details.checkout_id = sales_view.checkout_id
+            WHERE verification_status_id &gt; 0
+	        AND sales_view.value_date = @ValueDate
+        )
+        SELECT * FROM total_sales, no_of_items_sold;</Query>
+      <Parameters>
+        <Parameter Name="@ValueDate" FieldLabel="Date" Type="System.DateTime" />
+      </Parameters>
+    </DataSource>
+    <DataSource>
+      <Query>
+        WITH total_return AS
+        (
+            SELECT 
+                SUM(checkout_detail_view.total) AS total_return_amount,
+                COUNT(checkout_detail_view.transaction_master_id) AS no_of_returned_transaction
+            FROM sales.returns 
+            LEFT JOIN inventory.checkout_detail_view
+                ON checkout_detail_view.checkout_id = returns.checkout_id
+            LEFT JOIN finance.transaction_master
+                ON transaction_master.transaction_master_id = returns.return_transaction_master_id
+            WHERE transaction_master.verification_status_id &gt; 0 
+            AND transaction_master.deleted = 0
+	        AND transaction_master.value_date = @ValueDate
+        ),
+        no_of_items_returned AS
+        (
+            SELECT 
+                COUNT(checkout_details.item_id) AS no_of_items_returned
+            FROM sales.returns 
+            LEFT JOIN inventory.checkout_details
+                ON checkout_details.checkout_id = returns.checkout_id
+            LEFT JOIN finance.transaction_master
+                ON transaction_master.transaction_master_id = returns.return_transaction_master_id
+            WHERE transaction_master.verification_status_id &gt; 0 
+            AND transaction_master.deleted = 0
+	        AND transaction_master.value_date = @ValueDate
+        )
+        SELECT * FROM total_return, no_of_items_returned;
+      </Query>
+      <Parameters>
+        <Parameter Name="@ValueDate" FieldLabel="Date" Type="System.DateTime" />
+      </Parameters>
+    </DataSource>
+    <DataSource>
+      <Query>
+          WITH receivable AS
+          (
+            SELECT
+            SUM(sales_view.total_amount) amount
+            FROM sales.sales_view
+            WHERE verification_status_id &gt; 0
+            AND is_credit = 1
+            AND sales_view.value_date = @ValueDate
+            ), payable AS
+            (
+            SELECT
+            SUM(checkout_detail_view.total) amount
+            FROM purchase.purchases
+            JOIN inventory.checkout_detail_view ON purchases.checkout_id = checkout_detail_view.checkout_id
+            JOIN finance.transaction_master ON checkout_detail_view.transaction_master_id = transaction_master.transaction_master_id
+            AND transaction_master.verification_status_id &gt; 0
+            AND transaction_master.value_date = @ValueDate
+            ),
+            expenses_accounts AS
+            (
+            SELECT * FROM finance.accounts
+            WHERE account_name = 'Expenses'
+            AND deleted = 0
+            UNION ALL
+
+            SELECT finance.accounts.* FROM finance.accounts
+            JOIN expenses_accounts ON finance.accounts.parent_account_id = expenses_accounts.account_id
+            WHERE finance.accounts.deleted = 0
+            ),
+            income_accounts as
+            (
+            SELECT * FROM finance.accounts
+            WHERE account_name = 'Revenues'
+            AND deleted = 0
+            UNION ALL
+
+            SELECT finance.accounts.* FROM finance.accounts
+            JOIN income_accounts ON finance.accounts.parent_account_id = income_accounts.account_id
+            WHERE finance.accounts.deleted = 0
+            )
+
+            SELECT
+            (SELECT amount FROM receivable) AS receivable,
+            (SELECT amount FROM payable) AS payable,
+            (
+            SELECT
+            SUM(amount_in_local_currency) AS total_expenses
+            FROM expenses_accounts
+            LEFT JOIN finance.verified_transaction_view ON verified_transaction_view.account_id = expenses_accounts.account_id
+            WHERE verified_transaction_view.value_date = @ValueDate
+            ) AS expenses,
+            (
+            SELECT
+            SUM(amount_in_local_currency) AS total_income FROM income_accounts
+            LEFT JOIN finance.verified_transaction_view ON verified_transaction_view.account_id = income_accounts.account_id
+            WHERE verified_transaction_view.value_date = @ValueDate
+            ) AS income
+      </Query>
+      <Parameters>
+        <Parameter Name="@ValueDate" FieldLabel="Date" Type="System.DateTime" />
+      </Parameters>
+    </DataSource>
+  </DataSources>
+</FrapidReport>
