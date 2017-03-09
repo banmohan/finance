@@ -51,6 +51,7 @@ SELECT * FROM core.create_menu('MixERP.Finance', 'PaymentJournalSummary', 'Payme
 SELECT * FROM core.create_menu('MixERP.Finance', 'ReceiptJournalSummary', 'Receipt Journal Summary Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ReceiptJournalSummary.xml', 'angle double left icon', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'AccountPayableVendor', 'Account Payable Vendor Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountPayableVendor.xml', 'external share icon', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'AccountantSummary', 'Accountant Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountantSummary.xml', 'address book outline icon', 'Reports');
+SELECT * FROM core.create_menu('MixERP.Finance', 'ClosedOut', 'Closed Out Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ClosedOut.xml', 'book icon', 'Reports');
 
 SELECT * FROM auth.create_app_menu_policy
 (

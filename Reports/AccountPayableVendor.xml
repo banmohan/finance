@@ -54,7 +54,7 @@
           LEFT JOIN finance.transaction_master
           ON transaction_master.transaction_master_id = supplier_payments.transaction_master_id
           WHERE COALESCE(supplier_payments.cash_repository_id, 0) &gt; 0
-          AND COALESCE(supplier_payments.check_amount, 0) &gt; 0
+          AND COALESCE(supplier_payments.check_amount, 0) = 0
           AND transaction_master.verification_status_id &gt; 0
           AND NOT transaction_master.deleted
           AND transaction_master.value_date BETWEEN @From::date AND @To::date

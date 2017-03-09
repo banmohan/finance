@@ -51,6 +51,7 @@ EXECUTE core.create_menu 'MixERP.Finance', 'PaymentJournalSummary', 'Payment Jou
 EXECUTE core.create_menu 'MixERP.Finance', 'ReceiptJournalSummary', 'Receipt Journal Summary Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ReceiptJournalSummary.xml', 'angle double left icon', 'Reports';
 EXECUTE core.create_menu 'MixERP.Finance', 'AccountPayableVendor', 'Account Payable Vendor Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountPayableVendor.xml', 'external share icon', 'Reports';
 EXECUTE core.create_menu 'MixERP.Finance', 'AccountantSummary', 'Accountant Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountantSummary.xml', 'address book outline icon', 'Reports';
+EXECUTE core.create_menu 'MixERP.Finance', 'ClosedOut', 'Closed Out Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ClosedOut.xml', 'book icon', 'Reports';
 
 
 DECLARE @office_id integer = core.get_office_id_by_office_name('Default');

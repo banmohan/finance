@@ -105,6 +105,7 @@
         FROM all_data
         JOIN inventory.customers ON all_data.customer_id = customers.customer_id
         WHERE COALESCE(@CustomerId::int, 0) = 0 OR all_data.customer_id = @CustomerId
+	AND NOT customers.deleted
         GROUP BY customers.customer_code, customers.customer_name
       </Query>
       <Parameters>
