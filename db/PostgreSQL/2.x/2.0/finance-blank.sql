@@ -4405,6 +4405,8 @@ SELECT * FROM core.create_menu('MixERP.Finance', 'VerificationPolicy', 'Verifica
 SELECT * FROM core.create_menu('MixERP.Finance', 'AutoVerificationPolicy', 'Auto Verification Policy', '/dashboard/finance/tasks/verification-policy/auto', 'check circle', 'Tasks');
 SELECT * FROM core.create_menu('MixERP.Finance', 'AccountReconciliation', 'Account Reconciliation', '/dashboard/finance/tasks/account-reconciliation', 'book', 'Tasks');
 SELECT * FROM core.create_menu('MixERP.Finance', 'EODProcessing', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'spinner', 'Tasks');
+SELECT * FROM core.create_menu('MixERP.Finance', 'RefreshMaterializedViews', 'Refresh Materialized Views', '/dashboard/finance/tasks/refresh-materialized-views', 'refresh', 'Tasks');
+SELECT * FROM core.create_menu('MixERP.Finance', 'ImportTransactions', 'Import Transactions', '/dashboard/finance/tasks/import-transactions', 'upload', 'Tasks');
 
 SELECT * FROM core.create_menu('MixERP.Finance', 'Setup', 'Setup', 'square outline', 'configure', '');
 SELECT * FROM core.create_menu('MixERP.Finance', 'ChartOfAccounts', 'Chart of Accounts', '/dashboard/finance/setup/chart-of-accounts', 'sitemap', 'Setup');
@@ -5094,6 +5096,14 @@ ALTER MATERIALIZED VIEW finance.verified_transaction_mat_view
 OWNER TO frapid_db_user;
 
 
+CREATE UNIQUE INDEX verified_transaction_mat_view_transaction_detail_id_uix
+ON finance.verified_transaction_mat_view(transaction_detail_id);
+
+
+REFRESH MATERIALIZED VIEW CONCURRENTLY finance.verified_transaction_mat_view;
+
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/3. finance.verified_cash_transaction_mat_view.sql --<--<--
 DROP MATERIALIZED VIEW IF EXISTS finance.verified_cash_transaction_mat_view;
 
@@ -5110,6 +5120,12 @@ IN
 
 ALTER MATERIALIZED VIEW finance.verified_cash_transaction_mat_view
 OWNER TO frapid_db_user;
+
+CREATE UNIQUE INDEX verified_cash_transaction_mat_view_transaction_detail_id_uix
+ON finance.verified_cash_transaction_mat_view(transaction_detail_id);
+
+
+REFRESH MATERIALIZED VIEW CONCURRENTLY finance.verified_cash_transaction_mat_view;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.account_view.sql --<--<--
@@ -5183,9 +5199,12 @@ FROM finance.transaction_master;
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.trial_balance_view.sql --<--<--
 DROP MATERIALIZED VIEW IF EXISTS finance.trial_balance_view;
+
 CREATE MATERIALIZED VIEW finance.trial_balance_view
 AS
-SELECT finance.get_account_name_by_account_id(account_id), 
+SELECT 
+	account_id, 
+	finance.get_account_name_by_account_id(account_id) account_name, 
     SUM(CASE finance.verified_transaction_view.tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE NULL END) AS debit,
     SUM(CASE finance.verified_transaction_view.tran_type WHEN 'Cr' THEN amount_in_local_currency ELSE NULL END) AS Credit
 FROM finance.verified_transaction_view
@@ -5193,6 +5212,12 @@ GROUP BY account_id;
 
 ALTER MATERIALIZED VIEW finance.trial_balance_view
 OWNER TO frapid_db_user;
+
+CREATE UNIQUE INDEX trial_balance_view_account_id_uix
+ON finance.trial_balance_view(account_id);
+
+
+REFRESH MATERIALIZED VIEW CONCURRENTLY finance.trial_balance_view;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/99.ownership.sql --<--<--

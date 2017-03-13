@@ -1244,6 +1244,16 @@ namespace MixERP.Finance
 		public static string ClosedOut => I18NResource.GetString(ResourceDirectory, "ClosedOut");
 
 		/// <summary>
+		///Refresh Materialized Views
+		/// </summary>
+		public static string RefreshMaterializedViews => I18NResource.GetString(ResourceDirectory, "RefreshMaterializedViews");
+
+		/// <summary>
+		///Import Transactions
+		/// </summary>
+		public static string ImportTransactions => I18NResource.GetString(ResourceDirectory, "ImportTransactions");
+
+		/// <summary>
 		///Access is denied. You cannot withdraw someone else's transaction.
 		/// </summary>
 		public static string AccessDeniedCannotWithdrawSomeoneElseTransaction => I18NResource.GetString(ResourceDirectory, "AccessDeniedCannotWithdrawSomeoneElseTransaction");
@@ -1322,6 +1332,11 @@ namespace MixERP.Finance
 		///Cancel/Withdraw Transaction
 		/// </summary>
 		public static string CancelWithdrawTransaction => I18NResource.GetString(ResourceDirectory, "CancelWithdrawTransaction");
+
+		/// <summary>
+		///Cannot Validate Your File
+		/// </summary>
+		public static string CannotValidateYourFile => I18NResource.GetString(ResourceDirectory, "CannotValidateYourFile");
 
 		/// <summary>
 		///Cannot withdraw transaction during restricted transaction mode.
@@ -1519,6 +1534,11 @@ namespace MixERP.Finance
 		public static string From => I18NResource.GetString(ResourceDirectory, "From");
 
 		/// <summary>
+		///Grand Total
+		/// </summary>
+		public static string GrandTotal => I18NResource.GetString(ResourceDirectory, "GrandTotal");
+
+		/// <summary>
 		///Gridview is empty.
 		/// </summary>
 		public static string GridViewEmpty => I18NResource.GetString(ResourceDirectory, "GridViewEmpty");
@@ -1542,6 +1562,21 @@ namespace MixERP.Finance
 		///Hundredth Name
 		/// </summary>
 		public static string HundredthName => I18NResource.GetString(ResourceDirectory, "HundredthName");
+
+		/// <summary>
+		///Import Data
+		/// </summary>
+		public static string ImportData => I18NResource.GetString(ResourceDirectory, "ImportData");
+
+		/// <summary>
+		///Import Failed!
+		/// </summary>
+		public static string ImportFailed => I18NResource.GetString(ResourceDirectory, "ImportFailed");
+
+		/// <summary>
+		///You can bulk import journal transaction from a CSV file into MixERP. Click "Export Template" button to download a CSV template file. Create a file that matches with the export template. Import the CSV file.
+		/// </summary>
+		public static string ImportTransactionsDescription => I18NResource.GetString(ResourceDirectory, "ImportTransactionsDescription");
 
 		/// <summary>
 		///Including Other Participants
@@ -1584,6 +1619,11 @@ namespace MixERP.Finance
 		public static string InvalidData => I18NResource.GetString(ResourceDirectory, "InvalidData");
 
 		/// <summary>
+		///Invalid data found on line {0}. Either "AccountNumber" or "AccountName" should contain a value.
+		/// </summary>
+		public static string InvalidDataOnLineN => I18NResource.GetString(ResourceDirectory, "InvalidDataOnLineN");
+
+		/// <summary>
 		///Invalid Date
 		/// </summary>
 		public static string InvalidDate => I18NResource.GetString(ResourceDirectory, "InvalidDate");
@@ -1612,6 +1652,21 @@ namespace MixERP.Finance
 		///LC Debit
 		/// </summary>
 		public static string LCDebit => I18NResource.GetString(ResourceDirectory, "LCDebit");
+
+		/// <summary>
+		///Lets do this again
+		/// </summary>
+		public static string LetsDoAgain => I18NResource.GetString(ResourceDirectory, "LetsDoAgain");
+
+		/// <summary>
+		///Net Sales
+		/// </summary>
+		public static string NetSales => I18NResource.GetString(ResourceDirectory, "NetSales");
+
+		/// <summary>
+		///Next
+		/// </summary>
+		public static string Next => I18NResource.GetString(ResourceDirectory, "Next");
 
 		/// <summary>
 		///No
@@ -1667,6 +1722,11 @@ namespace MixERP.Finance
 		///<p>When you perform EOD operation for a particular date, no transaction on that date or before can be altered, changed, or deleted.</p><p>During EOD operation, routine tasks such as interest calculation, settlements, and report generation are performed. This process is irreversible.</p>
 		/// </summary>
 		public static string PerformEODOperationWarningMessage => I18NResource.GetString(ResourceDirectory, "PerformEODOperationWarningMessage");
+
+		/// <summary>
+		///Post
+		/// </summary>
+		public static string Post => I18NResource.GetString(ResourceDirectory, "Post");
 
 		/// <summary>
 		///Posted By
@@ -1727,6 +1787,21 @@ namespace MixERP.Finance
 		///Ref #
 		/// </summary>
 		public static string RefererenceNumberAbbreviated => I18NResource.GetString(ResourceDirectory, "RefererenceNumberAbbreviated");
+
+		/// <summary>
+		///Refresh
+		/// </summary>
+		public static string Refresh => I18NResource.GetString(ResourceDirectory, "Refresh");
+
+		/// <summary>
+		///Refresh Concurrently
+		/// </summary>
+		public static string RefreshConcurrently => I18NResource.GetString(ResourceDirectory, "RefreshConcurrently");
+
+		/// <summary>
+		///Materialized views periodically cache the result of expensive database queries, thus dramatically improving the application performance. This feature enables you to manually refresh all materialized views.
+		/// </summary>
+		public static string RefreshMaterializedViewsMessage => I18NResource.GetString(ResourceDirectory, "RefreshMaterializedViewsMessage");
 
 		/// <summary>
 		///Reminder
@@ -1839,6 +1914,21 @@ namespace MixERP.Finance
 		public static string To => I18NResource.GetString(ResourceDirectory, "To");
 
 		/// <summary>
+		///Total Discount
+		/// </summary>
+		public static string TotalDiscount => I18NResource.GetString(ResourceDirectory, "TotalDiscount");
+
+		/// <summary>
+		///Total Sales
+		/// </summary>
+		public static string TotalSales => I18NResource.GetString(ResourceDirectory, "TotalSales");
+
+		/// <summary>
+		///Total Sales Tax
+		/// </summary>
+		public static string TotalSalesTax => I18NResource.GetString(ResourceDirectory, "TotalSalesTax");
+
+		/// <summary>
 		///Tran Code
 		/// </summary>
 		public static string TranCode => I18NResource.GetString(ResourceDirectory, "TranCode");
@@ -1869,6 +1959,11 @@ namespace MixERP.Finance
 		public static string UploadNewDocument => I18NResource.GetString(ResourceDirectory, "UploadNewDocument");
 
 		/// <summary>
+		///Validate
+		/// </summary>
+		public static string Validate => I18NResource.GetString(ResourceDirectory, "Validate");
+
+		/// <summary>
 		///Verification
 		/// </summary>
 		public static string Verification => I18NResource.GetString(ResourceDirectory, "Verification");
@@ -1889,6 +1984,11 @@ namespace MixERP.Finance
 		public static string Verify => I18NResource.GetString(ResourceDirectory, "Verify");
 
 		/// <summary>
+		///View Errors
+		/// </summary>
+		public static string ViewErrors => I18NResource.GetString(ResourceDirectory, "ViewErrors");
+
+		/// <summary>
 		///View Journal Advice
 		/// </summary>
 		public static string ViewJournalAdvice => I18NResource.GetString(ResourceDirectory, "ViewJournalAdvice");
@@ -1897,6 +1997,11 @@ namespace MixERP.Finance
 		///View Journal Entries
 		/// </summary>
 		public static string ViewJournalEntries => I18NResource.GetString(ResourceDirectory, "ViewJournalEntries");
+
+		/// <summary>
+		///We failed to import the file you uploaded.
+		/// </summary>
+		public static string WeFailedToImport => I18NResource.GetString(ResourceDirectory, "WeFailedToImport");
 
 		/// <summary>
 		///Whom to Remind?
@@ -1914,24 +2019,14 @@ namespace MixERP.Finance
 		public static string YouHaventLeftNoteYet => I18NResource.GetString(ResourceDirectory, "YouHaventLeftNoteYet");
 
 		/// <summary>
-		///Total Sales
+		///Invalid currency on line {0}.
 		/// </summary>
-		public static string TotalSales => I18NResource.GetString(ResourceDirectory, "TotalSales");
+		public static string InvalidCurrencyOnLineN => I18NResource.GetString(ResourceDirectory, "InvalidCurrencyOnLineN");
 
 		/// <summary>
-		///Total Discount
+		///Invalid Currency
 		/// </summary>
-		public static string TotalDiscount => I18NResource.GetString(ResourceDirectory, "TotalDiscount");
-
-		/// <summary>
-		///Total Sales Tax
-		/// </summary>
-		public static string TotalSalesTax => I18NResource.GetString(ResourceDirectory, "TotalSalesTax");
-
-		/// <summary>
-		///Net Sales
-		/// </summary>
-		public static string NetSales => I18NResource.GetString(ResourceDirectory, "NetSales");
+		public static string InvalidCurrency => I18NResource.GetString(ResourceDirectory, "InvalidCurrency");
 
 	}
 }

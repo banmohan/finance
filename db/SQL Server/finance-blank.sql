@@ -4983,6 +4983,7 @@ EXECUTE core.create_menu 'MixERP.Finance', 'VerificationPolicy', 'Verification P
 EXECUTE core.create_menu 'MixERP.Finance', 'AutoVerificationPolicy', 'Auto Verification Policy', '/dashboard/finance/tasks/verification-policy/auto', 'check circle', 'Tasks';
 EXECUTE core.create_menu 'MixERP.Finance', 'AccountReconciliation', 'Account Reconciliation', '/dashboard/finance/tasks/account-reconciliation', 'book', 'Tasks';
 EXECUTE core.create_menu 'MixERP.Finance', 'EODProcessing', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'spinner', 'Tasks';
+EXECUTE core.create_menu 'MixERP.Finance', 'ImportTransactions', 'Import Transactions', '/dashboard/finance/tasks/import-transactions', 'upload', 'Tasks';
 
 EXECUTE core.create_menu 'MixERP.Finance', 'Setup', 'Setup', 'square outline', 'configure', '';
 EXECUTE core.create_menu 'MixERP.Finance', 'ChartOfAccounts', 'Chart of Accounts', '/dashboard/finance/setup/chart-of-accounts', 'sitemap', 'Setup';

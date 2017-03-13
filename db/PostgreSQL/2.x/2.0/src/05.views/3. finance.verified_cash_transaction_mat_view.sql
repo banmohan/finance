@@ -13,3 +13,9 @@ IN
 
 ALTER MATERIALIZED VIEW finance.verified_cash_transaction_mat_view
 OWNER TO frapid_db_user;
+
+CREATE UNIQUE INDEX verified_cash_transaction_mat_view_transaction_detail_id_uix
+ON finance.verified_cash_transaction_mat_view(transaction_detail_id);
+
+
+REFRESH MATERIALIZED VIEW CONCURRENTLY finance.verified_cash_transaction_mat_view;

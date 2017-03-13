@@ -26,6 +26,8 @@ SELECT * FROM core.create_menu('MixERP.Finance', 'VerificationPolicy', 'Verifica
 SELECT * FROM core.create_menu('MixERP.Finance', 'AutoVerificationPolicy', 'Auto Verification Policy', '/dashboard/finance/tasks/verification-policy/auto', 'check circle', 'Tasks');
 SELECT * FROM core.create_menu('MixERP.Finance', 'AccountReconciliation', 'Account Reconciliation', '/dashboard/finance/tasks/account-reconciliation', 'book', 'Tasks');
 SELECT * FROM core.create_menu('MixERP.Finance', 'EODProcessing', 'EOD Processing', '/dashboard/finance/tasks/eod-processing', 'spinner', 'Tasks');
+SELECT * FROM core.create_menu('MixERP.Finance', 'RefreshMaterializedViews', 'Refresh Materialized Views', '/dashboard/finance/tasks/refresh-materialized-views', 'refresh', 'Tasks');
+SELECT * FROM core.create_menu('MixERP.Finance', 'ImportTransactions', 'Import Transactions', '/dashboard/finance/tasks/import-transactions', 'upload', 'Tasks');
 
 SELECT * FROM core.create_menu('MixERP.Finance', 'Setup', 'Setup', 'square outline', 'configure', '');
 SELECT * FROM core.create_menu('MixERP.Finance', 'ChartOfAccounts', 'Chart of Accounts', '/dashboard/finance/setup/chart-of-accounts', 'sitemap', 'Setup');

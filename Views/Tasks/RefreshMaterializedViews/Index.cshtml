@@ -1,0 +1,54 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = I18N.RefreshMaterializedViews;
+    Layout = ViewBag.FinanceLayoutPath;
+}
+
+<div class="ui attached refresh materialized view segment" style="padding: 4em;">
+    <div class="ui container">
+        <div class="ui huge header">@I18N.RefreshMaterializedViews</div>
+        <div class="ui positive message">
+            @I18N.RefreshMaterializedViewsMessage
+        </div>
+        <button id="RefreshButton" class="ui positive button">@I18N.Refresh</button>
+        <button id="RefreshConcurrentlyButton" class="ui positive button">@I18N.RefreshConcurrently</button>
+    </div>
+</div>
+
+<script>
+    (function() {
+        function refresh(concurrently) {
+            function request() {
+                var url = "/dashboard/finance/tasks/refresh-materialized-views/do";
+                if (concurrently) {
+                    url += "/concurrently";
+                };
+
+                return window.getAjaxRequest(url, "POST");
+            };
+
+            $(".refresh.materialized.view.segment").addClass("loading");
+            const ajax = request();
+
+            ajax.success(function() {
+                $(".refresh.materialized.view.segment").removeClass("loading");
+                window.displaySuccess();
+            });
+
+            ajax.fail(function(xhr) {
+                $(".refresh.materialized.view.segment").removeClass("loading");
+                window.logAjaxErrorMessage(xhr);
+            });
+
+        };
+
+        $("#RefreshButton").off("click").on("click", function() {
+            refresh(false);
+        });
+
+        $("#RefreshConcurrentlyButton").off("click").on("click", function() {
+            refresh(true);
+        });
+    })();
+</script>

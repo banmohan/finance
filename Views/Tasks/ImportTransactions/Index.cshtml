@@ -1,0 +1,499 @@
+﻿@using MixERP.Finance
+@model dynamic
+
+@{
+    ViewBag.Title = I18N.RefreshMaterializedViews;
+    Layout = ViewBag.FinanceLayoutPath;
+}
+<script src="/scripts/papaparse/papaparse.min.js"></script>
+<div id="ImportSegment" class="ui attached segment" style="padding: 4em;">
+    <div class="ui huge grey header">
+        @I18N.ImportTransactions
+    </div>
+
+    <div class="ui yellow message">
+        <i class="close icon"></i>
+        @I18N.ImportTransactionsDescription
+    </div>
+
+    <div class="ui buttons">
+        <a class="ui blue basic button"
+           href="data:attachment/csv,StatementReference,AccountNumber,Account,CashRepository,Currency,Debit,Credit,ExchangeRate,LocalCurrencyDebit,LocalCurrencyCredit"
+           target="_blank"
+           download="ImportTransaction.csv"
+           id="ExportButton">Export Template</a>
+        <div class="ui blue button">
+            <label for="file">
+                @I18N.ImportData
+            </label>
+            <input type="file" id="file" style="display: none;">
+        </div>
+    </div>
+
+    <div id="ErrorModal" class="ui small negative modal">
+        <i class="close icon"></i>
+        <div class="orange header">
+            <i class="warning sign icon"></i>
+            @I18N.ImportFailed
+        </div>
+        <div class="content">
+            <div class="description">
+                <div class="ui header">@I18N.CannotValidateYourFile</div>
+                <p>
+                    @I18N.WeFailedToImport
+                </p>
+                <ul id="error-list" class="error-message"></ul>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui positive close button">
+                @I18N.LetsDoAgain
+            </div>
+        </div>
+    </div>
+    <div class="big error"></div>
+    <table class="ui table" id="ImportTable">
+        <thead>
+            <tr>
+                <th>
+                    @I18N.StatementReference
+                </th>
+                <th>
+                    @I18N.AccountNumber
+                </th>
+                <th>
+                    @I18N.AccountName
+                </th>
+                <th>
+                    @I18N.CashRepository
+                </th>
+                <th>
+                    @I18N.Currency
+                </th>
+                <th class="right aligned">
+                    @I18N.Debit
+                </th>
+                <th class="right aligned">
+                    @I18N.Credit
+                </th>
+                <th class="right aligned">
+                    @I18N.Er
+                </th>
+                <th class="right aligned">
+                    @I18N.LCDebit
+                </th>
+                <th class="right aligned">
+                    @I18N.LCCredit
+                </th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <td colspan="8" class="right aligned">
+                    <strong>
+                        @I18N.GrandTotal
+                    </strong>
+                </td>
+                <td class="right aligned"></td>
+                <td class="right aligned"></td>
+            </tr>
+        </tfoot>
+        <tbody></tbody>
+    </table>
+
+    <div id="ViewErrorsButton" class="ui orange button">@I18N.ViewErrors</div>
+    <div id="ValidateButton" class="ui positive button">@I18N.Validate</div>
+
+    <div class="ui form segment vpad8" style="width: 500px;">
+        <div class="ui grey large header">
+            About to Import
+        </div>
+        <div class="ui divider"></div>
+        <div class="two fields">
+            <div class="field">
+                <label>
+                    @I18N.ValueDate
+                </label>
+                <input type="text" id="ValueDateInputText" class="date" value="d" />
+            </div>
+            <div class="field">
+                <label>
+                    @I18N.BookDate
+                </label>
+                <input type="text" id="BookDateInputText" class="date" value="d" />
+            </div>
+        </div>
+        <div class="field">
+            <label>
+                @I18N.ReferenceNumber
+            </label>
+            <input type="text" id="ReferenceNumberInputText" />
+        </div>
+        <div class="field">
+            <label>
+                @I18N.CostCenter
+            </label>
+            <select id="CostCenterSelect" class="ui dropdown" data-api="/api/forms/finance/cost-centers/display-fields"></select>
+        </div>
+        <div id="NextButton" class="ui positive button">@I18N.Next</div>
+    </div>
+
+</div>
+
+<script>
+    window.loadDatepicker();
+    window.initializeSelectApis();
+
+    var validated = false;
+
+    function getColumn(text, cls) {
+        const column = $("<td />");
+        if (cls) {
+            column.addClass(cls);
+        };
+        column.html(text);
+        return column;
+    };
+
+    function getRow(entity, line) {
+        const row = $("<tr />");
+        row.append(getColumn(entity.StatementReference));
+
+        if (!entity.AccountNumber && !entity.Account) {
+            row.addClass("error");
+            const message = window.translate("InvalidDataOnLineN");
+            makeDirty(window.stringFormat(message, line));
+        };
+
+        if (!entity.Currency.trim()) {
+            row.addClass("error");
+            const message = window.translate("InvalidCurrencyOnLineN");
+            makeDirty(window.stringFormat(message, line));
+        };
+
+        row.append(getColumn(entity.AccountNumber));
+        row.append(getColumn(entity.Account));
+        row.append(getColumn(entity.CashRepository));
+        row.append(getColumn(entity.Currency));
+        row.append(getColumn(entity.Debit, "right aligned"));
+        row.append(getColumn(entity.Credit, "right aligned"));
+        row.append(getColumn(entity.ExchangeRate, "right aligned"));
+        row.append(getColumn(entity.LocalCurrencyDebit, "right aligned"));
+        row.append(getColumn(entity.LocalCurrencyCredit, "right aligned"));
+
+        return row;
+    };
+
+    function appendError(message) {
+        const item = $("<li/>");
+        item.html(message);
+        $("#error-list").append(item);
+    };
+
+    function makeDirty(message) {
+        $("#ImportTable").addClass("invalid red");
+        appendError(message);
+    };
+
+    $("#ViewErrorsButton").click(function () {
+        if ($("#ImportTable").is(".invalid")) {
+            $("#ErrorModal").modal().modal("show");
+        };
+    });
+
+
+
+    function reset() {
+        $("#ImportTable").removeClass("invalid red");
+        $("#ImportTable tr").removeClass("error");
+        $("#error-list").html("");
+        validated = false;
+    };
+
+    $("#file").change(function () {
+        reset();
+        const file = this.files[0];
+
+        if (!file) {
+            return;
+        };
+
+        const supportedFileTypes = ["text/csv", "application/csv", "application/vnd.ms-excel", "text/x-csv", "text/plain", "application/x-csv", "text/comma-separated-values", "text/x-comma-separated-values", "text/tab-separated-values"];
+
+        if (supportedFileTypes.indexOf(file.type) === -1) {
+            $(".big.error").addClass("vpad8").html(window.stringFormat(window.translate("UploadInvalidTryAgain"), file.type));
+            return;
+        };
+
+        var reader = new FileReader();
+        reader.onload = function () {
+            const result = reader.result;
+            const entities = window.Papa.parse(result, { "header": true, skipEmptyLines: true }).data;
+
+            var drTotal = 0;
+            var crTotal = 0;
+
+            $("#ImportTable tbody").html("");
+
+            var c = 0;
+            $.each(entities, function () {
+                c++;
+                const row = getRow(this, c);
+
+                drTotal += parseFloat(this.LocalCurrencyDebit || 0);
+                crTotal += parseFloat(this.LocalCurrencyCredit || 0);
+                $("#ImportTable tbody").append(row);
+            });
+
+            $("#ImportTable tfoot td:nth-child(2)").html(drTotal.toString().bold());
+            $("#ImportTable tfoot td:nth-child(3)").html(crTotal.toString().bold());
+
+            if (drTotal !== crTotal) {
+                makeDirty(window.translate("ReferencingSidesNotEqual"));
+                $("#ImportTable tfoot tr").addClass("error");
+            };
+
+
+            var accountNumbers = $("#ImportTable tbody td:nth-child(2)").map(function () { return $(this).text(); }).get();
+            var accountNames = $("#ImportTable tbody td:nth-child(3)").map(function () { return $(this).text(); }).get();
+
+            var numbersToQuery = [];
+            var namesToQuery = [];
+
+            $.each(accountNumbers, function (i, v) {
+                if (window.isNullOrWhiteSpace(v)) {
+                    namesToQuery.push({
+                        index: i,
+                        item: accountNames[i]
+                    });
+                };
+            });
+
+            $.each(accountNames, function (i, v) {
+                if (window.isNullOrWhiteSpace(v)) {
+                    numbersToQuery.push({
+                        index: i,
+                        item: accountNumbers[i]
+                    });
+                };
+            });
+
+
+            equalizeNames(numbersToQuery);
+            equalizeNumbers(namesToQuery);
+
+            displayErrors();
+        };
+
+
+
+        reader.readAsText(file);
+    });
+
+    function displayErrors() {
+        if ($("#ImportTable").is(".invalid")) {
+            $("#ErrorModal").modal({ blurring: true }).modal("show");
+            return;
+        };
+    };
+
+    $("#ValidateButton").click(function () {
+        validated = false;
+        var isValid = true;
+        reset();
+        const importTable = $("#ImportTable");
+        
+        const length = importTable.find("tbody tr").length;
+
+        if (!length) {
+            return;
+        };
+
+        $("#ImportSegment").addClass("loading");
+
+        importTable.find("tbody tr").each(function(i) {
+            const row = $(this);
+            const currencyCell = row.find("td:nth-child(5)");
+
+            if (!currencyCell.text().trim()) {
+                row.addClass("error");
+                const message = window.translate("InvalidCurrencyOnLineN");
+                makeDirty(window.stringFormat(message, i + 1));
+                isValid = false;
+            };
+        });
+        
+
+        if (!isValid) {
+        $("#ImportSegment").addClass("loading");
+            $("#ImportSegment").removeClass("loading");
+            return;
+        };
+
+        const accountNumbers = $("#ImportTable tbody td:nth-child(2)").map(function () { return $(this).text(); }).get();
+        var numbersToQuery = [];
+
+        $.each(accountNumbers, function (i, v) {
+            numbersToQuery.push({
+                index: i,
+                item: v
+            });
+        });
+
+        equalizeNames(numbersToQuery, function () {
+            validated = !$("#ImportTable").is(".invalid");
+            $("#ImportSegment").removeClass("loading");
+        });
+    });
+
+    function equalizeNames(accountNumbers, callback) {
+        function request(items) {
+            const url = "/api/forms/finance/accounts/get-where/-1/";
+
+            const filters = [];
+
+            for (let i = 0; i < items.length; i++) {
+                var condition = "WHERE";
+
+                if (i > 0) {
+                    condition = "OR";
+                };
+
+                filters.push(window.getAjaxColumnFilter(condition, "AccountNumber", "string", window.FilterConditions.IsEqualTo, items[i]));
+            };
+
+            const data = JSON.stringify(filters);
+            return window.getAjaxRequest(url, "POST", data);
+        };
+
+        const items = window.Enumerable.From(accountNumbers).Select(function (x) { return x.item; }).ToArray();
+
+        const ajax = request(items);
+        ajax.success(function (response) {
+            $.each(accountNumbers, function (i, v) {
+                const item = window.Enumerable.From(response)
+                    .Where(function (x) { return x.AccountNumber.toString() === v.item.toString(); }).FirstOrDefault();
+
+                const position = parseInt(v.index) + 1;
+                const selector = "#ImportTable tbody tr:nth-child(" + position + ") td:nth-child(3)";
+
+                if (item) {
+                    $(selector).html(item.AccountName.bold()).parent().addClass("positive");
+                    return;
+                };
+
+                var invalidAccountNumber = 'Invalid account number "{0}".';
+                invalidAccountNumber = window.stringFormat(invalidAccountNumber, v.item);
+
+                $(selector).html("<i class='warning sign icon'></i>" + invalidAccountNumber).parent().addClass("error");
+
+                const message = 'You have an invalid account number "{0}" on line {1}.';
+                makeDirty(window.stringFormat(message, v.item, v.index + 1));
+            });
+
+            displayErrors();
+            if (callback) {
+                callback();
+            };
+        });
+    };
+
+    function equalizeNumbers(accountNames) {
+        function request(items) {
+            const url = "/api/forms/finance/accounts/get-where/-1/";
+
+            const filters = [];
+
+            for (let i = 0; i < items.length; i++) {
+                var condition = "WHERE";
+
+                if (i > 0) {
+                    condition = "OR";
+                };
+
+                filters.push(window.getAjaxColumnFilter(condition, "AccountName", "string", window.FilterConditions.IsEqualTo, items[i]));
+            };
+
+            const data = JSON.stringify(filters);
+            return window.getAjaxRequest(url, "POST", data);
+        };
+
+        const items = window.Enumerable.From(accountNames).Select(function (x) { return x.item; }).ToArray();
+
+        const ajax = request(items);
+
+        ajax.success(function (response) {
+            $.each(accountNames, function (i, v) {
+                const item = window.Enumerable.From(response)
+                    .Where(function (x) { return x.AccountName.toString() === v.item.toString(); }).FirstOrDefault();
+
+                const position = parseInt(v.index) + 1;
+                const selector = "#ImportTable tbody tr:nth-child(" + position + ") td:nth-child(2)";
+
+                if (item) {
+                    $(selector).html(item.AccountNumber.bold()).parent().addClass("positive");
+                    return;
+                };
+
+                var invalidAccountName = 'Invalid account name "{0}".';
+                invalidAccountName = window.stringFormat(invalidAccountName, v.item);
+
+                $(selector).html("<i class='warning sign icon'></i>" + invalidAccountName).parent().addClass("error");
+
+                const message = 'You have an invalid account name "{0}" on line {1}.';
+                makeDirty(window.stringFormat(message, v.item, v.index + 1));
+            });
+
+            displayErrors();
+        });
+    };
+
+    var tojson = function (el) {
+        var colData = [];
+        var rowData = [];
+        const rows = el.find("tbody tr");
+
+        rows.each(function () {
+            const row = $(this);
+
+            colData = [];
+
+            row.find("td").each(function () {
+                colData.push($(this).text());
+            });
+
+            rowData.push(colData);
+        });
+
+        const data = JSON.stringify(rowData);
+
+        return data;
+    };
+
+    $("#NextButton").click(function () {
+        const count = $("#ImportTable tbody tr").length;
+        if (!count) {
+            window.displayMessage("You have not imported any transaction.");
+            return;
+        };
+
+        if (!validated) {
+            window.displayMessage("Imported file is invalid.");
+            return;
+        };
+
+        const importModel = {
+            valueDate: $("#ValueDateInputText").val(),
+            bookDate: $("#BookDateInputText").val(),
+            referenceNumber: $("#ReferenceNumberInputText").val(),
+            costCenter: $("#CostCenterSelect").val(),
+            table: JSON.parse(tojson($("#ImportTable")))
+        };
+
+        window.localStorage.setItem('ImportModel', JSON.stringify(importModel));
+        window.location.href = "/dashboard/finance/tasks/journal/entry/new";
+    });
+
+
+</script>
+

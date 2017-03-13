@@ -175,13 +175,16 @@
     <Compile Include="Controllers\Backend\Tasks\BaseVerificationController.cs" />
     <Compile Include="Controllers\Backend\Tasks\EodProcessingController.cs" />
     <Compile Include="Controllers\Backend\Tasks\ExchangeRateController.cs" />
+    <Compile Include="Controllers\Backend\Tasks\ImportTransactionsController.cs" />
     <Compile Include="Controllers\Backend\Tasks\JournalEntryController.cs" />
     <Compile Include="Controllers\Backend\Tasks\JournalVerificationController.cs" />
+    <Compile Include="Controllers\Backend\Tasks\RefreshMaterializedViewsController.cs" />
     <Compile Include="DAL\CashFlowStatement.cs" />
     <Compile Include="DAL\CashFlow\IProfitLoss.cs" />
     <Compile Include="DAL\CashFlow\PostgreSQL.cs" />
     <Compile Include="DAL\CashFlow\SqlServer.cs" />
     <Compile Include="DAL\ProfitLoss\IProfitLoss.cs" />
+    <Compile Include="DAL\RefreshMaterializedViews.cs" />
     <Compile Include="I18N.cs" />
     <Compile Include="QueryModels\CashFlowStatementQueryModel.cs" />
     <Compile Include="QueryModels\PlAccountQueryModel.cs" />
@@ -272,6 +275,8 @@
     <Content Include="Views\Setup\FrequencySetups.cshtml" />
     <Content Include="Views\Reports\PlAccount.cshtml" />
     <Content Include="Views\Reports\CashFlow.cshtml" />
+    <Content Include="Views\Tasks\RefreshMaterializedViews\Index.cshtml" />
+    <Content Include="Views\Tasks\ImportTransactions\Index.cshtml" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

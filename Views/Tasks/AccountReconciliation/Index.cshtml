@@ -4,10 +4,8 @@
     ViewBag.Title = I18N.AccountReconciliation;
     Layout = ViewBag.FinanceLayoutPath;
 }
-<script src="/signalr/hubs"></script>
-
 <div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
-    <div class="ui large header" data-localize="@I18N.AccountReconciliation"></div>
+    <div class="ui large header">@I18N.AccountReconciliation</div>
     <div class="ui divider"></div>
 
     <div class="ui form">
@@ -26,7 +24,7 @@
             </div>
             <div class="field">
                 <label>&nbsp;</label>
-                <div id="ShowButton" class="ui positive button">@I18N.Show</div>
+                <button id="ShowButton" class="ui positive button">@I18N.Show</button>
             </div>
         </div>
     </div>
@@ -34,34 +32,34 @@
     <table id="ReconciliationTable" class="ui celled striped table">
         <thead>
             <tr>
-                <th data-localize="@I18N.Reconcile" style="width: 40px;"></th>
-                <th data-localize="@I18N.Book"></th>
-                <th data-localize="@I18N.BookDate"></th>
-                <th data-localize="@I18N.TranId"></th>                
-                <th data-localize="@I18N.ReconciliationMemo"></th>
-                <th data-localize="@I18N.ReferenceNumber"></th>
-                <th data-localize="@I18N.StatementReference"></th>
-                <th data-localize="@I18N.Office"></th>
-                <th data-localize="@I18N.Debit"></th>
-                <th data-localize="@I18N.Credit"></th>
-                <th data-localize="@I18N.Balance"></th>
+                <th style="width: 40px;">@I18N.Reconcile</th>
+                <th>@I18N.Book</th>
+                <th>@I18N.BookDate</th>
+                <th>@I18N.TranId</th>
+                <th>@I18N.ReconciliationMemo</th>
+                <th>@I18N.ReferenceNumber</th>
+                <th>@I18N.StatementReference</th>
+                <th>@I18N.Office</th>
+                <th>@I18N.Debit</th>
+                <th>@I18N.Credit</th>
+                <th>@I18N.Balance</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
     <div class="ui reconciliation padded segment" style="max-width: 600px;">
-        <div class="ui big header" data-localize="@I18N.ReconcileTransaction"></div>
+        <div class="ui big header">@I18N.ReconcileTransaction</div>
         <div class="ui divider"></div>
         <div class="ui form">
             <div class="two fields">
                 <div class="field">
-                    <label data-localize="@I18N.EnterNewBookDate"></label>
-                    <input  id="NewBookDateInputText" type="text" data-target="data-book-date" class="date"/>
+                    <label>@I18N.EnterNewBookDate</label>
+                    <input id="NewBookDateInputText" type="text" data-target="data-book-date" class="date" />
                 </div>
                 <div class="field">
-                    <label data-localize="@I18N.ReconciliationMemo"></label>
-                    <input  id="MemoInputText" type="text" data-target="data-reconciliation-memo"/>
+                    <label>@I18N.ReconciliationMemo</label>
+                    <input id="MemoInputText" type="text" data-target="data-reconciliation-memo" />
                 </div>
             </div>
             <button onclick="performRequest();" class="ui positive button">@I18N.ReconcileNow</button>
@@ -73,81 +71,81 @@
             <div class="two fields">
                 <div class="field">
                     <label>@I18N.TransactionId</label>
-                    <input type="text" data-target="data-transaction-id" disabled/>
+                    <input type="text" data-target="data-transaction-id" disabled />
                 </div>
                 <div class="field">
                     <label>@I18N.TransactionDetailId</label>
-                    <input id="TransactionDetailIdInputText" type="text" data-target="data-transaction-detail-id" disabled/>
+                    <input id="TransactionDetailIdInputText" type="text" data-target="data-transaction-detail-id" disabled />
                 </div>
             </div>
             <div class="three fields">
                 <div class="field">
                     <label>@I18N.AccountId"</label>
-                    <input type="text" data-target="data-account-id" disabled/>
+                    <input type="text" data-target="data-account-id" disabled />
                 </div>
                 <div class="field">
                     <label>@I18N.AccountNumber</label>
-                    <input type="text" data-target="data-account-number" disabled/>
+                    <input type="text" data-target="data-account-number" disabled />
                 </div>
                 <div class="field">
                     <label>@I18N.Account</label>
-                    <input type="text" data-target="data-account" disabled/>
+                    <input type="text" data-target="data-account" disabled />
                 </div>
             </div>
             <div class="two fields">
                 <div class="field">
                     <label>@I18N.TransactionCode</label>
-                    <input type="text" data-target="data-tran-code" disabled/>
+                    <input type="text" data-target="data-tran-code" disabled />
                 </div>
                 <div class="field">
                     <label>@I18N.ReferenceNumber</label>
-                    <input type="text" data-target="data-reference-number" disabled/>
+                    <input type="text" data-target="data-reference-number" disabled />
                 </div>
             </div>
             <div class="field">
                 <label>@I18N.Book</label>
-                <input type="text" data-target="data-book" disabled/>
+                <input type="text" data-target="data-book" disabled />
             </div>
             <div class="two fields">
                 <div class="field">
                     <label>@I18N.ValueDate</label>
-                    <input type="text" data-target="data-value-date" disabled/>
+                    <input type="text" data-target="data-value-date" disabled />
                 </div>
                 <div class="field">
                     <label>@I18N.BookDate</label>
-                    <input type="text" data-target="data-book-date" disabled/>
+                    <input type="text" data-target="data-book-date" disabled />
                 </div>
             </div>
             <div class="field">
                 <label>@I18N.StatementReference</label>
-                <input type="text" data-target="data-statement-reference" disabled/>
+                <input type="text" data-target="data-statement-reference" disabled />
             </div>
             <div class="field">
                 <label>@I18N.ReconciliationMemo</label>
-                <input type="text" data-target="data-reconciliation-memo" disabled/>
+                <input type="text" data-target="data-reconciliation-memo" disabled />
             </div>
             <div class="two fields">
                 <div class="field">
                     <label>@I18N.Debit</label>
-                    <input type="text" data-target="data-debit" disabled/>
+                    <input type="text" data-target="data-debit" disabled />
                 </div>
                 <div class="field">
                     <label>@I18N.Credit</label>
-                    <input type="text" data-target="data-credit" disabled/>
+                    <input type="text" data-target="data-credit" disabled />
                 </div>
             </div>
             <div class="two fields">
                 <div class="field">
                     <label>@I18N.PostedOn</label>
-                    <input type="text" data-target="data-posted-on" disabled/>
+                    <input type="text" data-target="data-posted-on" disabled />
                 </div>
                 <div class="field">
                     <label>@I18N.PostedBy</label>
-                    <input type="text" data-target="data-posted-by" disabled/>
+                    <input type="text" data-target="data-posted-by" disabled />
                 </div>
                 <div class="field">
                     <label>@I18N.ApprovedBy</label>
-                    <input type="text" data-target="data-approved-by" disabled/>
+                    <input type="text" data-target="data-approved-by" disabled />
                 </div>
             </div>
         </div>
@@ -168,7 +166,7 @@
                 return;
             };
 
-            //Todo: Remove Semantic UI Dropdown dependency 
+            //Todo: Remove Semantic UI Dropdown dependency
             //$("#AccountSelect").dropdown("set selected", value);
             $("#AccountSelect").val(value);
 
@@ -316,7 +314,7 @@
 
         const candidates = $(".reconciliation.segment [data-target]");
 
-        $.each(candidates, function() {
+        $.each(candidates, function () {
             const candidate = $(this);
             const target = candidate.attr("data-target");
             const value = el.attr(target);
@@ -365,17 +363,17 @@
         const model = getModel();
 
         if (!model) {
-            return;            
+            return;
         };
 
         const ajax = request(model);
 
-        ajax.success(function() {
+        ajax.success(function () {
             window.displaySuccess();
             $("#ShowButton").trigger("click");
         });
 
-        ajax.fail(function(xhr) {
+        ajax.fail(function (xhr) {
             window.displayAjaxErrorMessage(xhr);
         });
     };
