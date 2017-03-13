@@ -22,12 +22,12 @@
            target="_blank"
            download="ImportTransaction.csv"
            id="ExportButton">Export Template</a>
-        <div class="ui blue button">
+        <a class="ui blue button">
             <label for="file">
                 @I18N.ImportData
             </label>
             <input type="file" id="file" style="display: none;">
-        </div>
+        </a>
     </div>
 
     <div id="ErrorModal" class="ui small negative modal">
@@ -46,9 +46,9 @@
             </div>
         </div>
         <div class="actions">
-            <div class="ui positive close button">
+            <button class="ui positive close button">
                 @I18N.LetsDoAgain
-            </div>
+            </button>
         </div>
     </div>
     <div class="big error"></div>
@@ -101,8 +101,8 @@
         <tbody></tbody>
     </table>
 
-    <div id="ViewErrorsButton" class="ui orange button">@I18N.ViewErrors</div>
-    <div id="ValidateButton" class="ui positive button">@I18N.Validate</div>
+    <button id="ViewErrorsButton" class="ui orange button">@I18N.ViewErrors</button>
+    <button id="ValidateButton" class="ui positive button">@I18N.Validate</button>
 
     <div class="ui form segment vpad8" style="width: 500px;">
         <div class="ui grey large header">
@@ -135,7 +135,7 @@
             </label>
             <select id="CostCenterSelect" class="ui dropdown" data-api="/api/forms/finance/cost-centers/display-fields"></select>
         </div>
-        <div id="NextButton" class="ui positive button">@I18N.Next</div>
+        <button id="NextButton" class="ui positive button">@I18N.Next</button>
     </div>
 
 </div>

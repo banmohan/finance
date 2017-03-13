@@ -15,6 +15,3 @@ OWNER TO frapid_db_user;
 
 CREATE UNIQUE INDEX trial_balance_view_account_id_uix
 ON finance.trial_balance_view(account_id);
-
-
-REFRESH MATERIALIZED VIEW CONCURRENTLY finance.trial_balance_view;

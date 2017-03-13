@@ -5100,10 +5100,6 @@ CREATE UNIQUE INDEX verified_transaction_mat_view_transaction_detail_id_uix
 ON finance.verified_transaction_mat_view(transaction_detail_id);
 
 
-REFRESH MATERIALIZED VIEW CONCURRENTLY finance.verified_transaction_mat_view;
-
-
-
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/3. finance.verified_cash_transaction_mat_view.sql --<--<--
 DROP MATERIALIZED VIEW IF EXISTS finance.verified_cash_transaction_mat_view;
 
@@ -5123,10 +5119,6 @@ OWNER TO frapid_db_user;
 
 CREATE UNIQUE INDEX verified_cash_transaction_mat_view_transaction_detail_id_uix
 ON finance.verified_cash_transaction_mat_view(transaction_detail_id);
-
-
-REFRESH MATERIALIZED VIEW CONCURRENTLY finance.verified_cash_transaction_mat_view;
-
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.views/finance.account_view.sql --<--<--
 DROP VIEW IF EXISTS finance.account_view;
@@ -5215,9 +5207,6 @@ OWNER TO frapid_db_user;
 
 CREATE UNIQUE INDEX trial_balance_view_account_id_uix
 ON finance.trial_balance_view(account_id);
-
-
-REFRESH MATERIALIZED VIEW CONCURRENTLY finance.trial_balance_view;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/99.ownership.sql --<--<--
