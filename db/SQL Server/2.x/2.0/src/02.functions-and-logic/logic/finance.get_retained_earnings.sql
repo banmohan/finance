@@ -27,7 +27,7 @@ BEGIN
     SELECT 
         @paid_dividends = COALESCE(SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END) / @factor, 0)        
     FROM finance.verified_transaction_mat_view
-    WHERE value_date <=_date_to
+    WHERE value_date <= @date_to
     AND account_master_id BETWEEN 15300 AND 15400
     AND office_id IN (SELECT * FROM core.get_office_ids(@office_id));
     

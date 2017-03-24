@@ -2028,5 +2028,15 @@ namespace MixERP.Finance
 		/// </summary>
 		public static string YouHaventLeftNoteYet => I18NResource.GetString(ResourceDirectory, "YouHaventLeftNoteYet");
 
+		/// <summary>
+		///Total Assets
+		/// </summary>
+		public static string TotalAssets => I18NResource.GetString(ResourceDirectory, "TotalAssets");
+
+		/// <summary>
+		///Total Liabilities
+		/// </summary>
+		public static string TotalLiabilities => I18NResource.GetString(ResourceDirectory, "TotalLiabilities");
+
 	}
 }
