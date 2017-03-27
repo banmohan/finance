@@ -14,7 +14,7 @@ using MixERP.Finance.ViewModels;
 
 namespace MixERP.Finance.DAL
 {
-    public static class TransacitonPostings
+    public static class TransactionPostings
     {
         public static async Task WithdrawAsync(string tenant, string reason, int userId, long tranId, int officeId)
         {
