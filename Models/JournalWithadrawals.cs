@@ -35,6 +35,7 @@ namespace MixERP.Finance.Models
             )
             {
                 await TransactionPostings.WithdrawAsync(tenant, reason, meta.UserId, tranId, meta.OfficeId).ConfigureAwait(false);
+                return;
             }
 
             throw new JournalWithdrawalException(I18N.AccessIsDenied);

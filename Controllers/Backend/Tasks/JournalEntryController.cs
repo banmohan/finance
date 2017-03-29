@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Frapid.ApplicationState.Cache;
+using Frapid.Areas.CSRF;
 using Frapid.Dashboard;
-using Frapid.i18n;
 using MixERP.Finance.DAL;
+using MixERP.Finance.Models;
 using MixERP.Finance.QueryModels;
 using MixERP.Finance.ViewModels;
-using Frapid.Areas.CSRF;
-using MixERP.Finance.Models;
 
 namespace MixERP.Finance.Controllers.Backend.Tasks
 {
@@ -60,7 +58,7 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
             {
                 return this.InvalidModelState(this.ModelState);
             }
-          
+
             try
             {
                 var meta = await AppUsers.GetCurrentAsync().ConfigureAwait(true);
