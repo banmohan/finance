@@ -248,8 +248,8 @@
     };
 
     var sendMessage = function () {
-        const elapsed = parseInt((new Date - start) / 1000);
-        const progress = parseInt((elapsed / counter) * 100);
+        const elapsed = window.parseInt2((new Date - start) / 1000);
+        const progress = window.parseInt2((elapsed / counter) * 100);
 
         if (progress > 100) {
             clearInterval(interval);

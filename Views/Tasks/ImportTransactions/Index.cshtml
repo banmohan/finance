@@ -240,8 +240,8 @@
                 c++;
                 const row = getRow(this, c);
 
-                drTotal += parseFloat(this.LocalCurrencyDebit || 0);
-                crTotal += parseFloat(this.LocalCurrencyCredit || 0);
+                drTotal += window.parseFloat2(this.LocalCurrencyDebit || 0);
+                crTotal += window.parseFloat2(this.LocalCurrencyCredit || 0);
                 $("#ImportTable tbody").append(row);
             });
 
@@ -374,7 +374,7 @@
                 const item = window.Enumerable.From(response)
                     .Where(function (x) { return x.AccountNumber.toString() === v.item.toString(); }).FirstOrDefault();
 
-                const position = parseInt(v.index) + 1;
+                const position = window.parseInt2(v.index) + 1;
                 const selector = "#ImportTable tbody tr:nth-child(" + position + ") td:nth-child(3)";
 
                 if (item) {
@@ -427,7 +427,7 @@
                 const item = window.Enumerable.From(response)
                     .Where(function (x) { return x.AccountName.toString() === v.item.toString(); }).FirstOrDefault();
 
-                const position = parseInt(v.index) + 1;
+                const position = window.parseInt2(v.index) + 1;
                 const selector = "#ImportTable tbody tr:nth-child(" + position + ") td:nth-child(2)";
 
                 if (item) {
