@@ -31,8 +31,8 @@ namespace MixERP.Finance.DAL
 
         public static async Task<bool> IsCashAccountAsync(string tenant, string accountNumber)
         {
-            const string sql = "SELECT * FROM finance.accounts WHERE account_master_id=10101 AND account_number=@0;";
-            var awaiter = await Factory.GetAsync<Account>(tenant, sql, accountNumber).ConfigureAwait(false);
+            const string sql = "SELECT * FROM finance.accounts WHERE account_master_id=10101 AND account_number=@0 AND deleted = @1;";
+            var awaiter = await Factory.GetAsync<Account>(tenant, sql, accountNumber, false).ConfigureAwait(false);
             return awaiter.Count().Equals(1);
         }
 
@@ -43,7 +43,7 @@ namespace MixERP.Finance.DAL
             {
                 var sql = new Sql("SELECT * FROM finance.accounts");
                 sql.Where("deleted=@0", false);
-                sql.Where("confidential=@0", false);
+                sql.And("confidential=@0", false);
 
                 return await db.SelectAsync<Account>(sql).ConfigureAwait(false);
             }

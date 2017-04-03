@@ -1070,6 +1070,30 @@ $$
 LANGUAGE plpgsql;
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_id_by_bank_account_id.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_account_id_by_bank_account_id(_bank_account_id integer);
+
+CREATE FUNCTION finance.get_account_id_by_bank_account_id(_bank_account_id integer)
+RETURNS integer
+AS
+$$
+BEGIN
+	RETURN
+	(
+		SELECT account_id 
+		FROM finance.bank_accounts
+		WHERE bank_account_id = _bank_account_id
+		AND deleted = false
+	);
+END
+$$
+LANGUAGE plpgsql;
+
+
+--SELECT finance.get_account_id_by_bank_account_id(1);
+
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_account_ids.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_account_ids(root_account_id integer);
 
