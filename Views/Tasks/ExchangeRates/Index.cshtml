@@ -151,7 +151,7 @@
 
             exchangeRatesGridView.find("tbody tr").each(function () {
                 var currencyCode = $(this).find("td:first-child").html();
-                var rate = parseFloat($(this).find("input").val());
+                var rate = window.parseFloat2($(this).find("input").val());
 
                 if (rate) {
                     var exchangeRate = new Object();

@@ -186,6 +186,7 @@
     <Compile Include="DAL\ProfitLoss\IProfitLoss.cs" />
     <Compile Include="DAL\RefreshMaterializedViews.cs" />
     <Compile Include="I18N.cs" />
+    <Compile Include="Models\JournalEntries.cs" />
     <Compile Include="QueryModels\CashFlowStatementQueryModel.cs" />
     <Compile Include="QueryModels\PlAccountQueryModel.cs" />
     <Compile Include="DAL\ProfitLoss\PostgreSQL.cs" />
@@ -211,7 +212,7 @@
     <Compile Include="DAL\FiscalYears.cs" />
     <Compile Include="DAL\Journals.cs" />
     <Compile Include="DAL\Logins.cs" />
-    <Compile Include="DAL\TransacitonPostings.cs" />
+    <Compile Include="DAL\TransactionPostings.cs" />
     <Compile Include="DTO\Account.cs" />
     <Compile Include="DTO\Currency.cs" />
     <Compile Include="DTO\ExchangeRateDetails.cs" />

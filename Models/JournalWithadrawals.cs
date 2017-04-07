@@ -32,9 +32,10 @@ namespace MixERP.Finance.Models
                 status.VerificationStatusId.Equals(0) //Awaiting verification
                 ||
                 status.VerificationStatusId.Equals(1) //Automatically Approved by Workflow
-                )
+            )
             {
-                await TransacitonPostings.WithdrawAsync(tenant, reason, meta.UserId, tranId, meta.OfficeId).ConfigureAwait(false);
+                await TransactionPostings.WithdrawAsync(tenant, reason, meta.UserId, tranId, meta.OfficeId).ConfigureAwait(false);
+                return;
             }
 
             throw new JournalWithdrawalException(I18N.AccessIsDenied);

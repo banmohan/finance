@@ -8,7 +8,7 @@
 <div class="ui attached padded segment">
     <h2 class="ui huge header">@I18N.ProfitAndLossStatement</h2>
     <div id="PlAccountQueryForm" class="ui form">
-        <div class="fields">
+        <div class="nine fields">
             <div class="field">
                 <label>@I18N.From</label>
                 <input id="FromInputText" type="text" class="date" data-persist value="BOY" />
@@ -135,6 +135,7 @@
                 $(this).addClass("negative");
                 $(this).find("td").addClass("strong");
             };
+
             isProfit.hide();
         });
 

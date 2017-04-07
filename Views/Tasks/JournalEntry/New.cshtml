@@ -361,7 +361,7 @@
 
     function isCashAccount() {
         const selectedAccount = accountSelect.find("option:selected");
-        const accountMasterId = parseInt(selectedAccount.attr("data-account-master-id"));
+        const accountMasterId = window.parseInt2(selectedAccount.attr("data-account-master-id"));
         if (accountMasterId === 10101) {
             return true;
         };
@@ -400,13 +400,13 @@
 
         currencyCode = currencySelect.getSelectedValue();
 
-        debit = parseFloat(debitInputText.val() || 0);
-        credit = parseFloat(creditInputText.val() || 0);
+        debit = window.parseFloat2(debitInputText.val() || 0);
+        credit = window.parseFloat2(creditInputText.val() || 0);
 
-        er = parseFloat(erInputText.val() || 0);
+        er = window.parseFloat2(erInputText.val() || 0);
 
-        lcDebit = parseFloat(lcDebitInputText.val() || 0);
-        lcCredit = parseFloat(lcCreditInputText.val() || 0);
+        lcDebit = window.parseFloat2(lcDebitInputText.val() || 0);
+        lcCredit = window.parseFloat2(lcCreditInputText.val() || 0);
 
         if (window.isNullOrWhiteSpace(statementReference)) {
             window.makeDirty(statementReferenceInputText);
@@ -599,7 +599,7 @@
     });
 
     debitInputText.blur(function () {
-        debit = parseFloat(debitInputText.val() || 0);
+        debit = window.parseFloat2(debitInputText.val() || 0);
 
         if (debit > 0) {
             creditInputText.prop("disabled", true);
@@ -623,11 +623,11 @@
     });
 
     function UpdateLocalCurrencies() {
-        er = parseFloat(erInputText.val() || 0);
+        er = window.parseFloat2(erInputText.val() || 0);
 
         if (er > 0) {
-            lcDebitInputText.val(parseFloat(debitInputText.val() || 0) * er);
-            lcCreditInputText.val(parseFloat(creditInputText.val() || 0) * er);
+            lcDebitInputText.val(window.parseFloat2(debitInputText.val() || 0) * er);
+            lcCreditInputText.val(window.parseFloat2(creditInputText.val() || 0) * er);
         };
     };
 
@@ -635,7 +635,7 @@
         valueDate = window.parseLocalizedDate(valueDateTextBox.val());
         bookDate = window.parseLocalizedDate(bookDateTextBox.val());
         referenceNumber = referenceNumberInputText.val();
-        costCenterId = parseInt(costCenterSelect.getSelectedValue() || 0);
+        costCenterId = window.parseInt2(costCenterSelect.getSelectedValue() || 0);
 
         if (validate()) {
             post();
@@ -733,7 +733,7 @@
             return false;
         };
 
-        if (parseInt(costCenterSelect.getSelectedValue() || 0) <= 0) {
+        if (window.parseInt2(costCenterSelect.getSelectedValue() || 0) <= 0) {
             window.makeDirty(costCenterSelect);
             errorLabelBottom.html(window.translate("InvalidCostCenter"));
             return false;
@@ -775,7 +775,7 @@
 
         summate();
 
-        if (parseFloat(debitTotalTextBox.val() || 0) !== parseFloat(creditTotalTextBox.val() || 0)) {
+        if (window.parseFloat2(debitTotalTextBox.val() || 0) !== window.parseFloat2(creditTotalTextBox.val() || 0)) {
             window.displayMessage(window.translate("ReferencingSidesNotEqual"), "error");
             return false;
         };
@@ -811,8 +811,8 @@
 
     //Logic & Validation
     var summate = function () {
-        const debitTotal = parseFloat(window.sumOfColumn("#" + transactionGridView.attr("id"), 8) || 0);
-        const creditTotal = parseFloat(window.sumOfColumn("#" + transactionGridView.attr("id"), 9) || 0);
+        const debitTotal = window.parseFloat2(window.sumOfColumn("#" + transactionGridView.attr("id"), 8) || 0);
+        const creditTotal = window.parseFloat2(window.sumOfColumn("#" + transactionGridView.attr("id"), 9) || 0);
 
         debitTotalTextBox.val(debitTotal);
         creditTotalTextBox.val(creditTotal);
