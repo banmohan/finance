@@ -4427,12 +4427,6 @@ SELECT * FROM core.create_menu('MixERP.Finance', 'RetainedEarningsStatement', 'R
 SELECT * FROM core.create_menu('MixERP.Finance', 'BalanceSheet', 'Balance Sheet', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/BalanceSheet.xml', 'calculator', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'CashFlow', 'Cash Flow', '/dashboard/finance/reports/cash-flow', 'crosshairs', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'ExchangeRateReport', 'Exchange Rate Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ExchangeRates.xml', 'options', 'Reports');
-SELECT * FROM core.create_menu('MixERP.Finance', 'AccountReceivableByCustomer', 'Account Receivable By Customer Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountReceivableByCustomer.xml', 'list layout icon', 'Reports');
-SELECT * FROM core.create_menu('MixERP.Finance', 'PaymentJournalSummary', 'Payment Journal Summary Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/PaymentJournalSummary.xml', 'angle double right icon', 'Reports');
-SELECT * FROM core.create_menu('MixERP.Finance', 'ReceiptJournalSummary', 'Receipt Journal Summary Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ReceiptJournalSummary.xml', 'angle double left icon', 'Reports');
-SELECT * FROM core.create_menu('MixERP.Finance', 'AccountPayableVendor', 'Account Payable Vendor Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountPayableVendor.xml', 'external share icon', 'Reports');
-SELECT * FROM core.create_menu('MixERP.Finance', 'AccountantSummary', 'Accountant Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountantSummary.xml', 'address book outline icon', 'Reports');
-SELECT * FROM core.create_menu('MixERP.Finance', 'ClosedOut', 'Closed Out Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ClosedOut.xml', 'book icon', 'Reports');
 
 SELECT * FROM auth.create_app_menu_policy
 (

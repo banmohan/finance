@@ -47,13 +47,6 @@ EXECUTE core.create_menu 'MixERP.Finance', 'RetainedEarningsStatement', 'Retaine
 EXECUTE core.create_menu 'MixERP.Finance', 'BalanceSheet', 'Balance Sheet', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/BalanceSheet.xml', 'calculator', 'Reports';
 EXECUTE core.create_menu 'MixERP.Finance', 'CashFlow', 'Cash Flow', '/dashboard/finance/reports/cash-flow', 'crosshairs', 'Reports';
 EXECUTE core.create_menu 'MixERP.Finance', 'ExchangeRateReport', 'Exchange Rate Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ExchangeRates.xml', 'options', 'Reports';
-EXECUTE core.create_menu 'MixERP.Finance', 'AccountReceivableByCustomer', 'Account Receivable By Customer Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountReceivableByCustomer.xml', 'list layout icon', 'Reports';
-EXECUTE core.create_menu 'MixERP.Finance', 'PaymentJournalSummary', 'Payment Journal Summary Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/PaymentJournalSummary.xml', 'angle double right icon', 'Reports';
-EXECUTE core.create_menu 'MixERP.Finance', 'ReceiptJournalSummary', 'Receipt Journal Summary Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ReceiptJournalSummary.xml', 'angle double left icon', 'Reports';
-EXECUTE core.create_menu 'MixERP.Finance', 'AccountPayableVendor', 'Account Payable Vendor Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountPayableVendor.xml', 'external share icon', 'Reports';
-EXECUTE core.create_menu 'MixERP.Finance', 'AccountantSummary', 'Accountant Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountantSummary.xml', 'address book outline icon', 'Reports';
-EXECUTE core.create_menu 'MixERP.Finance', 'ClosedOut', 'Closed Out Report', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/ClosedOut.xml', 'book icon', 'Reports';
-
 
 DECLARE @office_id integer = core.get_office_id_by_office_name('Default');
 EXECUTE auth.create_app_menu_policy
