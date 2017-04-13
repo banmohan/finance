@@ -154,17 +154,17 @@
             function getActionCell(tranId) {
                 const cell = $("<td/>");
 
-                const checklistAnchor = $(`<a title='${window
-                    .translate("ChecklistWindow")}'><i class='list icon'></i></a>`);
+                const checklistAnchor = $(`<a title='${window.translate("ChecklistWindow")}'><i class='list icon'></i></a>`);
                 checklistAnchor.attr("href", model.ChecklistUrl.replace("{tranId}", tranId));
-
-                const journalAdviceAnchor = $(`<a title='${window
-                    .translate("ViewJournalAdvice")}'><i class='print icon'></i></a>`);
-                journalAdviceAnchor.attr("href", "javascript:void(0);");
-                journalAdviceAnchor.attr("onclick", `showJournalAdvice(${tranId});`);
-
                 cell.append(checklistAnchor);
-                cell.append(journalAdviceAnchor);
+
+                if (!model.NoJournalAdvice) {
+                    const journalAdviceAnchor = $(`<a title='${window.translate("ViewJournalAdvice")}'><i class='search icon'></i></a>`);
+                    journalAdviceAnchor.attr("href", "javascript:void(0);");
+                    journalAdviceAnchor.attr("onclick", `showJournalAdvice(${tranId});`);
+                    cell.append(journalAdviceAnchor);
+                };
+
 
                 $.each(model.AdviceButtons, function() {
                     const adviceButton = $(`<a title='${this.Title}'><i class='zoom icon'></i></a>`);
