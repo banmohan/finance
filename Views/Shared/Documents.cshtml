@@ -1,0 +1,205 @@
+﻿@model MixERP.Finance.PartialViewModels.Document
+<style>
+    .document.form .document.field .ui.images .image {
+        position: relative;
+    }
+
+    .document.form .document.field .image i.remove.icon {
+        position: absolute;
+        right: -0.5em;
+        cursor: pointer;
+        color: #E24A4D;
+    }
+
+    .document.field .image {
+        text-align: center;
+    }
+
+    .document.field .remove.icon {
+        z-index: 400;
+    }
+
+    .document.field .image img {
+        filter: grayscale(50%);
+    }
+
+    .document.field .image span {
+        display: block !important;
+        height: 5em;
+        margin-bottom: 1em;
+        overflow: hidden;
+    }
+</style>
+<script src="/Areas/MixCBS.Banking/scripts/binder.js"></script>
+<div data-disable-delete="@Model.DisableDelete.ToString().ToLower()" data-upload-handler="@Model.UploadHandler" class="ui document form vpad8">
+    <div class="document field" data-default-documents="@Model.Documents">
+        <div class="ui tiny document images">
+        </div>
+        @if (Model.DisableUpload == false)
+        {
+            <input name="UploadDocumentInputFile" multiple="" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.bmp,.jpg,.jpeg,.png,.gif" style="display: none;">
+            <button type="button" onclick="uploadDocument(this)" class="ui basic button">Upload a Document</button>
+        }
+
+        <input type="hidden" name="@Model.Id" />
+    </div>
+</div>
+<script>
+    function deleteDocument(e, i) {
+        function request(url) {
+            return window.getAjaxRequest(url, "DELETE");
+        };
+
+        function removeImage(image) {
+            const container = image.closest(".document.form");
+            image.remove();
+            container.find("input[type='hidden']").val(getUploadedDocuments(container));
+        };
+
+        if (!window.confirmAction()) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        };
+
+        const image = $(i).closest(".image");
+        const url = image.attr("href");
+
+        const ajax = request(url);
+
+        ajax.success(function () {
+            removeImage(image);
+        });
+
+        ajax.fail(function (xhr) {
+            removeImage(image);
+            window.logAjaxErrorMessage(xhr);
+        });
+
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    function displayDocumentThumbnail(target, originalFile, allowDelete) {
+        const fileName = originalFile.split("/").pop();
+        const file = originalFile + "?width=300&height=386";
+        const extension = fileName.split(".").pop().toLowerCase();
+
+        const images = ["png", "gif", "jpg", "jpeg", "bmp"];
+
+        var thumbnail = file;
+
+        if (images.indexOf(extension) === -1) {
+            thumbnail = "/Areas/MixCBS.Banking/assets/document-blank.png";
+
+            if (["doc", "docx"].indexOf(extension) >= 0) {
+                thumbnail = "/Areas/MixCBS.Banking/assets/document-doc.png";
+            };
+
+            if (["xls", "xlsx"].indexOf(extension) >= 0) {
+                thumbnail = "/Areas/MixCBS.Banking/assets/document-xls.png";
+            };
+
+            if (extension === "pdf") {
+                thumbnail = "/Areas/MixCBS.Banking/assets/document-pdf.png";
+            };
+        };
+
+
+        var template = `<a target="_blank" data-document="{OriginalFile}" href="{OriginalFile}" class="ui image">
+			                    <i class="remove icon"></i>
+			                    <img src="{Thumbnail}" title="{FileName}" />
+			                    <span class="file name">{FileName}</span>
+		                    </a>`;
+
+        template = template.replace(/{OriginalFile}/g, originalFile);
+        template = template.replace(/{Thumbnail}/g, thumbnail);
+        template = template.replace(/{FileName}/g, fileName);
+
+        template = $(template);
+
+        if (allowDelete) {
+            template.find("i").off("click").on("click", function (e) {
+                window.deleteDocument(e, this);
+            });
+        } else {
+            template.find(".remove.icon").remove();
+        };
+
+        target.append(template);
+    };
+
+    function uploadDocument(button) {
+        function uploadAttachments(el, button, container) {
+            const form = el.closest(".document.form");
+            const allowDelete = form.attr("data-disable-delete") === "false";
+            const handler = form.attr("data-upload-handler");
+
+            el.upload(handler, null, function (response) {
+                const files = response;
+
+                for (let i = 0; i < files.length; i++) {
+                    const fileName = files[i];
+                    button.removeClass("loading");
+                    const target = container.find(".ui.images");
+                    displayDocumentThumbnail(target, fileName, allowDelete);
+                    el.closest(".document.form").find("input[type='hidden']").val(getUploadedDocuments(container));
+                };
+            }, function (progress, value) {
+            }, function (xhr) {
+                window.logAjaxErrorMessage(xhr);
+            });
+        };
+
+        button = $(button);
+        const container = button.closest(".document.field");
+
+        const uploadEl = container.find('input[name="UploadDocumentInputFile"]');
+
+        uploadEl.trigger('click');
+
+
+        uploadEl.off("change").on("change", function () {
+            const el = $(this);
+            button.addClass("loading");
+
+            uploadAttachments(el, button, container);
+        });
+    };
+
+    function getUploadedDocuments(container) {
+        const candidates = container.find("a[data-document]");
+
+        const docs = candidates.map(function () {
+            return $(this).attr("data-document");
+        }).get();
+
+        return JSON.stringify(docs);
+    };
+
+    function showDocuments(el, documents) {
+        if (!documents) {
+            return;
+        };
+
+        el.find(".document.field .ui.images").html("");
+        const form = el.closest(".document.form");
+        const allowDelete = form.attr("data-disable-delete") === "false";
+
+        documents = JSON.parse(documents) || [];
+
+        for (let i = 0; i < documents.length; i++) {
+            const document = documents[i];
+            const target = el.find(".ui.images");
+            displayDocumentThumbnail(target, document, allowDelete);
+        };
+    };
+
+    $("[data-default-documents]").each(function () {
+        const el = $(this);
+        const documents = el.attr("data-default-documents");
+        el.removeAttr("data-default-documents");
+        showDocuments(el, documents);
+    });
+
+</script>
