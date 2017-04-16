@@ -30,7 +30,6 @@
         overflow: hidden;
     }
 </style>
-<script src="/Areas/MixCBS.Banking/scripts/binder.js"></script>
 <div data-disable-delete="@Model.DisableDelete.ToString().ToLower()" data-upload-handler="@Model.UploadHandler" class="ui document form vpad8">
     <div class="document field" data-default-documents="@Model.Documents">
         <div class="ui tiny document images">
@@ -106,7 +105,7 @@
         };
 
 
-        var template = `<a target="_blank" data-document="{OriginalFile}" href="{OriginalFile}" class="ui image">
+        var template = `<a target="_blank" data-document="{OriginalFile}" href="{OriginalFile}" class="ui bordered image">
 			                    <i class="remove icon"></i>
 			                    <img src="{Thumbnail}" title="{FileName}" />
 			                    <span class="file name">{FileName}</span>
