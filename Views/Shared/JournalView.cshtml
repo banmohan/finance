@@ -6,19 +6,18 @@
 }
 <style>
     .modal iframe {
-        width: 100%;
         border: none;
         height: 700px;
+        width: 100%;
     }
 </style>
 <div class="ui attached page segment" style="min-height: 100%; padding: 3em;">
     <div class="ui huge title header"></div>
     <div class="ui divider"></div>
     <div class="ui basic buttons">
-
         <a id="AddNewButton" class="ui basic add new button"></a>
         <a id="ReturnButton" class="ui basic button" style=""></a>
-        <div class="ui icon top left pointing dropdown basic button" id="ExportDropDown" tabindex="0">
+        <div class="ui icon top left pointing export dropdown basic button" id="ExportDropDown" tabindex="0">
             <span>
                 @I18N.Export
             </span>
@@ -96,22 +95,22 @@
     <div class="fluid width overflown section">
         <table id="JournalView" class="ui nowrap table segment">
             <thead>
-                <tr>
-                    <th>@I18N.Actions</th>
-                    <th>@I18N.Select</th>
-                    <th>@I18N.TranId</th>
-                    <th>@I18N.TranCode</th>
-                    <th>@I18N.ValueDate</th>
-                    <th>@I18N.BookDate</th>
-                    <th>@I18N.RefererenceNumberAbbreviated</th>
-                    <th>@I18N.StatementReference</th>
-                    <th>@I18N.PostedBy</th>
-                    <th>@I18N.Office</th>
-                    <th>@I18N.Status</th>
-                    <th>@I18N.VerifiedBy</th>
-                    <th>@I18N.VerifiedOn</th>
-                    <th>@I18N.Reason</th>
-                </tr>
+            <tr>
+                <th>@I18N.Actions</th>
+                <th>@I18N.Select</th>
+                <th>@I18N.TranId</th>
+                <th>@I18N.TranCode</th>
+                <th>@I18N.ValueDate</th>
+                <th>@I18N.BookDate</th>
+                <th>@I18N.RefererenceNumberAbbreviated</th>
+                <th>@I18N.StatementReference</th>
+                <th>@I18N.PostedBy</th>
+                <th>@I18N.Office</th>
+                <th>@I18N.Status</th>
+                <th>@I18N.VerifiedBy</th>
+                <th>@I18N.VerifiedOn</th>
+                <th>@I18N.Reason</th>
+            </tr>
             </thead>
             <tbody></tbody>
         </table>
@@ -122,13 +121,15 @@
     <i class="close icon"></i>
     <iframe></iframe>
 </div>
+<input type="hidden" id="MarkupHidden"/>
+<a id="DownloadAnchor"></a>
 <script>
     function prepareView(model) {
         function displayTable(target, data) {
             target.find("tbody").html("");
 
             function getCell(text, isDate, hasTime) {
-                const cell = $("<td />");
+                const cell = $("<td/>");
 
                 cell.text(text);
 
@@ -150,22 +151,22 @@
             };
 
             function getActionCell(tranId) {
-                const cell = $("<td />");
+                const cell = $("<td/>");
 
-                const checklistAnchor = $("<a title='" + window.translate("ChecklistWindow") +
-                    "'><i class='list icon'></i></a>");
+                const checklistAnchor = $(`<a title='${window.translate("ChecklistWindow")}'><i class='list icon'></i></a>`);
                 checklistAnchor.attr("href", model.ChecklistUrl.replace("{tranId}", tranId));
-
-                const journalAdviceAnchor = $("<a title='" + window.translate("ViewJournalAdvice") +
-                    "'><i class='print icon'></i></a>");
-                journalAdviceAnchor.attr("href", "javascript:void(0);");
-                journalAdviceAnchor.attr("onclick", "showJournalAdvice(" + tranId + ");");
-
                 cell.append(checklistAnchor);
-                cell.append(journalAdviceAnchor);
 
-                $.each(model.AdviceButtons, function () {
-                    const adviceButton = $("<a title='" + this.Title + "'><i class='zoom icon'></i></a>");
+                if (!model.NoJournalAdvice) {
+                    const journalAdviceAnchor = $(`<a title='${window.translate("ViewJournalAdvice")}'><i class='search icon'></i></a>`);
+                    journalAdviceAnchor.attr("href", "javascript:void(0);");
+                    journalAdviceAnchor.attr("onclick", `showJournalAdvice(${tranId});`);
+                    cell.append(journalAdviceAnchor);
+                };
+
+
+                $.each(model.AdviceButtons, function() {
+                    const adviceButton = $(`<a title='${this.Title}'><i class='zoom icon'></i></a>`);
                     adviceButton.attr("href", (this.Href || "").replace("{tranId}", tranId));
                     adviceButton.attr("onclick", (this.OnClick || "").replace("{tranId}", tranId));
                     cell.append(adviceButton);
@@ -175,10 +176,10 @@
             };
 
             function getSelectionCell() {
-                const cell = $("<td />");
+                const cell = $("<td/>");
                 const checkbox = $("<div class='ui toggle checkbox'/>");
-                const input = $("<input type='checkbox' />");
-                const label = $("<label />");
+                const input = $("<input type='checkbox'/>");
+                const label = $("<label/>");
 
                 checkbox.append(input);
                 checkbox.append(label);
@@ -189,16 +190,16 @@
             };
 
             const sorted = window.Enumerable.From(data)
-                .OrderByDescending(function (x) {
+                .OrderByDescending(function(x) {
                     return new Date(x.ValueDate);
-                }).ThenByDescending(function (x) {
+                }).ThenByDescending(function(x) {
                     return new Date(x.VerifiedOn);
                 }).ToArray();
 
-            $.each(sorted, function () {
+            $.each(sorted, function() {
                 const item = this;
 
-                const row = $("<tr />");
+                const row = $("<tr/>");
 
                 row.append(getActionCell(item.TransactionMasterId));
                 row.append(getSelectionCell(item.TransactionMasterId));
@@ -237,12 +238,12 @@
 
                 const ajax = request(model);
 
-                ajax.success(function (response) {
+                ajax.success(function(response) {
                     displayTable(target, response);
                     target.removeClass("loading");
                 });
 
-                ajax.fail(function (xhr) {
+                ajax.fail(function(xhr) {
                     window.logAjaxErrorMessage(xhr);
                 });
             };
@@ -252,7 +253,7 @@
             displayGrid(view);
         };
 
-        $("#ShowButton").off("click").on("click", function () {
+        $("#ShowButton").off("click").on("click", function() {
             processQuery();
         });
 
@@ -274,20 +275,105 @@
             $("#ReturnButton").remove();
         }
 
-        setTimeout(function () {
+        setTimeout(function() {
             processQuery();
         }, 1000);
     };
 
     function showJournalAdvice(tranId) {
         $(".modal iframe").attr("src",
-            "/dashboard/reports/source/Areas/MixERP.Finance/Reports/JournalEntry.xml?transaction_master_id=" + tranId);
+            `/dashboard/reports/source/Areas/MixERP.Finance/Reports/JournalEntry.xml?transaction_master_id=${tranId}`);
 
-        setTimeout(function () {
+        setTimeout(function() {
             $(".advice.modal")
                 .modal('setting', 'transition', 'horizontal flip')
                 .modal("show");
 
         }, 300);
     };
+
+    $(".ui.export.dropdown").dropdown();
+
+    function getTitle() {
+        return $(".huge.title.header").text().trim();
+    };
+
+    function createPDF() {
+        const table = $("#JournalView").clone();
+        window.printGridView(getTitle(), table, '', 2, 0, $("#MarkupHidden"), downloadPDF);
+    };
+
+    function createXls() {
+        const table = $("#JournalView").clone();
+
+        window.printGridView(getTitle(), table, '', 2, 0, $("#MarkupHidden"), downloadExcel);
+    };
+
+    function createDoc() {
+        const table = $("#JournalView").clone();
+
+        window.printGridView(getTitle(), table, '', 2, 0, $("#MarkupHidden"), downloadWord);
+    };
+
+    function print() {
+        const table = $("#JournalView").clone();
+
+        window.printGridView(getTitle(), table, '', 2, 0);
+    };
+
+
+    function startDownload(path, fileName) {
+        const anchor = $("#DownloadAnchor");
+        anchor.attr("target", "_self");
+        anchor.attr("href", path);
+        anchor.attr("download", fileName);
+        anchor[0].click();
+    };
+
+
+    function downloadFile(extension) {
+        function request(model) {
+            const url = `/dashboard/reports/export/${extension}`;
+
+            const data = JSON.stringify(model);
+            return window.getAjaxRequest(url, "POST", data);
+        };
+
+        function getModel() {
+            const html = $("#MarkupHidden").val();
+            const fileName = getTitle() + "." + extension;
+
+            return {
+                Html: html,
+                DocumentName: fileName
+            };
+        };
+
+        var model = getModel();
+        const ajax = request(model);
+
+        ajax.success(function(response) {
+            startDownload(response, model.DocumentName);
+        });
+
+        ajax.fail(function(xhr) {
+            window.logAjaxErrorMessage(xhr);
+        });
+    };
+
+    function downloadPDF() {
+        downloadFile("pdf");
+    };
+
+
+    function downloadExcel() {
+        downloadFile("xls");
+    };
+
+
+    function downloadWord() {
+        downloadFile("docx");
+    };
+
+
 </script>

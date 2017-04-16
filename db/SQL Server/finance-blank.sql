@@ -1981,6 +1981,11 @@ AS
 BEGIN
     DECLARE @rate real = finance.get_income_tax_rate(@office_id);
 
+    IF(@profit <= 0)
+    BEGIN
+    	RETURN 0;
+    END;
+
     RETURN
     (
         (@profit * @rate/100) - @balance

@@ -28,23 +28,6 @@
         <td>{i18n.Book}</td>
         <td>{DataSource[0].book}</td>
       </tr>
-    </table>
-    <br />
-  </TopSection>
-  <Body>
-    <Content>
-      <h2>{i18n.JournalDetails}</h2>
-    </Content>
-    <GridViews>
-      <GridView>
-        <GridViewDataSource Index="1">
-        </GridViewDataSource>
-      </GridView>
-    </GridViews>
-  </Body>
-  <BottomSection>
-    <h2>{i18n.TransactionDetails}</h2>
-    <table class="table horizontal">
       <tr>
         <td>{i18n.TransactionDate}</td>
         <td>{DataSource[0].transaction_ts}</td>
@@ -52,6 +35,10 @@
       <tr>
         <td>{i18n.ValueDate}</td>
         <td>{DataSource[0].value_date}</td>
+      </tr>
+      <tr>
+        <td>{i18n.BookDate}</td>
+        <td>{DataSource[0].book_date}</td>
       </tr>
       <tr>
         <td>{i18n.EnteredBy}</td>
@@ -74,6 +61,20 @@
         <td>{DataSource[0].cost_center_name}</td>
       </tr>
     </table>
+    <br />
+  </TopSection>
+  <Body>
+    <Content>
+      <h2>{i18n.JournalDetails}</h2>
+    </Content>
+    <GridViews>
+      <GridView>
+        <GridViewDataSource Index="1">
+        </GridViewDataSource>
+      </GridView>
+    </GridViews>
+  </Body>
+  <BottomSection>
   </BottomSection>
   <DataSources>
     <DataSource>
@@ -86,6 +87,7 @@
         finance.transaction_master.book,
         finance.transaction_master.transaction_ts,
         finance.transaction_master.value_date,
+        finance.transaction_master.book_date,
         account.users.name AS entered_by,
         core.verification_statuses.verification_status_name AS status,
         verified_by_user.name AS verified_by,

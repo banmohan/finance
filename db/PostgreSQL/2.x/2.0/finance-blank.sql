@@ -1796,6 +1796,10 @@ $$
 BEGIN
     _rate := finance.get_income_tax_rate(_office_id);
 
+    IF(_profit <= 0) THEN
+    	RETURN 0;
+    END IF;
+
     RETURN
     (
         (_profit * _rate/100) - _balance

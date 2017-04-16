@@ -345,8 +345,7 @@
     };
 
     function loadCostCenters() {
-        url = "/api/forms/finance/cost-centers/display-fields";
-        window.ajaxDataBind(url, costCenterSelect, null, "Key", "Value");
+		window.displayFieldBinder(costCenterSelect, "/api/forms/finance/cost-centers/display-fields", true);
     };
 
     function loadCurrencies() {
