@@ -36,7 +36,6 @@
     <div class="ui basic buttons">
         <a id="AddNewButton" class="ui basic add new button"></a>
         <a id="ReturnButton" class="ui basic button" style=""></a>
-        <a id="VerifyButton" class="ui basic button" style=""></a>
         <div class="ui icon top left pointing export dropdown basic button" id="ExportDropDown" tabindex="0">
             <span>
                 @I18N.Export
@@ -90,6 +89,25 @@
 </div>
 <input type="hidden" id="MarkupHidden" />
 <a id="DownloadAnchor"></a>
+
+<div id="ActionModal" class="ui modal">
+    <div class="ui massive red header"></div>
+    <div class="ui inverted red content">
+        <div class="ui form">
+            <div class="ui blue large dividing header"></div>
+            <div class="field">
+                <label for="ReasonTextArea">@I18N.VerificationReason</label>
+                <textarea id="ReasonTextArea"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui buttons">
+            <input type="button" class="ui red cancel button" value=@I18N.Cancel />
+            <input type="button" id="VerifyButton" class="ui green ok button" value=@I18N.Verify title=@I18N.CtrlReturn />
+        </div>
+    </div>
+</div>
 
 <script>
     function queryView(button, model) {
@@ -291,12 +309,6 @@
             container.find(".title").text(model.Title);
             $("#AddNewButton").text(model.AddNewButtonText).attr("href", model.AddNewUrl);
 
-            if (!model.VerifyButtonText) {
-                $("#VerifyButton").remove();
-            } else {
-                $("#VerifyButton").text(model.VerifyButtonText);
-            };
-
             if (!model.ReturnButtonText) {
                 $("#ReturnButton").remove();
             } else {
@@ -334,6 +346,10 @@
 
             window.loadDatepicker();
             window.loadPersister();
+        };
+
+        if (model.HasVerification) {
+            prepareVerification();
         };
 
         setHeader();
@@ -447,4 +463,151 @@
 
         container.modal("show");
     };
+
+
+
+
+
+
+
+
+
+    var reasonTextArea = $("#ReasonTextArea");
+    var journalView = $("#JournalView");
+    var modal = $("#ActionModal");
+    var verifyButton = $("#VerifyButton");
+    var tranId;
+    var approve;
+
+    verifyButton.click(function () {
+        function getModel() {
+            const reason = reasonTextArea.val();
+
+            return {
+                TranId: tranId,
+                Reason: reason
+            };
+        };
+
+        function request(model, type) {
+            const url = "/dashboard/finance/tasks/verification/" + type;
+            const data = JSON.stringify(model);
+
+            return window.getAjaxRequest(url, "POST", data);
+        }
+
+        const model = getModel();
+        const type = approve ? "approve" : "reject";
+
+        const ajax = request(model, type);
+
+        ajax.success(function (response) {
+            var cascadingTranId = window.parseFloat2(response);
+
+            if (cascadingTranId) {
+                journalView.find("tr td:nth-child(3)").each(function (i) {
+                    const tranId = window.parseFloat2($(this).text() || 0);
+
+                    if (cascadingTranId === tranId) {
+                        removeRow(i);
+                    };
+                });
+            };
+
+            journalView.find("input:checked").first().parent().parent().parent().remove();
+            hideModal();
+        });
+
+        ajax.fail(function (xhr) {
+            window.logAjaxErrorMessage(xhr);
+        });
+
+        return false;
+    });
+    shortcut.add("CTRL+RETURN", function () {
+        if (modal.is(":visible")) {
+            verifyButton.trigger("click");
+        };
+    });
+
+    function showModal() {
+        const header = modal.find(".ui.massive.header");
+        const subheader = modal.find(".ui.dividing.header");
+
+        header.html("Reject Transaction");
+        subheader.html(window.stringFormat("TranId: #{0}", tranId));
+        header.removeClass("green").addClass("red");
+
+        if (approve) {
+            header.html("Approve Transaction");
+            header.removeClass("red").addClass("green");
+        };
+
+        modal.modal('setting', 'closable', false).modal('show');
+    };
+
+    function getSelectedItem() {
+        const selected = journalView.find("input:checked").first();
+
+        if (selected.length) {
+            const row = selected.parent().parent().parent();
+            const id = row.find("td:nth-child(3)").html();
+            return window.parseInt2(id);
+        };
+
+        return 0;
+    };
+
+    function removeRow(index, callback) {
+        journalView.find("tr").eq(index + 1).addClass("negative").fadeOut(500, function () {
+            $(this).remove();
+
+            if (typeof (callback) === "function") {
+                callback();
+            };
+        });
+    };
+
+    function hideModal() {
+        modal.modal("hide");
+    };
+
+    function prepareVerification() {
+        function getButton(id, text) {
+            const button = $("<a class='ui basic button' />");
+            button.attr("id", id);
+            button.html(text);
+
+            return button;
+        };
+
+        $("#StatusInputText").val("Unverified");
+
+
+        const approveButton = getButton("ApproveButton", "Approve");
+        const rejectButton = getButton("RejectButton", "Reject");
+
+        $("#AddNewButton").after(approveButton);
+        approveButton.after(rejectButton);
+
+
+        approveButton.click(function () {
+            tranId = getSelectedItem();
+
+            if (tranId) {
+                approve = true;
+                showModal();
+            };
+        });
+
+        rejectButton.click(function () {
+            tranId = getSelectedItem();
+
+            if (tranId) {
+                approve = false;
+                showModal();
+            };
+        });
+    };
+
 </script>

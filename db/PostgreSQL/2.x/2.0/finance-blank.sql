@@ -4777,6 +4777,19 @@ FROM finance.accounts
 WHERE NOT finance.accounts.deleted;
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.asset_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.asset_selector_view;
+
+CREATE VIEW finance.asset_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS asset_id,
+    finance.account_scrud_view.account_name AS asset_name
+FROM finance.account_scrud_view
+WHERE account_master_id BETWEEN 10000 AND 14999
+ORDER BY account_id;
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.bank_account_selector_view.sql --<--<--
 DROP VIEW IF EXISTS finance.bank_account_selector_view;
 
@@ -4888,6 +4901,19 @@ ORDER BY account_id;
 
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.expense_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.expense_selector_view;
+
+CREATE VIEW finance.expense_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS expense_id,
+    finance.account_scrud_view.account_name AS expense_name
+FROM finance.account_scrud_view
+WHERE account_master_id > 20400
+ORDER BY account_id;
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.financial_expense_selector_view.sql --<--<--
 DROP VIEW IF EXISTS finance.financial_expense_selector_view;
 
@@ -4930,6 +4956,20 @@ WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(10200))
 ORDER BY account_id;
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.income_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.income_selector_view;
+
+CREATE VIEW finance.income_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS income_id,
+    finance.account_scrud_view.account_name AS income_name
+FROM finance.account_scrud_view
+WHERE account_master_id BETWEEN 20100 AND 20399
+ORDER BY account_id;
+
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.income_tax_expense_selector_view.sql --<--<--
 DROP VIEW IF EXISTS finance.income_tax_expense_selector_view;
 
@@ -4957,6 +4997,19 @@ WHERE account_master_id IN(SELECT * FROM finance.get_account_master_ids(20701))
 ORDER BY account_id;
 
 
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.liability_selector_view.sql --<--<--
+DROP VIEW IF EXISTS finance.liability_selector_view;
+
+CREATE VIEW finance.liability_selector_view
+AS
+SELECT 
+    finance.account_scrud_view.account_id AS liability_id,
+    finance.account_scrud_view.account_name AS liability_name
+FROM finance.account_scrud_view
+WHERE account_master_id BETWEEN 15000 AND 19999
+ORDER BY account_id;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/05.selector-views/finance.long_term_liability_selector_view.sql --<--<--
