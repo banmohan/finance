@@ -26,8 +26,8 @@ BEGIN
     DECLARE @auto_approved                  smallint = 1;
     DECLARE @approved                       smallint=2;
     DECLARE @book                           national character varying(50);
-    DECLARE @verification_limit             decimal(30, 6);
-    DECLARE @posted_amount                  decimal(30, 6);
+    DECLARE @verification_limit             numeric(30, 6);
+    DECLARE @posted_amount                  numeric(30, 6);
     DECLARE @has_policy                     bit= 0;
     DECLARE @voucher_date                   date;
 

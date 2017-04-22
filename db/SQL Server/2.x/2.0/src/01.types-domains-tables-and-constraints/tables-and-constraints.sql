@@ -327,10 +327,10 @@ CREATE TABLE finance.transaction_details
     reconciliation_memo                     national character varying(2000),
     cash_repository_id                      integer REFERENCES finance.cash_repositories,
     currency_code                           national character varying(12) NOT NULL REFERENCES core.currencies,
-    amount_in_currency                      decimal(30, 6) NOT NULL,
+    amount_in_currency                      numeric(30, 6) NOT NULL,
     local_currency_code                     national character varying(12) NOT NULL REFERENCES core.currencies,
-    er                                      decimal(30, 6) NOT NULL,
-    amount_in_local_currency                decimal(30, 6) NOT NULL,  
+    er                                      numeric(30, 6) NOT NULL,
+    amount_in_local_currency                numeric(30, 6) NOT NULL,  
     office_id                               integer NOT NULL REFERENCES core.offices,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE())
@@ -380,7 +380,7 @@ CREATE TABLE finance.merchant_fee_setup
     merchant_fee_setup_id                   int IDENTITY PRIMARY KEY,
     merchant_account_id                     integer NOT NULL REFERENCES finance.bank_accounts,
     payment_card_id                         integer NOT NULL REFERENCES finance.payment_cards,
-    rate                                    decimal(30, 6) NOT NULL,
+    rate                                    numeric(30, 6) NOT NULL,
     customer_pays_fee                       bit NOT NULL DEFAULT(0),
     account_id                              integer NOT NULL REFERENCES finance.accounts,
     statement_reference                     national character varying(2000) NOT NULL DEFAULT(''),
@@ -413,7 +413,7 @@ CREATE TABLE finance.exchange_rate_details
     local_currency_code                     national character varying(12) NOT NULL REFERENCES core.currencies,
     foreign_currency_code                   national character varying(12) NOT NULL REFERENCES core.currencies,
     unit                                    integer NOT NULL,
-    exchange_rate                           decimal(30, 6) NOT NULL
+    exchange_rate                           numeric(30, 6) NOT NULL
 );
 
 
@@ -431,9 +431,9 @@ CREATE TABLE finance.journal_verification_policy
     user_id                                 integer NOT NULL REFERENCES account.users,
     office_id                               integer NOT NULL REFERENCES core.offices,
     can_verify                              bit NOT NULL DEFAULT(0),
-    verification_limit                      decimal(30, 6) NOT NULL DEFAULT(0),
+    verification_limit                      numeric(30, 6) NOT NULL DEFAULT(0),
     can_self_verify                         bit NOT NULL DEFAULT(0),
-    self_verification_limit                 decimal(30, 6) NOT NULL DEFAULT(0),
+    self_verification_limit                 numeric(30, 6) NOT NULL DEFAULT(0),
     effective_from                          date NOT NULL,
     ends_on                                 date NOT NULL,
     is_active                               bit NOT NULL,
@@ -448,7 +448,7 @@ CREATE TABLE finance.auto_verification_policy
     auto_verification_policy_id             integer IDENTITY PRIMARY KEY,
     user_id                                 integer NOT NULL REFERENCES account.users,
     office_id                               integer NOT NULL REFERENCES core.offices,
-    verification_limit                      decimal(30, 6) NOT NULL DEFAULT(0),
+    verification_limit                      numeric(30, 6) NOT NULL DEFAULT(0),
     effective_from                          date NOT NULL,
     ends_on                                 date NOT NULL,
     is_active                               bit NOT NULL,
@@ -461,9 +461,9 @@ CREATE TABLE finance.tax_setups
 (
     tax_setup_id                            int IDENTITY PRIMARY KEY,
     office_id                                integer NOT NULL REFERENCES core.offices,
-    income_tax_rate                            decimal(30, 6) NOT NULL,
+    income_tax_rate                            numeric(30, 6) NOT NULL,
     income_tax_account_id                    integer NOT NULL REFERENCES finance.accounts,
-    sales_tax_rate                            decimal(30, 6) NOT NULL,
+    sales_tax_rate                            numeric(30, 6) NOT NULL,
     sales_tax_account_id                    integer NOT NULL REFERENCES finance.accounts,
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),

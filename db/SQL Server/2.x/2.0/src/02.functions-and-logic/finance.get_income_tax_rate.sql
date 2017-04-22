@@ -4,7 +4,7 @@ DROP FUNCTION finance.get_income_tax_rate;
 GO
 
 CREATE FUNCTION finance.get_income_tax_rate(@office_id integer)
-RETURNS decimal(30, 6)
+RETURNS numeric(30, 6)
 AS
 
 BEGIN

@@ -6,11 +6,11 @@ DROP FUNCTION finance.get_cash_repository_balance;
 GO
 
 CREATE FUNCTION finance.get_cash_repository_balance(@cash_repository_id integer, @currency_code national character varying(12))
-RETURNS decimal(30, 6)
+RETURNS numeric(30, 6)
 AS
 BEGIN
-    DECLARE @debit decimal(30, 6);
-    DECLARE @credit decimal(30, 6);
+    DECLARE @debit numeric(30, 6);
+    DECLARE @credit numeric(30, 6);
 
     SELECT @debit = COALESCE(SUM(amount_in_currency), 0)
     FROM finance.verified_transaction_view
