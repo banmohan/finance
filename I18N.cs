@@ -29,14 +29,14 @@ namespace MixERP.Finance
 		public static string Finance => I18NResource.GetString(ResourceDirectory, "Finance");
 
 		/// <summary>
-		///Frequency Setup Code
-		/// </summary>
-		public static string FrequencySetupCode => I18NResource.GetString(ResourceDirectory, "FrequencySetupCode");
-
-		/// <summary>
 		///Relationship Officer Name
 		/// </summary>
 		public static string RelationshipOfficerName => I18NResource.GetString(ResourceDirectory, "RelationshipOfficerName");
+
+		/// <summary>
+		///Frequency Setup Code
+		/// </summary>
+		public static string FrequencySetupCode => I18NResource.GetString(ResourceDirectory, "FrequencySetupCode");
 
 		/// <summary>
 		///Asset Name
@@ -59,14 +59,14 @@ namespace MixERP.Finance
 		public static string LocalCurrencyCode => I18NResource.GetString(ResourceDirectory, "LocalCurrencyCode");
 
 		/// <summary>
-		///Is Sales
-		/// </summary>
-		public static string IsSales => I18NResource.GetString(ResourceDirectory, "IsSales");
-
-		/// <summary>
 		///Cell
 		/// </summary>
 		public static string Cell => I18NResource.GetString(ResourceDirectory, "Cell");
+
+		/// <summary>
+		///Is Sales
+		/// </summary>
+		public static string IsSales => I18NResource.GetString(ResourceDirectory, "IsSales");
 
 		/// <summary>
 		///Amount In Currency
@@ -114,14 +114,14 @@ namespace MixERP.Finance
 		public static string ParentAccount => I18NResource.GetString(ResourceDirectory, "ParentAccount");
 
 		/// <summary>
-		///Transaction Type Code
-		/// </summary>
-		public static string TransactionTypeCode => I18NResource.GetString(ResourceDirectory, "TransactionTypeCode");
-
-		/// <summary>
 		///Customer Pays Fee
 		/// </summary>
 		public static string CustomerPaysFee => I18NResource.GetString(ResourceDirectory, "CustomerPaysFee");
+
+		/// <summary>
+		///Transaction Type Code
+		/// </summary>
+		public static string TransactionTypeCode => I18NResource.GetString(ResourceDirectory, "TransactionTypeCode");
 
 		/// <summary>
 		///Bank Name
@@ -229,14 +229,14 @@ namespace MixERP.Finance
 		public static string Book => I18NResource.GetString(ResourceDirectory, "Book");
 
 		/// <summary>
-		///Transaction Type Name
-		/// </summary>
-		public static string TransactionTypeName => I18NResource.GetString(ResourceDirectory, "TransactionTypeName");
-
-		/// <summary>
 		///Verification Limit
 		/// </summary>
 		public static string VerificationLimit => I18NResource.GetString(ResourceDirectory, "VerificationLimit");
+
+		/// <summary>
+		///Transaction Type Name
+		/// </summary>
+		public static string TransactionTypeName => I18NResource.GetString(ResourceDirectory, "TransactionTypeName");
 
 		/// <summary>
 		///Cost Center Id
@@ -299,14 +299,14 @@ namespace MixERP.Finance
 		public static string OperatingExpenseId => I18NResource.GetString(ResourceDirectory, "OperatingExpenseId");
 
 		/// <summary>
-		///Income Tax Rate
-		/// </summary>
-		public static string IncomeTaxRate => I18NResource.GetString(ResourceDirectory, "IncomeTaxRate");
-
-		/// <summary>
 		///Memo
 		/// </summary>
 		public static string Memo => I18NResource.GetString(ResourceDirectory, "Memo");
+
+		/// <summary>
+		///Income Tax Rate
+		/// </summary>
+		public static string IncomeTaxRate => I18NResource.GetString(ResourceDirectory, "IncomeTaxRate");
 
 		/// <summary>
 		///Statement Reference
@@ -314,14 +314,14 @@ namespace MixERP.Finance
 		public static string StatementReference => I18NResource.GetString(ResourceDirectory, "StatementReference");
 
 		/// <summary>
-		///Merchant Account Id
-		/// </summary>
-		public static string MerchantAccountId => I18NResource.GetString(ResourceDirectory, "MerchantAccountId");
-
-		/// <summary>
 		///Started By
 		/// </summary>
 		public static string StartedBy => I18NResource.GetString(ResourceDirectory, "StartedBy");
+
+		/// <summary>
+		///Merchant Account Id
+		/// </summary>
+		public static string MerchantAccountId => I18NResource.GetString(ResourceDirectory, "MerchantAccountId");
 
 		/// <summary>
 		///Dividends Paid Name
@@ -359,9 +359,9 @@ namespace MixERP.Finance
 		public static string Deleted => I18NResource.GetString(ResourceDirectory, "Deleted");
 
 		/// <summary>
-		///User
+		///Maintained By User Id
 		/// </summary>
-		public static string User => I18NResource.GetString(ResourceDirectory, "User");
+		public static string MaintainedByUserId => I18NResource.GetString(ResourceDirectory, "MaintainedByUserId");
 
 		/// <summary>
 		///Bank Account Number
@@ -369,9 +369,9 @@ namespace MixERP.Finance
 		public static string BankAccountNumber => I18NResource.GetString(ResourceDirectory, "BankAccountNumber");
 
 		/// <summary>
-		///Maintained By User Id
+		///User
 		/// </summary>
-		public static string MaintainedByUserId => I18NResource.GetString(ResourceDirectory, "MaintainedByUserId");
+		public static string User => I18NResource.GetString(ResourceDirectory, "User");
 
 		/// <summary>
 		///Transaction Type Id
@@ -459,14 +459,14 @@ namespace MixERP.Finance
 		public static string OtherAssetName => I18NResource.GetString(ResourceDirectory, "OtherAssetName");
 
 		/// <summary>
-		///Payment Card Id
-		/// </summary>
-		public static string PaymentCardId => I18NResource.GetString(ResourceDirectory, "PaymentCardId");
-
-		/// <summary>
 		///Income Tax Expense Id
 		/// </summary>
 		public static string IncomeTaxExpenseId => I18NResource.GetString(ResourceDirectory, "IncomeTaxExpenseId");
+
+		/// <summary>
+		///Payment Card Id
+		/// </summary>
+		public static string PaymentCardId => I18NResource.GetString(ResourceDirectory, "PaymentCardId");
 
 		/// <summary>
 		///Country
@@ -484,9 +484,9 @@ namespace MixERP.Finance
 		public static string AccountNumber => I18NResource.GetString(ResourceDirectory, "AccountNumber");
 
 		/// <summary>
-		///Auto Verification Policy Id
+		///Cost Center Name
 		/// </summary>
-		public static string AutoVerificationPolicyId => I18NResource.GetString(ResourceDirectory, "AutoVerificationPolicyId");
+		public static string CostCenterName => I18NResource.GetString(ResourceDirectory, "CostCenterName");
 
 		/// <summary>
 		///Document Id
@@ -494,19 +494,19 @@ namespace MixERP.Finance
 		public static string DocumentId => I18NResource.GetString(ResourceDirectory, "DocumentId");
 
 		/// <summary>
-		///Currency
+		///Auto Verification Policy Id
 		/// </summary>
-		public static string Currency => I18NResource.GetString(ResourceDirectory, "Currency");
-
-		/// <summary>
-		///Cost Center Name
-		/// </summary>
-		public static string CostCenterName => I18NResource.GetString(ResourceDirectory, "CostCenterName");
+		public static string AutoVerificationPolicyId => I18NResource.GetString(ResourceDirectory, "AutoVerificationPolicyId");
 
 		/// <summary>
 		///Street
 		/// </summary>
 		public static string Street => I18NResource.GetString(ResourceDirectory, "Street");
+
+		/// <summary>
+		///Currency
+		/// </summary>
+		public static string Currency => I18NResource.GetString(ResourceDirectory, "Currency");
 
 		/// <summary>
 		///Exchange Rate Id
@@ -589,9 +589,19 @@ namespace MixERP.Finance
 		public static string DividendsReceivedId => I18NResource.GetString(ResourceDirectory, "DividendsReceivedId");
 
 		/// <summary>
+		///Completed
+		/// </summary>
+		public static string Completed => I18NResource.GetString(ResourceDirectory, "Completed");
+
+		/// <summary>
 		///Parent Cash Repository Id
 		/// </summary>
 		public static string ParentCashRepositoryId => I18NResource.GetString(ResourceDirectory, "ParentCashRepositoryId");
+
+		/// <summary>
+		///Current Asset Id
+		/// </summary>
+		public static string CurrentAssetId => I18NResource.GetString(ResourceDirectory, "CurrentAssetId");
 
 		/// <summary>
 		///Maintained By
@@ -599,19 +609,9 @@ namespace MixERP.Finance
 		public static string MaintainedBy => I18NResource.GetString(ResourceDirectory, "MaintainedBy");
 
 		/// <summary>
-		///Completed
-		/// </summary>
-		public static string Completed => I18NResource.GetString(ResourceDirectory, "Completed");
-
-		/// <summary>
 		///Current Liability Name
 		/// </summary>
 		public static string CurrentLiabilityName => I18NResource.GetString(ResourceDirectory, "CurrentLiabilityName");
-
-		/// <summary>
-		///Current Asset Id
-		/// </summary>
-		public static string CurrentAssetId => I18NResource.GetString(ResourceDirectory, "CurrentAssetId");
 
 		/// <summary>
 		///Last Verified On
@@ -714,14 +714,14 @@ namespace MixERP.Finance
 		public static string ParentAccountMasterId => I18NResource.GetString(ResourceDirectory, "ParentAccountMasterId");
 
 		/// <summary>
-		///Merchant Fee Setup Id
-		/// </summary>
-		public static string MerchantFeeSetupId => I18NResource.GetString(ResourceDirectory, "MerchantFeeSetupId");
-
-		/// <summary>
 		///Routine Name
 		/// </summary>
 		public static string RoutineName => I18NResource.GetString(ResourceDirectory, "RoutineName");
+
+		/// <summary>
+		///Merchant Fee Setup Id
+		/// </summary>
+		public static string MerchantFeeSetupId => I18NResource.GetString(ResourceDirectory, "MerchantFeeSetupId");
 
 		/// <summary>
 		///Is Transaction Node
@@ -994,14 +994,14 @@ namespace MixERP.Finance
 		public static string AuditUserId => I18NResource.GetString(ResourceDirectory, "AuditUserId");
 
 		/// <summary>
-		///Rate
-		/// </summary>
-		public static string Rate => I18NResource.GetString(ResourceDirectory, "Rate");
-
-		/// <summary>
 		///Tax Setup Id
 		/// </summary>
 		public static string TaxSetupId => I18NResource.GetString(ResourceDirectory, "TaxSetupId");
+
+		/// <summary>
+		///Rate
+		/// </summary>
+		public static string Rate => I18NResource.GetString(ResourceDirectory, "Rate");
 
 		/// <summary>
 		///Ends On
@@ -1079,19 +1079,24 @@ namespace MixERP.Finance
 		public static string SalesTaxAccountId => I18NResource.GetString(ResourceDirectory, "SalesTaxAccountId");
 
 		/// <summary>
-		///Income Tax Account Id
-		/// </summary>
-		public static string IncomeTaxAccountId => I18NResource.GetString(ResourceDirectory, "IncomeTaxAccountId");
-
-		/// <summary>
 		///Dividends Received Name
 		/// </summary>
 		public static string DividendsReceivedName => I18NResource.GetString(ResourceDirectory, "DividendsReceivedName");
 
 		/// <summary>
+		///Income Tax Account Id
+		/// </summary>
+		public static string IncomeTaxAccountId => I18NResource.GetString(ResourceDirectory, "IncomeTaxAccountId");
+
+		/// <summary>
 		///File Path
 		/// </summary>
 		public static string FilePath => I18NResource.GetString(ResourceDirectory, "FilePath");
+
+		/// <summary>
+		///Income Tax Expense Name
+		/// </summary>
+		public static string IncomeTaxExpenseName => I18NResource.GetString(ResourceDirectory, "IncomeTaxExpenseName");
 
 		/// <summary>
 		///Self Verification Limit
@@ -1102,11 +1107,6 @@ namespace MixERP.Finance
 		///Sales Tax Rate
 		/// </summary>
 		public static string SalesTaxRate => I18NResource.GetString(ResourceDirectory, "SalesTaxRate");
-
-		/// <summary>
-		///Income Tax Expense Name
-		/// </summary>
-		public static string IncomeTaxExpenseName => I18NResource.GetString(ResourceDirectory, "IncomeTaxExpenseName");
 
 		/// <summary>
 		///Starts From

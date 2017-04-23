@@ -23,7 +23,8 @@ namespace MixERP.Finance.DAL
             using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
             {
                 var sql = new Sql("SELECT * FROM finance.accounts");
-                sql.Where("deleted=@0", false);
+                sql.Where("deleted = @0", false);
+                sql.And("is_transaction_node = @0", true);
 
                 return await db.SelectAsync<Account>(sql).ConfigureAwait(false);
             }
@@ -42,8 +43,9 @@ namespace MixERP.Finance.DAL
             using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
             {
                 var sql = new Sql("SELECT * FROM finance.accounts");
-                sql.Where("deleted=@0", false);
-                sql.And("confidential=@0", false);
+                sql.Where("deleted = @0", false);
+                sql.And("confidential = @0", false);
+                sql.And("is_transaction_node = @0", true);
 
                 return await db.SelectAsync<Account>(sql).ConfigureAwait(false);
             }

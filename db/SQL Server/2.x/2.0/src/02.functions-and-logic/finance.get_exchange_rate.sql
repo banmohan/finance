@@ -4,12 +4,12 @@ DROP FUNCTION finance.get_exchange_rate;
 GO
 
 CREATE FUNCTION finance.get_exchange_rate(@office_id integer, @currency_code national character varying(12))
-RETURNS decimal(30, 6)
+RETURNS numeric(30, 6)
 AS
 BEGIN
     DECLARE @local_currency_code        national character varying(12)= '';
     DECLARE @unit                       integer = 0;
-    DECLARE @exchange_rate              decimal(30, 6) = 0;
+    DECLARE @exchange_rate              numeric(30, 6) = 0;
 
     SELECT @local_currency_code = core.offices.currency_code
     FROM core.offices

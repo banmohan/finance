@@ -4,13 +4,13 @@ DROP FUNCTION finance.convert_exchange_rate;
 GO
 
 CREATE FUNCTION finance.convert_exchange_rate(@office_id integer, @source_currency_code national character varying(12), @destination_currency_code national character varying(12))
-RETURNS decimal(30, 6)
+RETURNS numeric(30, 6)
 AS
 BEGIN
     DECLARE @unit                           integer = 0;
-    DECLARE @exchange_rate                  decimal(30, 6) = 0;
-    DECLARE @from_source_currency           decimal(30, 6) = finance.get_exchange_rate(@office_id, @source_currency_code);
-    DECLARE @from_destination_currency      decimal(30, 6) = finance.get_exchange_rate(@office_id, @destination_currency_code);
+    DECLARE @exchange_rate                  numeric(30, 6) = 0;
+    DECLARE @from_source_currency           numeric(30, 6) = finance.get_exchange_rate(@office_id, @source_currency_code);
+    DECLARE @from_destination_currency      numeric(30, 6) = finance.get_exchange_rate(@office_id, @destination_currency_code);
 
     IF(@source_currency_code = @destination_currency_code)
     BEGIN

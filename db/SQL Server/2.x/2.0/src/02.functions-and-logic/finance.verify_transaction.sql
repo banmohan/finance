@@ -10,7 +10,7 @@ CREATE PROCEDURE finance.verify_transaction
     @user_id                                integer,
     @login_id                               bigint,
     @verification_status_id                 smallint,
-    @reason                                 national character varying
+    @reason                                 national character varying(100)
 )
 AS
 BEGIN
@@ -20,10 +20,10 @@ BEGIN
     DECLARE @transaction_posted_by          integer;
     DECLARE @book                           national character varying(50);
     DECLARE @can_verify                     bit;
-    DECLARE @verification_limit             decimal(30, 6);
+    DECLARE @verification_limit             numeric(30, 6);
     DECLARE @can_self_verify                bit;
-    DECLARE @self_verification_limit        decimal(30, 6);
-    DECLARE @posted_amount                  decimal(30, 6);
+    DECLARE @self_verification_limit        numeric(30, 6);
+    DECLARE @posted_amount                  numeric(30, 6);
     DECLARE @has_policy                     bit= 0;
     DECLARE @journal_date                   date;
     DECLARE @journal_office_id              integer;

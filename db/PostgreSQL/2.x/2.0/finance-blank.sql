@@ -2271,6 +2271,26 @@ END
 $$
 LANGUAGE plpgsql;
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_sales_tax_rate.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_sales_tax_rate(_office_id integer);
+
+CREATE FUNCTION finance.get_sales_tax_rate(_office_id integer)
+RETURNS numeric(30, 6)
+AS
+$$
+BEGIN
+	RETURN
+	(
+		SELECT 
+			finance.tax_setups.sales_tax_rate
+		FROM finance.tax_setups
+		WHERE finance.tax_setups.office_id = _office_id
+	);
+END
+$$
+LANGUAGE plpgsql;
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_second_root_account_id.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_second_root_account_id(integer, integer);
 

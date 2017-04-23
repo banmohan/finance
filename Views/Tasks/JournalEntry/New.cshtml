@@ -275,7 +275,7 @@
         var selectedValue = textBox.val();
         var exists;
 
-        if (isNullOrWhiteSpace(textBox.val())) {
+        if (window.isNullOrWhiteSpace(textBox.val())) {
             return;
         };
 
@@ -293,7 +293,7 @@
             textBox.val('').trigger('change');
         }
 
-        triggerChange(dropDownListId);
+        window.triggerChange(dropDownListId);
     };
 
 
@@ -502,7 +502,7 @@
 
                 ajaxHasBalance.fail(function (xhr) {
                     removeLoader(transactionGridView);
-                    logAjaxErrorMessage(xhr);
+                    window.logAjaxErrorMessage(xhr);
                 });
 
                 ajaxHasBalance.success(function (response) {
@@ -521,6 +521,44 @@
         };
     });
 
+    function editRow(anchor) {
+        const row = $(anchor).closest("tr");
+        row.removeClass("negative positive").toggleClass("editing indicator");
+
+        if (!row.is(".editing")) {
+            $("#AccountNumberInputText").prop("disabled", false);
+            $("#AccountSelect").prop("disabled", false);
+            return;
+        };
+
+
+        $("#TransactionGridView tr.editing.indicator").not(row).removeClass("editing indicator");
+
+        const statementReference = row.find("td:nth-child(1)").text();
+        const accountNumber = row.find("td:nth-child(2)").text();
+        const cashRepository = row.find("td:nth-child(4)").text();
+        const currencyCode = row.find("td:nth-child(5)").text();
+        const debit = window.parseFloat2(row.find("td:nth-child(6)").text());
+        const credit = window.parseFloat2(row.find("td:nth-child(7)").text());
+        const er = window.parseFloat2(row.find("td:nth-child(8)").text());
+        const lcDebit = window.parseFloat2(row.find("td:nth-child(9)").text());
+        const lcCredit = window.parseFloat2(row.find("td:nth-child(10)").text());
+
+        $("#StatementReferenceInputText").val(statementReference);
+        $("#AccountNumberInputText").val(accountNumber).prop("disabled", true).trigger("change").trigger("blur");
+        $("#AccountSelect").val(accountNumber).prop("disabled", true).trigger("change").trigger("blur");
+        $("#DebitInputText").val(debit);
+        $("#CreditInputText").val(credit);
+        $("#ERInputText").val(er);
+        $("#LCDebitInputText").val(lcDebit);
+        $("#LCCreditInputText").val(lcCredit);
+
+        setTimeout(function() {
+            $("#CashRepositorySelect").val(cashRepository);
+            $("#CurrencySelect").val(currencyCode);
+        }, 1000);
+    };
+
     var addRow = function (statementReference, accountNumber, account, cashRepository, currencyCode, debit, credit, er, lcDebit, lcCredit, isCash) {
         const grid = transactionGridView;
         const rows = grid.find("tbody tr:not(:last-child)");
@@ -533,6 +571,27 @@
         };
 
         window.removeDirty(currencySelect);
+
+        if ($("#AccountSelect").is(":disabled")) {
+            const target = $("tr.editing.indicator");
+            target.find("td:nth-child(1)").text(statementReference);
+            target.find("td:nth-child(2)").text(accountNumber);
+            target.find("td:nth-child(3)").text(accountNumber);
+            target.find("td:nth-child(4)").text(cashRepository);
+            target.find("td:nth-child(5)").text(currencyCode);
+            target.find("td:nth-child(6)").text(window.getFormattedCurrency(debit));
+            target.find("td:nth-child(7)").text(window.getFormattedCurrency(credit));
+            target.find("td:nth-child(8)").text(window.getFormattedNumber(er));
+            target.find("td:nth-child(9)").text(window.getFormattedCurrency(lcDebit));
+            target.find("td:nth-child(10)").text(window.getFormattedCurrency(lcCredit));
+
+            target.removeClass("editing indicator").addClass("negative");
+            $("#AccountSelect").prop("disabled", false);
+            $("#AccountNumberInputText").prop("disabled", false).focus();
+            removeLoader(transactionGridView);
+            summate();
+            return;
+        };
 
         rows.each(function () {
             const row = $(this);
@@ -562,9 +621,9 @@
             return;
         };
 
-        const html = "<tr class='grid2-row'><td>" + statementReference + "</td><td>" + accountNumber + "</td><td>" + account + "</td><td>" + cashRepository + "</td><td>" + currencyCode + "</td><td class='text-right'>" + window.getFormattedNumber(debit) + "</td><td class='text-right'>" + window.getFormattedNumber(credit) + "</td>"
-            + "<td class='text-right'>" + window.getFormattedNumber(er) + "</td><td class='text-right'>" + window.getFormattedNumber(lcDebit) + "</td><td class='text-right'>" + window.getFormattedNumber(lcCredit) + "</td>"
-            + "<td><a class='pointer' onclick='removeRow($(this));'><i class='ui delete icon'></i></a><a class='pointer' onclick='toggleDanger($(this));'><i class='ui pointer check mark icon'></a></i><a class='pointer' onclick='toggleSuccess($(this));'><i class='ui pointer thumbs up icon'></i></a></td></tr>";
+        const html = "<tr class='grid2-row'><td>" + statementReference + "</td><td>" + accountNumber + "</td><td>" + account + "</td><td>" + cashRepository + "</td><td>" + currencyCode + "</td><td class='text-right'>" + window.getFormattedCurrency(debit) + "</td><td class='text-right'>" + window.getFormattedCurrency(credit) + "</td>"
+            + "<td class='text-right'>" + window.getFormattedNumber(er) + "</td><td class='text-right'>" + window.getFormattedCurrency(lcDebit) + "</td><td class='text-right'>" + window.getFormattedCurrency(lcCredit) + "</td>"
+            + "<td><a class='pointer' onclick='editRow($(this));'><i class='ui edit icon'></i></a><a class='pointer' onclick='removeRow($(this));summate();'><i class='ui delete icon'></i></a><a class='pointer' onclick='toggleDanger($(this));'><i class='ui pointer check mark icon'></a></i><a class='pointer' onclick='toggleSuccess($(this));'><i class='ui pointer thumbs up icon'></i></a></td></tr>";
         grid.find("tr:last").before(html);
 
         summate();
@@ -813,8 +872,8 @@
         const debitTotal = window.parseFloat2(window.sumOfColumn("#" + transactionGridView.attr("id"), 8) || 0);
         const creditTotal = window.parseFloat2(window.sumOfColumn("#" + transactionGridView.attr("id"), 9) || 0);
 
-        debitTotalTextBox.val(debitTotal);
-        creditTotalTextBox.val(creditTotal);
+        debitTotalTextBox.val(window.getFormattedCurrency(debitTotal));
+        creditTotalTextBox.val(window.getFormattedCurrency(creditTotal));
     };
 
 
@@ -838,6 +897,8 @@
             addRow(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], v[9]);
         });
     });
+
+
 
     window.overridePath = "/dashboard/finance/tasks/journal/entry";
 </script>
