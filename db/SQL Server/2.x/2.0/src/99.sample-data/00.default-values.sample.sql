@@ -243,7 +243,7 @@ SELECT 1,     '20000', 'Liabilities',                                           
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 15000, '20001', 'Current Liabilities',                                         1,  finance.get_account_id_by_account_name('Liabilities');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 15001, '20010', 'Shareholders',                                            FALSE, finance.get_account_id_by_account_name('Liabilities');
+SELECT 15001, '20010', 'Shareholders',                                            0, finance.get_account_id_by_account_name('Liabilities');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 15010, '20100', 'Accounts Payable',                                            0, finance.get_account_id_by_account_name('Current Liabilities');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
