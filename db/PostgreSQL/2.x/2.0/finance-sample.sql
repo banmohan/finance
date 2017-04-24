@@ -28,6 +28,7 @@ SELECT 10200, 'FIA', 'Fixed Assets',                        1,      true    UNIO
 SELECT 10201, 'PPE', 'Property, Plants, and Equipments',    1,      true    UNION ALL
 SELECT 10300, 'OTA', 'Other Assets',                        1,      true    UNION ALL
 SELECT 15000, 'CRL', 'Current Liabilities',                 1,      false   UNION ALL
+SELECT 15001, 'CAP', 'Capital',                    			15000,  false   UNION ALL
 SELECT 15010, 'ACP', 'Accounts Payable',                    15000,  false   UNION ALL
 SELECT 15011, 'SAP', 'Salary Payable',                      15000,  false   UNION ALL
 SELECT 15100, 'LTL', 'Long-Term Liabilities',               1,      false   UNION ALL
@@ -236,6 +237,8 @@ INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_
 SELECT 1,     '20000', 'Liabilities',                                                 TRUE,  finance.get_account_id_by_account_name('Balance Sheet A/C');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 15000, '20001', 'Current Liabilities',                                         TRUE,  finance.get_account_id_by_account_name('Liabilities');
+INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
+SELECT 15001, '20010', 'Shareholders',                                            FALSE, finance.get_account_id_by_account_name('Liabilities');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 15010, '20100', 'Accounts Payable',                                            FALSE, finance.get_account_id_by_account_name('Current Liabilities');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
