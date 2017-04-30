@@ -1785,6 +1785,29 @@ END
 $$
 LANGUAGE plpgsql;
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_frequency_start_date.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_frequency_start_date(_frequency_id integer, _value_date date);
+
+CREATE FUNCTION finance.get_frequency_start_date(_frequency_id integer, _value_date date)
+RETURNS date
+STABLE
+AS
+$$
+    DECLARE _start_date date;
+BEGIN
+    SELECT MAX(value_date)
+    INTO _start_date
+    FROM finance.frequency_setups
+    WHERE value_date < $2
+    AND frequency_id = ANY( finance.get_frequencies($1));
+
+    RETURN _start_date;
+END
+$$
+LANGUAGE plpgsql;
+
+--SELECT * FROM finance.get_frequency_start_date(1, '1-1-2000');
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.get_income_tax_provison_amount.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_income_tax_provison_amount(_office_id integer, _profit  numeric(30, 6), _balance  numeric(30, 6));
 

@@ -122,6 +122,8 @@ SELECT 10101, '10200', 'Cash in Hand A/C',                                      
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 10100, '10300', 'Investments',                                                 FALSE, finance.get_account_id_by_account_name('Current Assets');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
+SELECT 10100, '10301', 'Loan & Advances',                                       	FALSE, finance.get_account_id_by_account_name('Investments');
+INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 10100, '10310', 'Short Term Investment',                                       FALSE, finance.get_account_id_by_account_name('Investments');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 10100, '10320', 'Other Investments',                                           FALSE, finance.get_account_id_by_account_name('Investments');
