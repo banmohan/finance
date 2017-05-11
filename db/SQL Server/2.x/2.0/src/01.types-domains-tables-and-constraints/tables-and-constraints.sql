@@ -479,7 +479,7 @@ CREATE TABLE finance.routines
 (
     routine_id                              integer IDENTITY NOT NULL PRIMARY KEY,
     "order"                                 integer NOT NULL,
-    routine_code                            national character varying(12) NOT NULL,
+    routine_code                            national character varying(48) NOT NULL,
     routine_name                            national character varying(128) NOT NULL UNIQUE,
     status                                  bit NOT NULL CONSTRAINT routines_status_df DEFAULT(1)
 );
