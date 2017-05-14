@@ -781,9 +781,9 @@ LANGUAGE plpgsql;
 
 
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.x/2.0/src/02.functions-and-logic/finance.create_routine.sql --<--<--
-DROP FUNCTION IF EXISTS finance.create_routine(_routine_code national character varying(12), _routine regproc, _order integer);
+DROP FUNCTION IF EXISTS finance.create_routine(_routine_code national character varying(24), _routine regproc, _order integer);
 
-CREATE FUNCTION finance.create_routine(_routine_code national character varying(12), _routine regproc, _order integer)
+CREATE FUNCTION finance.create_routine(_routine_code national character varying(24), _routine regproc, _order integer)
 RETURNS void
 AS
 $$
