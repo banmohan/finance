@@ -67,7 +67,7 @@ BEGIN
     IF(NOT _is_error) THEN
         _office_code        := core.get_office_code_by_office_id(_office_id);
         _notice             := 'EOD started.'::text;
-        RAISE INFO  '%', _notice;
+        RAISE NOTICE  '%', _notice;
 
         FOR this IN
         SELECT routine_id, routine_name 
@@ -82,13 +82,13 @@ BEGIN
             RAISE NOTICE '%', _sql;
 
             _notice             := 'Performing ' || _routine::text || '.';
-            RAISE INFO '%', _notice;
+            RAISE NOTICE '%', _notice;
 
             PERFORM pg_sleep(5);
             EXECUTE _sql USING _user_id, _login_id, _office_id, _value_date;
 
             _notice             := 'Completed  ' || _routine::text || '.';
-            RAISE INFO '%', _notice;
+            RAISE NOTICE '%', _notice;
             
             PERFORM pg_sleep(5);            
         END LOOP;
@@ -102,10 +102,10 @@ BEGIN
         AND office_id = _office_id;
 
         _notice             := 'EOD of ' || _office_code || ' for ' || _value_date::text || ' completed without errors.'::text;
-        RAISE INFO '%', _notice;
+        RAISE NOTICE '%', _notice;
 
         _notice             := 'OK'::text;
-        RAISE INFO '%', _notice;
+        RAISE NOTICE '%', _notice;
 
         RETURN true;
     END IF;

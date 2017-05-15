@@ -37,12 +37,12 @@ BEGIN
     END IF;
 
     IF(_value_date < _fiscal_year_start_date) THEN
-        RAISE EXCEPTION 'You cannot post transactions before the current fiscal year start date.'
+        RAISE EXCEPTION 'You cannot post transactions before the current fiscal year start date. Value date: %, Fiscal Year Start Date: %.', _value_date, _fiscal_year_start_date
         USING ERRCODE='P5010';
     END IF;
 
     IF(_value_date > _fiscal_year_end_date) THEN
-        RAISE EXCEPTION 'You cannot post transactions after the current fiscal year end date.'
+        RAISE EXCEPTION 'You cannot post transactions after the current fiscal year end date. Value date: %, Fiscal Year End Date: %.', _value_date, _fiscal_year_end_date
         USING ERRCODE='P5010';
     END IF;
     
