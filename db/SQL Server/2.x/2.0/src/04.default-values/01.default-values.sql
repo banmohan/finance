@@ -15,7 +15,7 @@ INSERT INTO finance.account_masters(account_master_id, account_master_code, acco
 SELECT 10100, 'CRA', 'Current Assets',                      1,      1    UNION ALL
 SELECT 10101, 'CAS', 'Cash A/C',                            10100,  1    UNION ALL
 SELECT 10102, 'CAB', 'Bank A/C',                            10100,  1    UNION ALL
-SELECT 10103, 'ACR', 'Investments',                 		1,  	1    UNION ALL
+SELECT 10103, 'INV', 'Investments',                 		1,  	1    UNION ALL
 SELECT 10110, 'ACR', 'Accounts Receivable',                 10100,  1    UNION ALL
 SELECT 10200, 'FIA', 'Fixed Assets',                        1,      1    UNION ALL
 SELECT 10201, 'PPE', 'Property, Plants, and Equipments',    1,      1    UNION ALL
