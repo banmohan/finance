@@ -4590,6 +4590,7 @@ INSERT INTO finance.account_masters(account_master_id, account_master_code, acco
 SELECT 10100, 'CRA', 'Current Assets',                      1,      true    UNION ALL
 SELECT 10101, 'CAS', 'Cash A/C',                            10100,  true    UNION ALL
 SELECT 10102, 'CAB', 'Bank A/C',                            10100,  true    UNION ALL
+SELECT 10103, 'INV', 'Investments',                 		1,  	true    UNION ALL
 SELECT 10110, 'ACR', 'Accounts Receivable',                 10100,  true    UNION ALL
 SELECT 10200, 'FIA', 'Fixed Assets',                        1,      true    UNION ALL
 SELECT 10201, 'PPE', 'Property, Plants, and Equipments',    1,      true    UNION ALL
@@ -4694,19 +4695,19 @@ SELECT 10102, '10140', 'Special Account',                                       
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 10101, '10200', 'Cash in Hand A/C',                                            TRUE,  finance.get_account_id_by_account_name('Current Assets');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 10100, '10300', 'Investments',                                                 FALSE, finance.get_account_id_by_account_name('Current Assets');
+SELECT 10103, '10300', 'Investments',                                                 FALSE, finance.get_account_id_by_account_name('Current Assets');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 10100, '10301', 'Loan & Advances',                                       	  FALSE, finance.get_account_id_by_account_name('Investments');
+SELECT 10103, '10301', 'Loan & Advances',                                       	  FALSE, finance.get_account_id_by_account_name('Investments');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 10100, '10310', 'Short Term Investment',                                       FALSE, finance.get_account_id_by_account_name('Investments');
+SELECT 10103, '10310', 'Short Term Investment',                                       FALSE, finance.get_account_id_by_account_name('Investments');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 10100, '10320', 'Other Investments',                                           FALSE, finance.get_account_id_by_account_name('Investments');
+SELECT 10103, '10320', 'Other Investments',                                           FALSE, finance.get_account_id_by_account_name('Investments');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 10100, '10321', 'Investments-Money Market',                                    FALSE, finance.get_account_id_by_account_name('Other Investments');
+SELECT 10103, '10321', 'Investments-Money Market',                                    FALSE, finance.get_account_id_by_account_name('Other Investments');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 10100, '10322', 'Bank Deposit Contract (Fixed Deposit)',                       FALSE, finance.get_account_id_by_account_name('Other Investments');
+SELECT 10103, '10322', 'Bank Deposit Contract (Fixed Deposit)',                       FALSE, finance.get_account_id_by_account_name('Other Investments');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 10100, '10323', 'Investments-Certificates of Deposit',                         FALSE, finance.get_account_id_by_account_name('Other Investments');
+SELECT 10103, '10323', 'Investments-Certificates of Deposit',                         FALSE, finance.get_account_id_by_account_name('Other Investments');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 10110, '10400', 'Accounts Receivable',                                         FALSE, finance.get_account_id_by_account_name('Current Assets');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
@@ -4714,7 +4715,9 @@ SELECT 10100, '10500', 'Other Receivables',                                     
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 10100, '10501', 'Purchase Return (Receivables)',                               FALSE, finance.get_account_id_by_account_name('Other Receivables');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 10100, '10600', 'Allowance for Doubtful Accounts',                             FALSE, finance.get_account_id_by_account_name('Current Assets');
+SELECT 10100, '10600', 'Loan Loss Allowances',                             TRUE, finance.get_account_id_by_account_name('Current Assets');
+INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
+SELECT 10100, '10601', 'Net Loan Loss Allowances',                             TRUE, finance.get_account_id_by_account_name('Current Assets');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 10100, '10700', 'Inventory',                                                   TRUE,  finance.get_account_id_by_account_name('Current Assets');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
@@ -4763,8 +4766,6 @@ INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_
 SELECT 10200, '13000', 'Interior Decorations',                                        FALSE, finance.get_account_id_by_account_name('Noncurrent Assets');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 10200, '13100', 'Land',                                                        FALSE, finance.get_account_id_by_account_name('Noncurrent Assets');
-INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 10200, '13200', 'Long Term Investments',                                       FALSE, finance.get_account_id_by_account_name('Noncurrent Assets');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 10200, '13300', 'Trade Debtors',                                               FALSE, finance.get_account_id_by_account_name('Noncurrent Assets');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
