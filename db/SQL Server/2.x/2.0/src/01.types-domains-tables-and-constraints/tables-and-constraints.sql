@@ -192,6 +192,14 @@ CREATE UNIQUE INDEX cash_flow_headings_cash_flow_heading_name_uix
 ON finance.cash_flow_headings(cash_flow_heading_code)
 WHERE deleted = 0;
 
+CREATE TABLE finance.bank_types
+(
+	bank_type_id							int IDENTITY PRIMARY KEY,
+	bank_type_name							national character varying(1000),
+    audit_user_id                           integer NULL REFERENCES account.users,
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
+    deleted                                 bit DEFAULT(0)
+);
 
 
 CREATE TABLE finance.bank_accounts
@@ -200,6 +208,7 @@ CREATE TABLE finance.bank_accounts
 	bank_account_name						national character varying(1000) NOT NULL,
     account_id                              integer REFERENCES finance.accounts,                                            
     maintained_by_user_id                   integer NOT NULL REFERENCES account.users,
+	bank_type_id							integer NOT NULL REFERENCES finance.bank_types,
     is_merchant_account                     bit NOT NULL DEFAULT(0),
     office_id                               integer NOT NULL REFERENCES core.offices,
     bank_name                               national character varying(128) NOT NULL,

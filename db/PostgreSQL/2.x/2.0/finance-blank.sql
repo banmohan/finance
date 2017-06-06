@@ -192,6 +192,15 @@ ON finance.cash_flow_headings(UPPER(cash_flow_heading_code))
 WHERE NOT deleted;
 
 
+CREATE TABLE finance.bank_types
+(
+	bank_type_id							SERIAL PRIMARY KEY,
+	bank_type_name							national character varying(1000),
+    audit_user_id                           integer NULL REFERENCES account.users,
+    audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW()),
+	deleted									boolean DEFAULT(false)
+);
+
 
 CREATE TABLE finance.bank_accounts
 (
@@ -199,6 +208,7 @@ CREATE TABLE finance.bank_accounts
 	bank_account_name						national character varying(1000) NOT NULL,
     account_id                              integer REFERENCES finance.accounts,                                            
     maintained_by_user_id                   integer NOT NULL REFERENCES account.users,
+	bank_type_id							integer NOT NULL REFERENCES finance.bank_types,
 	is_merchant_account 					boolean NOT NULL DEFAULT(false),
     office_id                               integer NOT NULL REFERENCES core.offices,
     bank_name                               national character varying(128) NOT NULL,

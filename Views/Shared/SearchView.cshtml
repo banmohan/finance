@@ -307,7 +307,12 @@
 
         function setHeader() {
             container.find(".title").text(model.Title);
-            $("#AddNewButton").text(model.AddNewButtonText).attr("href", model.AddNewUrl);
+
+            if (model.AddNewButtonText) {
+                $("#AddNewButton").text(model.AddNewButtonText).attr("href", model.AddNewUrl);
+            } else {
+                $("#AddNewButton").remove();
+            };
 
             if (!model.ReturnButtonText) {
                 $("#ReturnButton").remove();

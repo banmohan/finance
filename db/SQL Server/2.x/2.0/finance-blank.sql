@@ -193,6 +193,14 @@ CREATE UNIQUE INDEX cash_flow_headings_cash_flow_heading_name_uix
 ON finance.cash_flow_headings(cash_flow_heading_code)
 WHERE deleted = 0;
 
+CREATE TABLE finance.bank_types
+(
+	bank_type_id							int IDENTITY PRIMARY KEY,
+	bank_type_name							national character varying(1000),
+    audit_user_id                           integer NULL REFERENCES account.users,
+    audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE()),
+    deleted                                 bit DEFAULT(0)
+);
 
 
 CREATE TABLE finance.bank_accounts
@@ -201,6 +209,7 @@ CREATE TABLE finance.bank_accounts
 	bank_account_name						national character varying(1000) NOT NULL,
     account_id                              integer REFERENCES finance.accounts,                                            
     maintained_by_user_id                   integer NOT NULL REFERENCES account.users,
+	bank_type_id							integer NOT NULL REFERENCES finance.bank_types,
     is_merchant_account                     bit NOT NULL DEFAULT(0),
     office_id                               integer NOT NULL REFERENCES core.offices,
     bank_name                               national character varying(128) NOT NULL,
@@ -5088,7 +5097,7 @@ INSERT INTO finance.account_masters(account_master_id, account_master_code, acco
 SELECT 10100, 'CRA', 'Current Assets',                      1,      1    UNION ALL
 SELECT 10101, 'CAS', 'Cash A/C',                            10100,  1    UNION ALL
 SELECT 10102, 'CAB', 'Bank A/C',                            10100,  1    UNION ALL
-SELECT 10103, 'ACR', 'Investments',                 		1,  	1    UNION ALL
+SELECT 10103, 'INV', 'Investments',                 		1,  	1    UNION ALL
 SELECT 10110, 'ACR', 'Accounts Receivable',                 10100,  1    UNION ALL
 SELECT 10200, 'FIA', 'Fixed Assets',                        1,      1    UNION ALL
 SELECT 10201, 'PPE', 'Property, Plants, and Equipments',    1,      1    UNION ALL
