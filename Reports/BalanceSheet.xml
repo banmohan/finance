@@ -21,7 +21,7 @@
     <DataSource>
       <Query>
         SELECT
-        item,
+        account_name AS item,
         previous_period,
         current_period
         FROM finance.get_balance_sheet(@PreviousPeriod::date, @CurrentPeriod::date, @UserId::integer, @OfficeId::integer, @Factor);
