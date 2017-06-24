@@ -532,7 +532,7 @@ SELECT 20600,  '42700', 'Payroll Tax Expenses',                                 
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 20700,  '42800', 'Penalties and Fines Expenses',                               FALSE, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20600,  '42900', 'Other Taxe Expenses',                                        FALSE, finance.get_account_id_by_account_name('Expenses');
+SELECT 20600,  '42900', 'Other Tax Expenses',                                         FALSE, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 20600,  '43000', 'Postage Expenses',                                           FALSE, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 

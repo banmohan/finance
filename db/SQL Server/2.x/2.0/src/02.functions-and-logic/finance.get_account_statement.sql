@@ -114,8 +114,9 @@ BEGIN
     AND finance.transaction_details.account_id IN (SELECT * FROM finance.get_account_ids(@account_id))
     AND finance.transaction_master.deleted = 0
     ORDER BY 
-        finance.transaction_master.book_date,
         finance.transaction_master.value_date,
+        finance.transaction_master.transaction_ts,
+        finance.transaction_master.book_date,
         finance.transaction_master.last_verified_on;
 
 

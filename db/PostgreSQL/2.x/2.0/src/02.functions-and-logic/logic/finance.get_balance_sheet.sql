@@ -51,15 +51,14 @@ BEGIN
 
 
     UPDATE _result 
-    SET previous_period = trans.previous_period
-    FROM _result AS result
-    INNER JOIN
+    SET previous_period = summary.previous_period
+    FROM
     (
         SELECT 
             result.account_id,         
             SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END) AS previous_period
         FROM _result AS result
-        INNER JOIN finance.verified_transaction_mat_view
+        LEFT JOIN finance.verified_transaction_mat_view
         ON finance.verified_transaction_mat_view.account_id = result.account_id
 		WHERE value_date <=_previous_period
 		AND office_id IN 
@@ -67,13 +66,12 @@ BEGIN
 			SELECT * FROM core.get_office_ids(_office_id)
 		)
 		GROUP BY result.account_id
-    ) AS trans
-    ON result.account_id = trans.account_id;
+    ) AS summary
+    WHERE _result.account_id = summary.account_id;
 
     UPDATE _result 
-    SET current_period = trans.current_period
-    FROM _result AS result
-    INNER JOIN
+    SET current_period = summary.current_period
+    FROM
     (
         SELECT 
             result.account_id,         
@@ -87,31 +85,31 @@ BEGIN
 			SELECT * FROM core.get_office_ids(_office_id)
 		)
 		GROUP BY result.account_id
-    ) AS trans
-    ON result.account_id = trans.account_id;
+    ) AS summary
+    WHERE _result.account_id = summary.account_id;
 
 	UPDATE _result
 	SET 
 		account_number = finance.accounts.account_number, 
-		account_name = finance.accounts.account_name, 
+		account_name = finance.accounts.account_name,
 		account_master_id = finance.accounts.account_master_id
-	FROM _result AS result 
-	INNER JOIN finance.accounts
-	ON finance.accounts.account_id = result.account_id;
+	FROM finance.accounts
+	WHERE finance.accounts.account_id = _result.account_id;
+
 
 	UPDATE _result
 	SET 
 		account_master_name  = finance.account_masters.account_master_name
-	FROM _result AS result 
-	INNER JOIN finance.account_masters
-	ON finance.account_masters.account_master_id = result.account_master_id;
+	FROM finance.account_masters
+	WHERE finance.account_masters.account_master_id = _result.account_master_id;
 
 	UPDATE _result
 	SET 
 		current_period = _result.current_period / _factor,
 		previous_period = _result.previous_period / _factor;
 
-	RETURN;
+	RETURN QUERY
+	SELECT * FROM _result;
 END
 $$
 LANGUAGE plpgsql;
@@ -178,8 +176,7 @@ BEGIN
 
     UPDATE _result 
     SET previous_period = trans.previous_period
-    FROM _result AS result
-    INNER JOIN
+    FROM
     (
         SELECT 
             result.account_id,         
@@ -194,12 +191,11 @@ BEGIN
 		)
 		GROUP BY result.account_id
     ) AS trans
-    ON result.account_id = trans.account_id;
+    WHERE _result.account_id = trans.account_id;
 
     UPDATE _result 
     SET current_period = trans.current_period
-    FROM _result AS result
-    INNER JOIN
+    FROM
     (
         SELECT 
             result.account_id,         
@@ -214,30 +210,29 @@ BEGIN
 		)
 		GROUP BY result.account_id
     ) AS trans
-    ON result.account_id = trans.account_id;
+    WHERE _result.account_id = trans.account_id;
 
 	UPDATE _result
 	SET 
 		account_number = finance.accounts.account_number, 
 		account_name = finance.accounts.account_name, 
 		account_master_id = finance.accounts.account_master_id
-	FROM _result AS result 
-	INNER JOIN finance.accounts
-	ON finance.accounts.account_id = result.account_id;
+	FROM finance.accounts
+	WHERE finance.accounts.account_id = _result.account_id;
 
 	UPDATE _result
 	SET 
 		account_master_name  = finance.account_masters.account_master_name
-	FROM _result AS result 
-	INNER JOIN finance.account_masters
-	ON finance.account_masters.account_master_id = result.account_master_id;
+	FROM finance.account_masters
+	WHERE finance.account_masters.account_master_id = _result.account_master_id;
 
 	UPDATE _result
 	SET 
 		current_period = _result.current_period / _factor,
 		previous_period = _result.previous_period / _factor;
 
-	RETURN;
+	RETURN QUERY
+	SELECT * FROM _result;
 END
 $$
 LANGUAGE plpgsql;

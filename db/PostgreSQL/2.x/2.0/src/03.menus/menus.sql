@@ -43,6 +43,7 @@ SELECT * FROM core.create_menu('MixERP.Finance', 'FrequencySetups', 'Frequency S
 SELECT * FROM core.create_menu('MixERP.Finance', 'Reports', 'Reports', '', 'block layout', '');
 SELECT * FROM core.create_menu('MixERP.Finance', 'AccountStatement', 'Account Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountStatement.xml', 'file text outline', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'TrialBalance', 'Trial Balance', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/TrialBalance.xml', 'signal', 'Reports');
+SELECT * FROM core.create_menu('MixERP.Finance', 'TransactionSummary', 'Transaction Summary', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/TransactionSummary.xml', 'signal', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'ProfitAndLossAccount', 'Profit & Loss Account', '/dashboard/finance/reports/pl-account', 'line chart', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'RetainedEarningsStatement', 'Retained Earnings Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/RetainedEarnings.xml', 'arrow circle down', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'BalanceSheet', 'Balance Sheet', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/BalanceSheet.xml', 'calculator', 'Reports');
