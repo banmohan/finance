@@ -1461,8 +1461,9 @@ BEGIN
     AND finance.transaction_details.account_id IN (SELECT * FROM finance.get_account_ids(@account_id))
     AND finance.transaction_master.deleted = 0
     ORDER BY 
-        finance.transaction_master.book_date,
         finance.transaction_master.value_date,
+        finance.transaction_master.transaction_ts,
+        finance.transaction_master.book_date,
         finance.transaction_master.last_verified_on;
 
 
@@ -5091,6 +5092,7 @@ EXECUTE core.create_menu 'MixERP.Finance', 'FrequencySetups', 'Frequency Setups'
 EXECUTE core.create_menu 'MixERP.Finance', 'Reports', 'Reports', '', 'block layout', '';
 EXECUTE core.create_menu 'MixERP.Finance', 'AccountStatement', 'Account Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountStatement.xml', 'file national character varying(1000) outline', 'Reports';
 EXECUTE core.create_menu 'MixERP.Finance', 'TrialBalance', 'Trial Balance', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/TrialBalance.xml', 'signal', 'Reports';
+EXECUTE core.create_menu 'MixERP.Finance', 'TransactionSummary', 'Transaction Summary', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/TransactionSummary.xml', 'signal', 'Reports';
 EXECUTE core.create_menu 'MixERP.Finance', 'ProfitAndLossAccount', 'Profit & Loss Account', '/dashboard/finance/reports/pl-account', 'line chart', 'Reports';
 EXECUTE core.create_menu 'MixERP.Finance', 'RetainedEarningsStatement', 'Retained Earnings Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/RetainedEarnings.xml', 'arrow circle down', 'Reports';
 EXECUTE core.create_menu 'MixERP.Finance', 'BalanceSheet', 'Balance Sheet', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/BalanceSheet.xml', 'calculator', 'Reports';
@@ -5595,7 +5597,7 @@ SELECT 20600,  '42700', 'Payroll Tax Expenses',                                 
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 20700,  '42800', 'Penalties and Fines Expenses',                               0, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20600,  '42900', 'Other Taxe Expenses',                                        0, finance.get_account_id_by_account_name('Expenses');
+SELECT 20600,  '42900', 'Other Tax Expenses',                                        0, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 20600,  '43000', 'Postage Expenses',                                           0, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 

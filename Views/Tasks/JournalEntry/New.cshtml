@@ -33,8 +33,8 @@
 
     <input id="TransactionGridViewHidden" type="hidden">
 
-    <div class="fluid width overflown section">
-        <table id="TransactionGridView" class="ui nowrap table segment" style="min-width: 1200px; max-width: 2000px;">
+    <div class="fluid width section">
+        <table id="TransactionGridView" class="ui nowrap celled table segment" style="min-width: 1200px; max-width: 2000px;">
             <thead>
                 <tr>
                     <th style="width: 17%">
@@ -104,10 +104,10 @@
                         <select id="AccountSelect" title=@I18N.CtrlAltA></select>
                     </td>
                     <td>
-                        <select id="CashRepositorySelect"></select>
+                        <select id="CashRepositorySelect" class="native"></select>
                     </td>
                     <td>
-                        <select id="CurrencySelect"></select>
+                        <select id="CurrencySelect" class="native"></select>
                     </td>
                     <td>
                         <input id="DebitInputText" class="text-right currency" title=@I18N.CtrlAltD type="text">

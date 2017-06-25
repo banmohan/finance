@@ -1375,8 +1375,9 @@ BEGIN
     AND finance.transaction_details.account_id IN (SELECT * FROM finance.get_account_ids(_account_id))
     AND NOT finance.transaction_master.deleted
     ORDER BY 
-        finance.transaction_master.book_date,
         finance.transaction_master.value_date,
+        finance.transaction_master.transaction_ts,
+        finance.transaction_master.book_date,
         finance.transaction_master.last_verified_on;
 
 
@@ -3260,15 +3261,14 @@ BEGIN
 
 
     UPDATE _result 
-    SET previous_period = trans.previous_period
-    FROM _result AS result
-    INNER JOIN
+    SET previous_period = summary.previous_period
+    FROM
     (
         SELECT 
             result.account_id,         
             SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END) AS previous_period
         FROM _result AS result
-        INNER JOIN finance.verified_transaction_mat_view
+        LEFT JOIN finance.verified_transaction_mat_view
         ON finance.verified_transaction_mat_view.account_id = result.account_id
 		WHERE value_date <=_previous_period
 		AND office_id IN 
@@ -3276,13 +3276,12 @@ BEGIN
 			SELECT * FROM core.get_office_ids(_office_id)
 		)
 		GROUP BY result.account_id
-    ) AS trans
-    ON result.account_id = trans.account_id;
+    ) AS summary
+    WHERE _result.account_id = summary.account_id;
 
     UPDATE _result 
-    SET current_period = trans.current_period
-    FROM _result AS result
-    INNER JOIN
+    SET current_period = summary.current_period
+    FROM
     (
         SELECT 
             result.account_id,         
@@ -3296,31 +3295,31 @@ BEGIN
 			SELECT * FROM core.get_office_ids(_office_id)
 		)
 		GROUP BY result.account_id
-    ) AS trans
-    ON result.account_id = trans.account_id;
+    ) AS summary
+    WHERE _result.account_id = summary.account_id;
 
 	UPDATE _result
 	SET 
 		account_number = finance.accounts.account_number, 
-		account_name = finance.accounts.account_name, 
+		account_name = finance.accounts.account_name,
 		account_master_id = finance.accounts.account_master_id
-	FROM _result AS result 
-	INNER JOIN finance.accounts
-	ON finance.accounts.account_id = result.account_id;
+	FROM finance.accounts
+	WHERE finance.accounts.account_id = _result.account_id;
+
 
 	UPDATE _result
 	SET 
 		account_master_name  = finance.account_masters.account_master_name
-	FROM _result AS result 
-	INNER JOIN finance.account_masters
-	ON finance.account_masters.account_master_id = result.account_master_id;
+	FROM finance.account_masters
+	WHERE finance.account_masters.account_master_id = _result.account_master_id;
 
 	UPDATE _result
 	SET 
 		current_period = _result.current_period / _factor,
 		previous_period = _result.previous_period / _factor;
 
-	RETURN;
+	RETURN QUERY
+	SELECT * FROM _result;
 END
 $$
 LANGUAGE plpgsql;
@@ -3387,8 +3386,7 @@ BEGIN
 
     UPDATE _result 
     SET previous_period = trans.previous_period
-    FROM _result AS result
-    INNER JOIN
+    FROM
     (
         SELECT 
             result.account_id,         
@@ -3403,12 +3401,11 @@ BEGIN
 		)
 		GROUP BY result.account_id
     ) AS trans
-    ON result.account_id = trans.account_id;
+    WHERE _result.account_id = trans.account_id;
 
     UPDATE _result 
     SET current_period = trans.current_period
-    FROM _result AS result
-    INNER JOIN
+    FROM
     (
         SELECT 
             result.account_id,         
@@ -3423,30 +3420,29 @@ BEGIN
 		)
 		GROUP BY result.account_id
     ) AS trans
-    ON result.account_id = trans.account_id;
+    WHERE _result.account_id = trans.account_id;
 
 	UPDATE _result
 	SET 
 		account_number = finance.accounts.account_number, 
 		account_name = finance.accounts.account_name, 
 		account_master_id = finance.accounts.account_master_id
-	FROM _result AS result 
-	INNER JOIN finance.accounts
-	ON finance.accounts.account_id = result.account_id;
+	FROM finance.accounts
+	WHERE finance.accounts.account_id = _result.account_id;
 
 	UPDATE _result
 	SET 
 		account_master_name  = finance.account_masters.account_master_name
-	FROM _result AS result 
-	INNER JOIN finance.account_masters
-	ON finance.account_masters.account_master_id = result.account_master_id;
+	FROM finance.account_masters
+	WHERE finance.account_masters.account_master_id = _result.account_master_id;
 
 	UPDATE _result
 	SET 
 		current_period = _result.current_period / _factor,
 		previous_period = _result.previous_period / _factor;
 
-	RETURN;
+	RETURN QUERY
+	SELECT * FROM _result;
 END
 $$
 LANGUAGE plpgsql;
@@ -4566,6 +4562,7 @@ SELECT * FROM core.create_menu('MixERP.Finance', 'FrequencySetups', 'Frequency S
 SELECT * FROM core.create_menu('MixERP.Finance', 'Reports', 'Reports', '', 'block layout', '');
 SELECT * FROM core.create_menu('MixERP.Finance', 'AccountStatement', 'Account Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/AccountStatement.xml', 'file text outline', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'TrialBalance', 'Trial Balance', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/TrialBalance.xml', 'signal', 'Reports');
+SELECT * FROM core.create_menu('MixERP.Finance', 'TransactionSummary', 'Transaction Summary', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/TransactionSummary.xml', 'signal', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'ProfitAndLossAccount', 'Profit & Loss Account', '/dashboard/finance/reports/pl-account', 'line chart', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'RetainedEarningsStatement', 'Retained Earnings Statement', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/RetainedEarnings.xml', 'arrow circle down', 'Reports');
 SELECT * FROM core.create_menu('MixERP.Finance', 'BalanceSheet', 'Balance Sheet', '/dashboard/reports/view/Areas/MixERP.Finance/Reports/BalanceSheet.xml', 'calculator', 'Reports');
@@ -5117,7 +5114,7 @@ SELECT 20600,  '42700', 'Payroll Tax Expenses',                                 
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 20700,  '42800', 'Penalties and Fines Expenses',                               FALSE, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
-SELECT 20600,  '42900', 'Other Taxe Expenses',                                        FALSE, finance.get_account_id_by_account_name('Expenses');
+SELECT 20600,  '42900', 'Other Tax Expenses',                                         FALSE, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
 SELECT 20600,  '43000', 'Postage Expenses',                                           FALSE, finance.get_account_id_by_account_name('Expenses');
 INSERT INTO finance.accounts(account_master_id,account_number,account_name, sys_type, parent_account_id) 
