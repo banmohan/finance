@@ -311,6 +311,14 @@ CREATE INDEX transaction_master_cascading_tran_id_inx
 ON finance.transaction_master(cascading_tran_id)
 WHERE deleted = 0;
 
+CREATE INDEX transaction_master_value_date_inx
+ON finance.transaction_master(value_date)
+WHERE deleted = 0;
+
+CREATE INDEX transaction_master_book_date_inx
+ON finance.transaction_master(book_date)
+WHERE deleted = 0;
+
 CREATE TABLE finance.transaction_documents
 (
     document_id                             bigint IDENTITY PRIMARY KEY,
@@ -345,6 +353,31 @@ CREATE TABLE finance.transaction_details
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                DATETIMEOFFSET DEFAULT(GETUTCDATE())
 );
+
+CREATE NONCLUSTERED INDEX transaction_details_account_id_inx
+ON finance.transaction_details(account_id)
+INCLUDE (transaction_master_id,tran_type,amount_in_local_currency);
+
+
+CREATE NONCLUSTERED INDEX transaction_details_value_date_inx
+ON finance.transaction_details(value_date)
+INCLUDE (transaction_master_id,tran_type,amount_in_local_currency);
+
+CREATE NONCLUSTERED INDEX transaction_details_book_date_inx
+ON finance.transaction_details(book_date)
+INCLUDE (transaction_master_id,tran_type,amount_in_local_currency);
+
+CREATE NONCLUSTERED INDEX transaction_details_office_id_inx
+ON finance.transaction_details(office_id)
+INCLUDE (transaction_master_id,tran_type,amount_in_local_currency);
+
+CREATE NONCLUSTERED INDEX transaction_details_cash_repository_id_inx
+ON finance.transaction_details(cash_repository_id)
+INCLUDE (transaction_master_id,tran_type,amount_in_local_currency);
+
+CREATE NONCLUSTERED INDEX transaction_details_tran_type_inx
+ON finance.transaction_details(tran_type)
+INCLUDE (transaction_master_id,amount_in_local_currency);
 
 
 CREATE TABLE finance.card_types

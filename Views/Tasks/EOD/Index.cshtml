@@ -110,7 +110,7 @@
         dayOperation.client.getNotification = function (msg, condition) {
             AddItem(msg);
 
-            if (condition.toLowerCase() === "error") {
+            if ((condition || "").toLowerCase() === "error") {
                 receivingData = false;
 
                 $(".blue").removeClass("blue").addClass("red");
@@ -121,7 +121,8 @@
                 $(".big.error.message").text(msg);
             };
 
-            if (msg === "OK") {
+
+            if ((msg || "").toString().toUpperCase().trim() === "OK") {
                 receivingData = false;
                 $(".loading").removeClass("loading");
                 notifyServer();

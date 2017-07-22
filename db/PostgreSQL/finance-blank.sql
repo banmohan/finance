@@ -310,6 +310,14 @@ CREATE INDEX transaction_master_cascading_tran_id_inx
 ON finance.transaction_master(cascading_tran_id)
 WHERE NOT deleted;
 
+CREATE INDEX transaction_master_value_date_inx
+ON finance.transaction_master(value_date)
+WHERE NOT deleted;
+
+CREATE INDEX transaction_master_book_date_inx
+ON finance.transaction_master(book_date)
+WHERE NOT deleted;
+
 CREATE TABLE finance.transaction_documents
 (
 	document_id								BIGSERIAL PRIMARY KEY,
@@ -344,6 +352,24 @@ CREATE TABLE finance.transaction_details
     audit_user_id                           integer NULL REFERENCES account.users,
     audit_ts                                TIMESTAMP WITH TIME ZONE DEFAULT(NOW())
 );
+
+CREATE INDEX transaction_details_account_id_inx
+ON finance.transaction_details(account_id);
+
+CREATE INDEX transaction_details_value_date_inx
+ON finance.transaction_details(value_date);
+
+CREATE INDEX transaction_details_book_date_inx
+ON finance.transaction_details(book_date);
+
+CREATE INDEX transaction_details_office_id_inx
+ON finance.transaction_details(office_id);
+
+CREATE INDEX transaction_details_cash_repository_id_inx
+ON finance.transaction_details(cash_repository_id);
+
+CREATE INDEX transaction_details_tran_type_inx
+ON finance.transaction_details(tran_type);
 
 
 CREATE TABLE finance.card_types
