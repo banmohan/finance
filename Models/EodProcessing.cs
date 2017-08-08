@@ -3,9 +3,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Frapid.ApplicationState.Models;
+using Frapid.Framework.Extensions;
 using MixERP.Finance.Cache;
 using MixERP.Finance.DAL;
 using MixERP.Finance.DTO;
+using MixERP.Finance.Routines;
 using MixERP.Social.Helpers;
 
 namespace MixERP.Finance.Models
@@ -19,6 +21,21 @@ namespace MixERP.Finance.Models
                 await Task.Delay(new TimeSpan(0, 2, 0)).ConfigureAwait(true);
                 await Logins.RevokeLoginsAsync(tenant, revokedBy).ConfigureAwait(true);
             }, null);
+        }
+
+        public static async Task<bool> StartNewDayAsync(string tenant, int officeId)
+        {
+            SuggestDateReload(tenant, officeId);
+
+            var type = typeof(IDayEndRoutine);
+            var routines = type.GetTypeMembersNotAbstract<IDayEndRoutine>().OrderBy(x => x.SequenceId);
+
+            foreach (var routine in routines)
+            {
+                await routine.PerformAsync(tenant, officeId).ConfigureAwait(false);
+            }
+
+            return true;
         }
 
         public static void SuggestDateReload(string tenant, int officeId)

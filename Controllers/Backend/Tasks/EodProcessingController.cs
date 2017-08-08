@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Frapid.ApplicationState.Cache;
+using Frapid.Areas.CSRF;
 using Frapid.Dashboard;
 using MixERP.Finance.DAL;
-using MixERP.Finance.DAL.Eod;
 using MixERP.Finance.Models;
 using Serilog;
-using Frapid.Areas.CSRF;
-using Frapid.Dashboard.DTO;
-using Frapid.Dashboard.Helpers;
-using MixERP.Social.DAL;
-using MixERP.Social.DTO;
-using Feeds = MixERP.Social.Models.Feeds;
 
 namespace MixERP.Finance.Controllers.Backend.Tasks
 {
@@ -26,7 +19,7 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
         public async Task<ActionResult> IndexAsync()
         {
             var meta = await AppUsers.GetCurrentAsync().ConfigureAwait(true);
-            var model = await  FiscalYears.GetFrequencyDatesAsync(this.Tenant, meta.OfficeId).ConfigureAwait(true);
+            var model = await FiscalYears.GetFrequencyDatesAsync(this.Tenant, meta.OfficeId).ConfigureAwait(true);
 
             return this.FrapidView(this.GetRazorView<AreaRegistration>("Tasks/EOD/Index.cshtml", this.Tenant), model);
         }
@@ -39,7 +32,7 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
 
             try
             {
-                await EodProcessing.InitializeAsync(this.Tenant, meta).ConfigureAwait(true);    
+                await EodProcessing.InitializeAsync(this.Tenant, meta).ConfigureAwait(true);
                 return this.Ok();
             }
             catch (Exception ex)
@@ -57,7 +50,7 @@ namespace MixERP.Finance.Controllers.Backend.Tasks
             try
             {
                 var meta = await AppUsers.GetCurrentAsync().ConfigureAwait(true);
-                EodProcessing.SuggestDateReload(this.Tenant, meta.OfficeId);
+                await EodProcessing.StartNewDayAsync(this.Tenant, meta.OfficeId).ConfigureAwait(true);
             }
             catch (Exception ex)
             {

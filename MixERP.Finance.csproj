@@ -233,6 +233,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryModels\AccountStatementQueryModel.cs" />
     <Compile Include="QueryModels\JournalViewQuery.cs" />
+    <Compile Include="Routines\DayEndRoutine.cs" />
+    <Compile Include="Routines\IDayEndRoutine.cs" />
     <Compile Include="ViewModels\Document.cs" />
     <Compile Include="ViewModels\ExchangeRate.cs" />
     <Compile Include="ViewModels\JournalDetail.cs" />
