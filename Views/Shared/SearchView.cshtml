@@ -1,15 +1,13 @@
 ﻿@using Frapid.ApplicationState.Cache
-@using MixERP.Finance
 @using MixERP.Finance.Extensions
 @using MixERP.Finance.PartialViewModels
-
 @{
     Layout = ViewBag.Layout;
     var meta = AppUsers.GetCurrent();
 }
 
 <style>
-    @@media (min-width:801px) {
+    @@media (min-width: 801px) {
         #Annotation {
             padding: 1.5rem;
         }
@@ -27,6 +25,11 @@
 
     table td a {
         cursor: pointer;
+    }
+
+    #SearchView tfoot tr th {
+        font-weight: bold;
+        color: red;
     }
 </style>
 
@@ -68,7 +71,7 @@
     <div class="vpad8"></div>
 
     <div class="fluid width overflown section">
-        <table id="JournalView" class="ui nowrap table segment">
+        <table id="SearchView" class="ui nowrap table segment">
             <thead>
                 <tr></tr>
             </thead>
@@ -103,8 +106,8 @@
     </div>
     <div class="actions">
         <div class="ui buttons">
-            <input type="button" class="ui red cancel button" value=@I18N.Cancel />
-            <input type="button" id="VerifyButton" class="ui green ok button" value=@I18N.Verify title=@I18N.CtrlReturn />
+            <input type="button" class="ui red cancel button" value="@I18N.Cancel" />
+            <input type="button" id="VerifyButton" class="ui green ok button" value="@I18N.Verify" title="@I18N.CtrlReturn" />
         </div>
     </div>
 </div>
@@ -154,7 +157,8 @@
                     const result = model.ChecklistUrlExpression(data);
 
                     if (result) {
-                        const checklistAnchor = $(`<a title='${window.translate("ChecklistWindow")}'><i class='list icon'></i></a>`);
+                        const checklistAnchor = $(`<a title='${window
+                            .translate("ChecklistWindow")}'><i class='list icon'></i></a>`);
                         checklistAnchor.attr("href", result);
                         cell.append(checklistAnchor);
                     };
@@ -164,7 +168,8 @@
                     const result = model.DocumentExpression(data);
 
                     if (result) {
-                        const documentAnchor = $(`<a data-documents='${result}' title='${window.translate("Documents")}'><i class='file outline icon'></i></a>`);
+                        const documentAnchor = $(`<a data-documents='${result}' title='${window
+                            .translate("Documents")}'><i class='file outline icon'></i></a>`);
                         documentAnchor.attr("href", "javascript:void(0);");
                         documentAnchor.attr("onclick", `showDocumentModal(this);`);
                         cell.append(documentAnchor);
@@ -175,7 +180,8 @@
                     const result = model.JournalAdviceExpression(data);
 
                     if (result) {
-                        const journalAdviceAnchor = $(`<a title='${window.translate("ViewJournalAdvice")}'><i class='search icon'></i></a>`);
+                        const journalAdviceAnchor = $(`<a title='${window
+                            .translate("ViewJournalAdvice")}'><i class='search icon'></i></a>`);
                         journalAdviceAnchor.attr("href", "javascript:void(0);");
                         journalAdviceAnchor.attr("onclick", `showJournalAdvice(${result});`);
                         cell.append(journalAdviceAnchor);
@@ -230,25 +236,25 @@
             };
 
             function addHeader(keys) {
-                const target = $("#JournalView thead tr").html("");
+                const target = $("#SearchView thead tr").html("");
 
                 if (!keys.length) {
                     return;
                 };
 
-                const actionCell = $("<th />").text(window.translate("Actions"));
-                const selectCell = $("<th />").text(window.translate("Select"));
+                const actionCell = $("<th/>").text(window.translate("Actions"));
+                const selectCell = $("<th/>").text(window.translate("Select"));
                 target.append(actionCell).append(selectCell);
 
                 for (let i = 0; i < keys.length; i++) {
                     const title = window.translate(keys[i]);
-                    const cell = $("<th />").text(title);
+                    const cell = $("<th/>").text(title);
                     target.append(cell);
                 };
             };
 
 
-            const target = $("#JournalView tbody").html("");
+            const target = $("#SearchView tbody").html("");
             const keys = getKeys(data[0]);
             addHeader(keys);
 
@@ -276,8 +282,41 @@
                     };
                 });
             });
+        };
 
+        function setTotals() {
+            const indices = model.IndiciesForTotal;
 
+            if (!indices) {
+                return;
+            };
+
+            const spannedColumns = Math.min.apply(null, indices) || 0;
+            const numberOfColumns = $("#SearchView tr:first-of-type td").length;
+            const totalLocalized = model.TotalLocalized || "Total";
+
+            if (!$("#SearchView tfoot").length) {
+                $("#SearchView").append("<tfoot><tr></tr></tfoot>");
+            };
+
+            const footerRow = $("#SearchView tfoot tr").html("");
+
+            if (spannedColumns) {
+                footerRow.append("<th class='right aligned' colspan='" + spannedColumns + "'>" + totalLocalized + "</th>");
+            };
+
+            for (let i = spannedColumns; i < numberOfColumns; i++) {
+                footerRow.append("<th class='right aligned'></th>");
+            };
+
+            for (let i = 0; i < indices.length; i++) {
+                const index = indices[i];
+                const columnPosition = index + 1;
+
+                const amount = window.sumOfColumn("#SearchView tbody", columnPosition);
+
+                footerRow.find("th:nth-child(" + (columnPosition - spannedColumns + 1) + ")").text(window.getFormattedCurrency(amount));
+            };
         };
 
         function request(data) {
@@ -295,6 +334,7 @@
 
         ajax.success(function (response) {
             displayTable(response, model);
+            setTotals();
         });
 
         ajax.fail(function (xhr) {
@@ -363,7 +403,7 @@
 
 
         setTimeout(function () {
-			window.setRegionalFormat();
+            window.setRegionalFormat();
             $("#ShowButton").trigger("click");
         }, 500);
     };
@@ -373,28 +413,27 @@
     };
 
     function createPDF() {
-        const table = $("#JournalView").clone();
+        const table = $("#SearchView").clone();
         window.printGridView(getTitle(), table, '', 2, 0, $("#MarkupHidden"), downloadPDF);
     };
 
     function createXls() {
-        const table = $("#JournalView").clone();
+        const table = $("#SearchView").clone();
 
         window.printGridView(getTitle(), table, '', 2, 0, $("#MarkupHidden"), downloadExcel);
     };
 
     function createDoc() {
-        const table = $("#JournalView").clone();
+        const table = $("#SearchView").clone();
 
         window.printGridView(getTitle(), table, '', 2, 0, $("#MarkupHidden"), downloadWord);
     };
 
     function print() {
-        const table = $("#JournalView").clone();
+        const table = $("#SearchView").clone();
 
         window.printGridView(getTitle(), table, '', 2, 0);
     };
-
 
     function startDownload(path, fileName) {
         const anchor = $("#DownloadAnchor");
@@ -403,7 +442,6 @@
         anchor.attr("download", fileName);
         anchor[0].click();
     };
-
 
     function downloadFile(extension) {
         function request(model) {
@@ -471,15 +509,8 @@
     };
 
 
-
-
-
-
-
-
-
     var reasonTextArea = $("#ReasonTextArea");
-    var journalView = $("#JournalView");
+    var searchView = $("#SearchView");
     var modal = $("#ActionModal");
     var verifyButton = $("#VerifyButton");
     var tranId;
@@ -496,7 +527,7 @@
         };
 
         function request(model, type) {
-            const url = "/dashboard/finance/tasks/verification/" + type;
+            const url = `/dashboard/finance/tasks/verification/${type}`;
             const data = JSON.stringify(model);
 
             return window.getAjaxRequest(url, "POST", data);
@@ -511,7 +542,7 @@
             var cascadingTranId = window.parseFloat2(response);
 
             if (cascadingTranId) {
-                journalView.find("tr td:nth-child(3)").each(function (i) {
+                searchView.find("tr td:nth-child(3)").each(function (i) {
                     const tranId = window.parseFloat2($(this).text() || 0);
 
                     if (cascadingTranId === tranId) {
@@ -520,7 +551,7 @@
                 });
             };
 
-            journalView.find("input:checked").first().parent().parent().parent().remove();
+            searchView.find("input:checked").first().parent().parent().parent().remove();
             hideModal();
         });
 
@@ -553,7 +584,7 @@
     };
 
     function getSelectedItem() {
-        const selected = journalView.find("input:checked").first();
+        const selected = searchView.find("input:checked").first();
 
         if (selected.length) {
             const row = selected.parent().parent().parent();
@@ -565,7 +596,7 @@
     };
 
     function removeRow(index, callback) {
-        journalView.find("tr").eq(index + 1).addClass("negative").fadeOut(500, function () {
+        searchView.find("tr").eq(index + 1).addClass("negative").fadeOut(500, function () {
             $(this).remove();
 
             if (typeof (callback) === "function") {
@@ -580,7 +611,7 @@
 
     function prepareVerification() {
         function getButton(id, text) {
-            const button = $("<a class='ui basic button' />");
+            const button = $("<a class='ui basic button'/>");
             button.attr("id", id);
             button.html(text);
 
