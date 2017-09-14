@@ -137,6 +137,50 @@ $$
 LANGUAGE plpgsql;
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.1.update/src/02.functions-and-logic/finance.get_new_transaction_counter.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_new_transaction_counter(date);
+
+CREATE FUNCTION finance.get_new_transaction_counter(date)
+RETURNS integer
+AS
+$$
+    DECLARE _ret_val integer;
+BEGIN
+    SELECT INTO _ret_val
+        COALESCE(MAX(transaction_counter),0)
+    FROM finance.transaction_master
+    WHERE finance.transaction_master.value_date=$1;
+
+    IF _ret_val IS NULL THEN
+        RETURN 1::integer;
+    ELSE
+        RETURN (_ret_val + 1)::integer;
+    END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.1.update/src/02.functions-and-logic/finance.get_transaction_code.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_transaction_code(value_date date, office_id integer, user_id integer, login_id bigint);
+
+CREATE FUNCTION finance.get_transaction_code(value_date date, office_id integer, user_id integer, login_id bigint)
+RETURNS text
+AS
+$$
+    DECLARE _office_id bigint:=$2;
+    DECLARE _user_id integer:=$3;
+    DECLARE _login_id bigint:=$4;
+    DECLARE _ret_val text;  
+BEGIN
+    _ret_val:= finance.get_new_transaction_counter($1)::text || '-' || TO_CHAR($1, 'YYYY-MM-DD') || '-' || CAST(_office_id as text) || '-' || CAST(_user_id as text) || '-' || CAST(_login_id as text)   || '-' ||  TO_CHAR(now(), 'HH24-MI-SS');
+    RETURN _ret_val;
+END
+$$
+LANGUAGE plpgsql;
+
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.1.update/src/05.scrud-views/empty.sql --<--<--
 
 
