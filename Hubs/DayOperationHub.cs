@@ -52,12 +52,7 @@ namespace MixERP.Finance.Hubs
                 return false;
             }
 
-            if (!meta.IsAdministrator)
-            {
-                return false;
-            }
-
-            return true;
+            return meta.IsAdministrator;
         }
     }
 }
