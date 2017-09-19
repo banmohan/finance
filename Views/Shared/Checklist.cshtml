@@ -1,4 +1,5 @@
 ﻿@model dynamic
+@using MixERP.Finance.Extensions;
 
 @{
     ViewBag.Title = I18N.Checklist;
@@ -7,14 +8,15 @@
 <style>
     iframe {
         display: block;
-        margin: 1em 0;
-        width: 800px;
+        margin: auto;
+        width: 100%;
         height: 800px;
         border: 1px solid #ccc;
     }
 
-    .checklist.segment .form:not(.unstyled),
-    .checklist.segment .message {
+    .checklist.segment .form:not(.unstyled), 
+    #WithdrawDiv .message
+    {
         max-width: 800px;
     }
 
@@ -44,178 +46,182 @@
     }
 </style>
 <div class="ui attached page checklist segment" style="min-height: 100%; padding: 3em;">
-    <div class="ui huge title header"></div>
-    <div class="ui divider"></div>
+    <div class="ui container">
 
-    <div class="ui positive message">@I18N.TransactionPostedSuccessfully</div>
+        <div class="ui huge title header"></div>
+        <div class="ui divider"></div>
 
-    <div class="ui basic buttons">
-        <a class="ui basic view transaction button"></a>
-        <a class="ui basic add new button"></a>
-        <a class="ui basic withdraw button" onclick="$('#WithdrawDiv').fadeToggle(1000);">@I18N.CancelWithdrawTransaction</a>
+        <div class="ui positive message">@I18N.TransactionPostedSuccessfully</div>
+
+        <div class="ui basic buttons">
+            <a class="ui basic view transaction button"></a>
+            <a class="ui basic add new button"></a>
+            <a class="ui basic withdraw button" onclick="$('#WithdrawDiv').fadeToggle(1000);">@I18N.CancelWithdrawTransaction</a>
+        </div>
+
+        <div id="WithdrawDiv" style="display: none;" class="ui basic segment">
+            <div class="ui attached message" style="display: block;">
+                <div class="header">@I18N.WithdrawalReason</div>
+            </div>
+            <div class="ui form attached fluid segment">
+                @Html.Raw(I18N.TransactionWithdrawalInformation)
+                <div class="field">
+                    <input type="hidden" id="TranIdInputHidden" value="" />
+                    <textarea rows="5" id="ReasonTextarea"></textarea>
+                </div>
+                <div class="ui message">@I18N.AreYouSure</div>
+                <button id="WithdrawOKButton" class="ui red small submit button" type="submit">@I18N.OK</button>
+                <button class="ui green small submit button" type="button">@I18N.Cancel</button>
+            </div>
+        </div>
+
+        <section class="notes" style="display: none;">
+            <div class="ui header">@I18N.Notes</div>
+            <div class="ui warning message">@I18N.YouHaventLeftNoteYet</div>
+            <div class="ui form">
+                <div class="field">
+                    <textarea rows="2"></textarea>
+                </div>
+                <div class="ui green button">@I18N.AddNote</div>
+            </div>
+        </section>
+
+
+        <section class="documents" style="display: none;">
+            <div class="ui header">@I18N.Documents</div>
+            <div class="ui warning message">@I18N.NoDocumentFound</div>
+            <div class="ui green button">@I18N.UploadNewDocument</div>
+        </section>
+
+        <section class="reminders" style="display: none;">
+            <div class="ui header">@I18N.Reminder</div>
+            <div class="ui warning message">@I18N.NoReminderSet</div>
+            <div class="ui green add reminder button">@I18N.CreateNewReminder</div>
+        </section>
+
+
+        <h2 class="ui big header">@I18N.Advice</h2>
+        <iframe id="ReportIFrame"></iframe>
+        @*<div class="ui green button">@I18N.EmailMeDocument</div>*@
     </div>
 
-    <div id="WithdrawDiv" style="display: none;" class="ui basic segment">
-        <div class="ui attached message" style="display: block;">
-            <div class="header">@I18N.WithdrawalReason</div>
-        </div>
-        <div class="ui form attached fluid segment">
-            @Html.Raw(I18N.TransactionWithdrawalInformation)
-            <div class="field">
-                <input type="hidden" id="TranIdInputHidden" value="" />
-                <textarea rows="5" id="ReasonTextarea"></textarea>
+    <div class="ui reminder small modal">
+        <i class="close icon"></i>
+        <div class="header">@I18N.CreateNewReminder</div>
+        <div class="content">
+            <div class="ui padded unstyled form">
+                <div class="field">
+                    <label>@I18N.Title</label>
+                    <input placeholder="@I18N.RemindMeAbout" />
+                </div>
+                <div class="selection group">
+                    <div class="field">
+                        <label>@I18N.WhomToRemind</label>
+                        <div class="single selection choices">
+                            <div tabindex="0" data-selection="" class="active choice">@I18N.OnlyMe</div>
+                            <div tabindex="0" data-selection="role" class="choice">@I18N.SelectedRole</div>
+                            <div tabindex="0" data-selection="user" class="choice">@I18N.SelectedUsers</div>
+                        </div>
+                    </div>
+                    <div class="role selection field" style="display: none;">
+                        <label>@I18N.SelectRoles</label>
+                        <select class="ui collapsing select dropdown"></select>
+                    </div>
+                    <div class="user selection field" style="display: none;">
+                        <label>@I18N.SelectUsers</label>
+                        <select class="ui collapsing select dropdown"></select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>@I18N.StartsFrom</label>
+                    <div class="fields">
+                        <div class="three wide field">
+                            <input type="text" class="date" value="d" />
+                        </div>
+                        <div class="two wide field">
+                            <input type="text" class="time" />
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>@I18N.EndsOn</label>
+                    <div class="fields">
+                        <div class="three wide field">
+                            <input type="text" class="date" value="7d" />
+                        </div>
+                        <div class="two wide field">
+                            <input type="text" class="time" />
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>@I18N.EnterDescriptionReminder</label>
+                    <textarea></textarea>
+                </div>
+                <div class="selection group">
+                    <div class="field">
+                        <label>@I18N.Repeat</label>
+                        <div class="single selection choices">
+                            <div tabindex="0" data-selection="" class="active choice">@I18N.No</div>
+                            <div tabindex="0" data-selection="repeat.hour.value" class="choice">@I18N.Hour</div>
+                            <div tabindex="0" data-selection="repeat.day.value" class="choice">@I18N.Day</div>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="four fields">
+                            <div class="repeat hour value selection field" style="display: none;">
+                                <label>@I18N.RepeatEvery</label>
+                                <input />
+                                <label>@I18N.Hours</label>
+                            </div>
+                            <div class="repeat day value selection field" style="display: none;">
+                                <label>@I18N.RepeatEvery</label>
+                                <input />
+                                <label>@I18N.Days</label>
+                            </div>
+                            <div class="field">
+                                <label>@I18N.RemindMeLeast</label>
+                                <input type="text" value="2" />
+                                <label>@I18N.HoursBeforeSchedule</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="ui checkbox">
+                        <input type="checkbox" checked="checked" />
+                        <label>@I18N.DisplayReminderOtherUsers</label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="ui checkbox">
+                        <input type="checkbox" checked="checked" />
+                        <label>@I18N.SendMeEmail</label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="ui checkbox">
+                        <input type="checkbox" />
+                        <label>@I18N.IncludingOtherParticipants</label>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="ui checkbox">
+                        <input type="checkbox" />
+                        <label>@I18N.AttachAllDocuments</label>
+                    </div>
+                </div>
             </div>
-            <div class="ui message">@I18N.AreYouSure</div>
-            <button id="WithdrawOKButton" class="ui red small submit button" type="submit">@I18N.OK</button>
-            <button class="ui green small submit button" type="button">@I18N.Cancel</button>
+        </div>
+        <div class="actions">
+            <div class="ui deny button">@I18N.Cancel</div>
+            <div class="ui positive button">@I18N.OK</div>
         </div>
     </div>
-
-    <section class="notes" style="display: none;">
-        <div class="ui header">@I18N.Notes</div>
-        <div class="ui warning message">@I18N.YouHaventLeftNoteYet</div>
-        <div class="ui form">
-            <div class="field">
-                <textarea rows="2"></textarea>
-            </div>
-            <div class="ui green button">@I18N.AddNote</div>
-        </div>
-    </section>
-
-
-    <section class="documents" style="display: none;">
-        <div class="ui header">@I18N.Documents</div>
-        <div class="ui warning message">@I18N.NoDocumentFound</div>
-        <div class="ui green button">@I18N.UploadNewDocument</div>
-    </section>
-
-    <section class="reminders" style="display: none;">
-        <div class="ui header">@I18N.Reminder</div>
-        <div class="ui warning message">@I18N.NoReminderSet</div>
-        <div class="ui green add reminder button">@I18N.CreateNewReminder</div>
-    </section>
-
-
-    <div class="ui header">@I18N.Advice</div>
-    <iframe id="ReportIFrame"></iframe>
-    @*<div class="ui green button">@I18N.EmailMeDocument</div>*@
 </div>
 
-<div class="ui reminder small modal">
-    <i class="close icon"></i>
-    <div class="header">@I18N.CreateNewReminder</div>
-    <div class="content">
-        <div class="ui padded unstyled form">
-            <div class="field">
-                <label>@I18N.Title</label>
-                <input placeholder="@I18N.RemindMeAbout" />
-            </div>
-            <div class="selection group">
-                <div class="field">
-                    <label>@I18N.WhomToRemind</label>
-                    <div class="single selection choices">
-                        <div tabindex="0" data-selection="" class="active choice">@I18N.OnlyMe</div>
-                        <div tabindex="0" data-selection="role" class="choice">@I18N.SelectedRole</div>
-                        <div tabindex="0" data-selection="user" class="choice">@I18N.SelectedUsers</div>
-                    </div>
-                </div>
-                <div class="role selection field" style="display: none;">
-                    <label>@I18N.SelectRoles</label>
-                    <select class="ui collapsing select dropdown"></select>
-                </div>
-                <div class="user selection field" style="display: none;">
-                    <label>@I18N.SelectUsers</label>
-                    <select class="ui collapsing select dropdown"></select>
-                </div>
-            </div>
-            <div class="field">
-                <label>@I18N.StartsFrom</label>
-                <div class="fields">
-                    <div class="three wide field">
-                        <input type="text" class="date" value="d" />
-                    </div>
-                    <div class="two wide field">
-                        <input type="text" class="time" />
-                    </div>
-                </div>
-            </div>
-            <div class="field">
-                <label>@I18N.EndsOn</label>
-                <div class="fields">
-                    <div class="three wide field">
-                        <input type="text" class="date" value="7d" />
-                    </div>
-                    <div class="two wide field">
-                        <input type="text" class="time" />
-                    </div>
-                </div>
-            </div>
-            <div class="field">
-                <label>@I18N.EnterDescriptionReminder</label>
-                <textarea></textarea>
-            </div>
-            <div class="selection group">
-                <div class="field">
-                    <label>@I18N.Repeat</label>
-                    <div class="single selection choices">
-                        <div tabindex="0" data-selection="" class="active choice">@I18N.No</div>
-                        <div tabindex="0" data-selection="repeat.hour.value" class="choice">@I18N.Hour</div>
-                        <div tabindex="0" data-selection="repeat.day.value" class="choice">@I18N.Day</div>
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="four fields">
-                        <div class="repeat hour value selection field" style="display: none;">
-                            <label>@I18N.RepeatEvery</label>
-                            <input />
-                            <label>@I18N.Hours</label>
-                        </div>
-                        <div class="repeat day value selection field" style="display: none;">
-                            <label>@I18N.RepeatEvery</label>
-                            <input />
-                            <label>@I18N.Days</label>
-                        </div>
-                        <div class="field">
-                            <label>@I18N.RemindMeLeast</label>
-                            <input type="text" value="2" />
-                            <label>@I18N.HoursBeforeSchedule</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="field">
-                <div class="ui checkbox">
-                    <input type="checkbox" checked="checked" />
-                    <label>@I18N.DisplayReminderOtherUsers</label>
-                </div>
-            </div>
-
-            <div class="field">
-                <div class="ui checkbox">
-                    <input type="checkbox" checked="checked" />
-                    <label>@I18N.SendMeEmail</label>
-                </div>
-            </div>
-
-            <div class="field">
-                <div class="ui checkbox">
-                    <input type="checkbox" />
-                    <label>@I18N.IncludingOtherParticipants</label>
-                </div>
-            </div>
-            <div class="field">
-                <div class="ui checkbox">
-                    <input type="checkbox" />
-                    <label>@I18N.AttachAllDocuments</label>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="actions">
-        <div class="ui deny button">@I18N.Cancel</div>
-        <div class="ui positive button">@I18N.OK</div>
-    </div>
-</div>
 <script>
     function prepareChecklist(model) {
         $(".title.header").html(model.Title);
@@ -297,3 +303,5 @@
         });
     });
 </script>
+
+@Html.SocialPartialView("Tasks/Embed.cshtml", TenantConvention.GetTenant())

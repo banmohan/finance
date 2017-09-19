@@ -14,5 +14,15 @@ namespace MixERP.Finance.Extensions
         {
             return helper.PartialView<AreaRegistration>(path, tenant, model);
         }
+
+        public static MvcHtmlString SocialPartialView(this HtmlHelper helper, string path, string tenant)
+        {
+            return helper.PartialView<Social.AreaRegistration>(path, tenant);
+        }
+
+        public static MvcHtmlString SocialPartialView(this HtmlHelper helper, string path, string tenant, object model)
+        {
+            return helper.PartialView<Social.AreaRegistration>(path, tenant, model);
+        }
     }
 }
