@@ -181,6 +181,17 @@ LANGUAGE plpgsql;
 
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.1.update/src/04.default-values/01.default-values.sql --<--<--
+UPDATE finance.accounts
+SET account_master_id = finance.get_account_master_id_by_account_master_code('ACP')
+WHERE account_name = 'Interest Payable';
+
+
+UPDATE finance.accounts
+SET account_master_id = finance.get_account_master_id_by_account_master_code('FII')
+WHERE account_name = 'Finance Charge Income';
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.1.update/src/05.scrud-views/empty.sql --<--<--
 
 
