@@ -8,6 +8,24 @@
     _tran_code                      national character varying(50),
     _book                           national character varying(50),
     _reference_number               national character varying(50),
+    _statement_reference            national character varying(50),
+    _posted_by                      national character varying(50),
+    _office                         national character varying(50),
+    _status                         national character varying(12),
+    _verified_by                    national character varying(50),
+    _reason                         national character varying(128)
+);
+
+DROP FUNCTION IF EXISTS finance.get_journal_view
+(
+    _user_id                        integer,
+    _office_id                      integer,
+    _from                           date,
+    _to                             date,
+    _tran_id                        bigint,
+    _tran_code                      national character varying(50),
+    _book                           national character varying(50),
+    _reference_number               national character varying(50),
     _amount							numeric(30, 6),	
     _statement_reference            national character varying(50),
     _posted_by                      national character varying(50),
@@ -128,9 +146,29 @@ BEGIN
 			CASE WHEN finance.transaction_details.tran_type = 'Cr' THEN 1 ELSE 0 END 
 				* 
 			finance.transaction_details.amount_in_local_currency
-		) = @amount
-		OR @amount = 0
+		) = _amount
+		OR _amount = 0
     ORDER BY value_date ASC, verification_status_id DESC;
 END
 $$
 LANGUAGE plpgsql;
+
+-- 
+-- SELECT * FROM finance.get_journal_view
+-- (
+--     1,
+--     1,
+--     '1-1-2000',
+--     '1-1-2020',
+--     0,
+--     '',
+--     '',
+--     '',
+-- 	0,
+--     '',
+--     '',
+--     '',
+--     '',
+--     '',
+--     ''
+-- );

@@ -67,6 +67,9 @@
         </div>
         <div class="eight fields">
             <div class="field">
+                <input placeholder="@I18N.Amount" id="AmountInputText" title="@I18N.Amount" type="text">
+            </div>
+            <div class="field">
                 <input placeholder="@I18N.Office" id="OfficeInputText" title="@I18N.Office" type="text">
             </div>
             <div class="field">
@@ -103,6 +106,7 @@
                 <th>@I18N.ValueDate</th>
                 <th>@I18N.BookDate</th>
                 <th>@I18N.RefererenceNumberAbbreviated</th>
+                <th>@I18N.Amount</th>
                 <th>@I18N.StatementReference</th>
                 <th>@I18N.PostedBy</th>
                 <th>@I18N.Office</th>
@@ -208,6 +212,7 @@
                 row.append(getCell(item.ValueDate, true, false));
                 row.append(getCell(item.BookDate, true, false));
                 row.append(getCell(item.ReferenceNumber));
+                row.append(getCell(item.Amount));
                 row.append(getCell(item.StatementReference));
                 row.append(getCell(item.PostedBy));
                 row.append(getCell(item.Office));

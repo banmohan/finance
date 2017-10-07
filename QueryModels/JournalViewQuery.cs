@@ -14,6 +14,7 @@ namespace MixERP.Finance.QueryModels
         public string ReferenceNumber { get; set; }
         public string StatementReference { get; set; }
         public string PostedBy { get; set; }
+        public decimal Amount { get; set; }
         public string Office { get; set; }
         public string Status { get; set; }
         public string VerifiedBy { get; set; }

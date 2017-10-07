@@ -11,6 +11,7 @@ namespace MixERP.Finance.DTO
         public DateTime BookDate { get; set; }
         public string ReferenceNumber { get; set; }
         public string StatementReference { get; set; }
+        public decimal Amount { get; set; }
         public string PostedBy { get; set; }
         public string Office { get; set; }
         public string Status { get; set; }
