@@ -710,17 +710,17 @@
 
         const model = getModel();
 
-        postButton.addClass("loading");
+        postButton.addClass("loading").prop("disabled", true);
         const ajax = request(model);
 
         ajax.success(function (response) {
-            postButton.removeClass("loading");
+            postButton.removeClass("loading").prop("disabled", false);
             const id = response;
             window.location = "/dashboard/finance/tasks/journal/checklist/" + id;
         });
 
         ajax.fail(function (xhr) {
-            postButton.removeClass("loading");
+            postButton.removeClass("loading").prop("disabled", false);
             window.logAjaxErrorMessage(xhr);
 
             const errorMessage = window.getAjaxErrorMessage(xhr);

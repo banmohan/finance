@@ -139,7 +139,7 @@
 
                 for (let i = 0; i < files.length; i++) {
                     const fileName = files[i];
-                    button.removeClass("loading");
+                    button.removeClass("loading").prop("disabled", false);
                     const target = container.find(".ui.images");
                     displayDocumentThumbnail(target, fileName, allowDelete);
                     el.closest(".document.form").find("input[type='hidden']").val(getUploadedDocuments(container));
@@ -160,7 +160,7 @@
 
         uploadEl.off("change").on("change", function () {
             const el = $(this);
-            button.addClass("loading");
+            button.addClass("loading").prop("disabled", true);
 
             uploadAttachments(el, button, container);
         });
