@@ -194,6 +194,34 @@ LANGUAGE plpgsql;
 --SELECT * FROM finance.get_account_statement('1-1-2010','1-1-2020',1,1,1);
 
 
+-->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.1.update/src/02.functions-and-logic/finance.get_cash_repository_balance.sql --<--<--
+DROP FUNCTION IF EXISTS finance.get_cash_repository_balance(_cash_repository_id integer, _currency_code national character varying(12));
+
+CREATE FUNCTION finance.get_cash_repository_balance(_cash_repository_id integer, _currency_code national character varying(12))
+RETURNS numeric(30, 6)
+AS
+$$
+    DECLARE _debit public.money_strict2;
+    DECLARE _credit public.money_strict2;
+BEGIN
+    SELECT COALESCE(SUM(amount_in_currency), 0::public.money_strict2) INTO _debit
+    FROM finance.verified_transaction_view
+    WHERE cash_repository_id=$1
+    AND currency_code=$2
+    AND tran_type='Dr';
+
+    SELECT COALESCE(SUM(amount_in_currency), 0::public.money_strict2) INTO _credit
+    FROM finance.verified_transaction_view
+    WHERE cash_repository_id=$1
+    AND currency_code=$2
+    AND tran_type='Cr';
+
+    RETURN _debit - _credit;
+END
+$$
+LANGUAGE plpgsql;
+
+
 -->-->-- src/Frapid.Web/Areas/MixERP.Finance/db/PostgreSQL/2.1.update/src/02.functions-and-logic/finance.get_journal_view.sql --<--<--
 DROP FUNCTION IF EXISTS finance.get_journal_view
 (
