@@ -539,7 +539,7 @@
         const ajax = request(model, type);
 
         ajax.success(function (response) {
-            var cascadingTranId = window.parseFloat2(response);
+            var cascadingTranId = window.parseFloat(response);
 
             if (cascadingTranId) {
                 searchView.find("tr td:nth-child(3)").each(function (i) {
@@ -589,7 +589,7 @@
         if (selected.length) {
             const row = selected.parent().parent().parent();
             const id = row.find("td:nth-child(3)").html();
-            return window.parseInt2(id);
+            return window.parseInt(id);
         };
 
         return 0;

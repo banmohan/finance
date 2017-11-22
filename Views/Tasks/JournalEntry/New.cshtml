@@ -360,7 +360,7 @@
 
     function isCashAccount() {
         const selectedAccount = accountSelect.find("option:selected");
-        const accountMasterId = window.parseInt2(selectedAccount.attr("data-account-master-id"));
+        const accountMasterId = window.parseInt(selectedAccount.attr("data-account-master-id"));
         if (accountMasterId === 10101) {
             return true;
         };
@@ -693,7 +693,7 @@
         valueDate = window.parseLocalizedDate(valueDateTextBox.val());
         bookDate = window.parseLocalizedDate(bookDateTextBox.val());
         referenceNumber = referenceNumberInputText.val();
-        costCenterId = window.parseInt2(costCenterSelect.getSelectedValue() || 0);
+        costCenterId = window.parseInt(costCenterSelect.getSelectedValue() || 0);
 
         if (validate()) {
             post();
@@ -791,7 +791,7 @@
             return false;
         };
 
-        if (window.parseInt2(costCenterSelect.getSelectedValue() || 0) <= 0) {
+        if (window.parseInt(costCenterSelect.getSelectedValue() || 0) <= 0) {
             window.makeDirty(costCenterSelect);
             errorLabelBottom.html(window.translate("InvalidCostCenter"));
             return false;
