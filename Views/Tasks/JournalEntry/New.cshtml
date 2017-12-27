@@ -603,7 +603,6 @@
                     duplicateEntry = true;
 
                     removeLoader(transactionGridView);
-                    return;
                 };
             };
 
@@ -616,10 +615,6 @@
             };
         });
 
-        if (duplicateEntry) {
-            removeLoader(transactionGridView);
-            return;
-        };
 
         const html = "<tr class='grid2-row'><td>" + statementReference + "</td><td>" + accountNumber + "</td><td>" + account + "</td><td>" + cashRepository + "</td><td>" + currencyCode + "</td><td class='text-right'>" + window.getFormattedCurrency(debit) + "</td><td class='text-right'>" + window.getFormattedCurrency(credit) + "</td>"
             + "<td class='text-right'>" + window.getFormattedNumber(er) + "</td><td class='text-right'>" + window.getFormattedCurrency(lcDebit) + "</td><td class='text-right'>" + window.getFormattedCurrency(lcCredit) + "</td>"

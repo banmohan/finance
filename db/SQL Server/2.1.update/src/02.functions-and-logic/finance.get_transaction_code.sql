@@ -13,8 +13,7 @@ BEGIN
 					CAST(@office_id AS varchar(100)) + '-' + 
 					CAST(@user_id AS varchar(100)) + '-' + 
 					CAST(@login_id AS varchar(100))   + '-' +  
-					CONVERT(VARCHAR(10), GETUTCDATE(), 108);
-
+					REPLACE(CONVERT(VARCHAR(20), GETUTCDATE(), 108), ':', '-');
     RETURN @ret_val;
 END;
 
