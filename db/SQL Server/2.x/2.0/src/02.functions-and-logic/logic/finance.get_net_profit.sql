@@ -26,7 +26,7 @@ BEGIN
     WHERE value_date >= @date_from AND value_date <= @date_to
     AND office_id IN (SELECT * FROM core.get_office_ids(@office_id))
     AND account_master_id >=20100
-    AND account_master_id <= 20300;
+    AND account_master_id <= 20350;
     
     SELECT @expenses = SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
     FROM finance.verified_transaction_mat_view

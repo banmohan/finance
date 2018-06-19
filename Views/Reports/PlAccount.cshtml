@@ -28,7 +28,7 @@
                     <label>@I18N.ShowCompact</label>
                 </div>
             </div>
-            <div class="field">
+            <div class="two wide field">
                 <label>&nbsp;</label>
                 <button id="ShowButton" class="ui positive show button">@I18N.Show</button>
                 <button id="PrintButton" class="ui basic print button">@I18N.Print</button>
@@ -76,7 +76,12 @@
 
             for (let i = 0; i < length; i++) {
                 const cell = $("<td />");
-                const text = data[keys[i]];
+                var text = data[keys[i]];
+				
+				if(window.parseInt(text)){
+					text = window.getFormattedCurrency(text);
+				};
+				
                 cell.html(text).appendTo(row);
             };
 
@@ -120,20 +125,21 @@
 
     function prepareGrid() {
         plAccountGridView.find("tr").each(function () {
-            const isSummation = $(this).find("td:last, th:last");
+            var row = $(this);
+			const isSummation = row.find("td:last, th:last");
 
-            if (isSummation.find("input").is(":checked") === true) {
-                $(this).addClass("positive");
-                $(this).find("td").addClass("strong");
+            if (isSummation.text().toLowerCase() === "true") {
+                row.addClass("positive");
+                row.find("td").addClass("strong");
             };
 
             isSummation.remove();
 
-            const isProfit = $(this).find("td:last, th:last");
+            const isProfit = row.find("td:last, th:last");
 
-            if (isProfit.find("input").is(":checked") === true) {
-                $(this).addClass("negative");
-                $(this).find("td").addClass("strong");
+            if (isProfit.text().toLowerCase() === "true") {
+                row.addClass("negative");
+                row.find("td").addClass("strong");
             };
 
             isProfit.hide();

@@ -30,7 +30,7 @@ BEGIN
     WHERE value_date >= _date_from AND value_date <= _date_to
     AND office_id IN (SELECT * FROM core.get_office_ids(_office_id))
     AND account_master_id >=20100
-    AND account_master_id <= 20300;
+    AND account_master_id <= 20350;
     
     SELECT SUM(CASE tran_type WHEN 'Dr' THEN amount_in_local_currency ELSE amount_in_local_currency * -1 END)
     INTO _expenses

@@ -69,7 +69,7 @@
         account,
         tran_code
         FROM finance.get_account_statement
-        (@From::date, @To::date, @UserId::integer, finance.get_account_id_by_account_number(@Account), @OfficeId::integer)
+        (@From::date, @To::date, @UserId::integer, finance.get_account_id_by_account_number(@Account), @OfficeId::integer, NOT @IncludeChildren::bool)
         ORDER BY id;
       </Query>
       <Parameters>
@@ -78,6 +78,7 @@
         <Parameter Name="@UserId" FieldLabel="User Id" Type="int" DefaultValue="{Meta.UserId}" />
         <Parameter Name="@Account" FieldLabel="Account" Type="string" PopulateFrom="/api/views/finance/account-selector-view/lookup-fields" KeyField="Key" ValueField="Value" />
         <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="int"  DefaultValue="{Meta.OfficeId}" />
+        <Parameter Name="@IncludeChildren" Type="bool" DefaultValue="true" />
       </Parameters>
       <RunningTotalTextColumnIndex>3</RunningTotalTextColumnIndex>
       <RunningTotalFieldIndices>4, 5</RunningTotalFieldIndices>

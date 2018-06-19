@@ -7,13 +7,25 @@
     _office_id              integer
 );
 
+DROP FUNCTION IF EXISTS finance.get_account_statement
+(
+    _date_from        		date,
+    _date_to          		date,
+    _user_id                integer,
+    _account_id             integer,
+    _office_id              integer,
+    _dont_include_children	boolean
+);
+
+
 CREATE FUNCTION finance.get_account_statement
 (
     _date_from        		date,
     _date_to          		date,
     _user_id                integer,
     _account_id             integer,
-    _office_id              integer
+    _office_id              integer,
+    _dont_include_children	boolean = false
 )
 RETURNS TABLE
 (
@@ -43,8 +55,21 @@ AS
 $$
     DECLARE _normally_debit boolean;
 BEGIN
-
     _normally_debit             := finance.is_normally_debit(_account_id);
+
+	DROP TABLE IF EXISTS temp_account_ids;
+	CREATE TEMPORARY TABLE temp_account_ids
+	(
+		account_id				integer
+	) ON COMMIT DROP;
+
+	IF(NOT _dont_include_children) THEN
+		INSERT INTO temp_account_ids
+		SELECT * FROM finance.get_account_ids(_account_id);
+	ELSE
+		INSERT INTO temp_account_ids
+		SELECT _account_id;
+	END IF;
 
     DROP TABLE IF EXISTS temp_account_statement;
     CREATE TEMPORARY TABLE temp_account_statement
@@ -101,7 +126,7 @@ BEGIN
     WHERE finance.transaction_master.verification_status_id > 0
     AND finance.transaction_master.book_date < _date_from
     AND finance.transaction_master.office_id IN (SELECT * FROM core.get_office_ids(_office_id)) 
-    AND finance.transaction_details.account_id IN (SELECT * FROM finance.get_account_ids(_account_id))
+    AND finance.transaction_details.account_id IN (SELECT * FROM temp_account_ids)
     AND NOT finance.transaction_master.deleted;
 
     DELETE FROM temp_account_statement
@@ -145,7 +170,7 @@ BEGIN
     AND finance.transaction_master.book_date >= _date_from
     AND finance.transaction_master.book_date <= _date_to
     AND finance.transaction_master.office_id IN (SELECT * FROM core.get_office_ids(_office_id)) 
-    AND finance.transaction_details.account_id IN (SELECT * FROM finance.get_account_ids(_account_id))
+    AND finance.transaction_details.account_id IN (SELECT * FROM temp_account_ids)
     AND NOT finance.transaction_master.deleted
     ORDER BY 
         finance.transaction_master.value_date,
@@ -190,4 +215,3 @@ END;
 $$
 LANGUAGE plpgsql;
 
---SELECT * FROM finance.get_account_statement('1-1-2010','1-1-2020',1,1,1);
