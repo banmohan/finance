@@ -1,0 +1,6 @@
+﻿@using MixERP.Finance.Extensions
+<script>
+    window.overridePath = "/dashboard/finance/tasks/journal/entry";
+    window.widgetScope = "Finance";
+</script>
+@Html.DashboardPartialView("Default/Console.cshtml", TenantConvention.GetTenant())

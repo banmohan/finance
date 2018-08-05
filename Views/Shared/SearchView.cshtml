@@ -517,7 +517,7 @@
     var approve;
 
     verifyButton.click(function () {
-        function getModel() {
+        function getModel(tranId) {
             const reason = reasonTextArea.val();
 
             return {
@@ -533,31 +533,61 @@
             return window.getAjaxRequest(url, "POST", data);
         }
 
-        const model = getModel();
-        const type = approve ? "approve" : "reject";
+        if (tranIds.length) {
+            $.each(tranIds, function(index, item) {
+                const model = getModel(item);
+                const type = approve ? "approve" : "reject";
 
-        const ajax = request(model, type);
+                const ajax = request(model, type);
 
-        ajax.success(function (response) {
-            var cascadingTranId = window.parseFloat(response);
+                ajax.success(function (response) {
+                    var cascadingTranId = window.parseFloat(response);
 
-            if (cascadingTranId) {
-                searchView.find("tr td:nth-child(3)").each(function (i) {
-                    const tranId = window.parseFloat2($(this).text() || 0);
+                    if (cascadingTranId) {
+                        searchView.find("tr td:nth-child(3)").each(function (i) {
+                            const tranId = window.parseFloat2($(this).text() || 0);
 
-                    if (cascadingTranId === tranId) {
-                        removeRow(i);
+                            if (cascadingTranId === tranId) {
+                                removeRow(i);
+                            };
+                        });
                     };
+
+                    searchView.find("input:checked").first().parent().parent().parent().remove();
+                    hideModal();
                 });
-            };
 
-            searchView.find("input:checked").first().parent().parent().parent().remove();
-            hideModal();
-        });
+                ajax.fail(function (xhr) {
+                    window.logAjaxErrorMessage(xhr);
+                });
+            })
+        } else {
+            const model = getModel(tranIds);
+            const type = approve ? "approve" : "reject";
 
-        ajax.fail(function (xhr) {
-            window.logAjaxErrorMessage(xhr);
-        });
+            const ajax = request(model, type);
+
+            ajax.success(function (response) {
+                var cascadingTranId = window.parseFloat(response);
+
+                if (cascadingTranId) {
+                    searchView.find("tr td:nth-child(3)").each(function (i) {
+                        const tranId = window.parseFloat2($(this).text() || 0);
+
+                        if (cascadingTranId === tranId) {
+                            removeRow(i);
+                        };
+                    });
+                };
+
+                searchView.find("input:checked").first().parent().parent().parent().remove();
+                hideModal();
+            });
+
+            ajax.fail(function (xhr) {
+                window.logAjaxErrorMessage(xhr);
+            });
+        }
 
         return false;
     });
@@ -588,7 +618,7 @@
 
         if (selected.length) {
             const row = selected.parent().parent().parent();
-            const id = row.find("td:nth-child(3)").html();
+            const id = row.find("td:nth-child(4)").html();
             return window.parseInt(id);
         };
 
@@ -607,6 +637,32 @@
 
     function hideModal() {
         modal.modal("hide");
+    };
+
+    var tranIds;
+    function getSelectedItranIds() {
+        var journalView = $("#SearchView");
+        const selected = journalView.find("input:checked");
+
+        if (selected.length === 1) {
+            const row = selected.parent().parent().parent();
+            const id = row.find("td:nth-child(3)").html();
+            tranIds = window.parseInt(id);
+            return tranIds;
+        };
+
+        if (selected.length > 1) {
+            tranIds = [];
+            $.each(selected, function(index, item) {
+                const row = $(item).parent().parent().parent();
+                const id = row.find("td:nth-child(3)").html();
+                tranIds.push(window.parseInt(id));
+            });
+
+            return tranIds;
+        }
+
+        return 0;
     };
 
     function prepareVerification() {
@@ -629,18 +685,20 @@
 
 
         approveButton.click(function () {
-            tranId = getSelectedItem();
+            tranIds = getSelectedItranIds();
 
-            if (tranId) {
+            if (tranIds) {
+                tranId = !tranIds.length? tranIds : '(Multiple Selected)';
                 approve = true;
                 showModal();
             };
         });
 
         rejectButton.click(function () {
-            tranId = getSelectedItem();
+            tranIds = getSelectedItranIds();
 
-            if (tranId) {
+            if (tranIds) {
+                tranId = !tranIds.length ? tranIds : '(Multiple Selected)';
                 approve = false;
                 showModal();
             };
