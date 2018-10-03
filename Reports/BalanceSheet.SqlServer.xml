@@ -24,44 +24,18 @@
   <DataSources>
     <DataSource Title="Assets">
       <Query>
-        SELECT
-        account_name AS item,
-        previous_period,
-        current_period
-        FROM finance.get_balance_sheet_assets(@PreviousPeriod, @CurrentPeriod, @UserId, @OfficeId, @Factor)
-		WHERE NOT (previous_period = 0 AND current_period = 0);
+        SELECT 'Balance Sheet'
       </Query>
-      <Parameters>
-        <Parameter Name="@PreviousPeriod" Type="System.DateTime" />
-        <Parameter Name="@CurrentPeriod" Type="System.DateTime" />
-        <Parameter Name="@UserId" FieldLabel="User Id" Type="int"  DefaultValue="{Meta.UserId}" />
-        <Parameter Name="@Factor" Type="int" DefaultValue="100" />
-        <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="int"  DefaultValue="{Meta.OfficeId}" />
-       
-      </Parameters>
-      <RunningTotalTextColumnIndex>0</RunningTotalTextColumnIndex>
-      <RunningTotalFieldIndices>1,2</RunningTotalFieldIndices>
     </DataSource>
     <DataSource Title="Liabilities &amp; Stockholders' Equity">
       <Query>
-        SELECT
-        account_name AS item,
-        previous_period,
-        current_period
-        FROM finance.get_balance_sheet_liabilities(@PreviousPeriod, @CurrentPeriod, @UserId, @OfficeId, @Factor)
-		WHERE NOT (previous_period = 0 AND current_period = 0)
-		
-		UNION ALL
-		
-		SELECT finance.account_masters.account_master_name, finance.get_retained_earnings(@PreviousPeriod, @OfficeId, @Factor), finance.get_retained_earnings(@CurrentPeriod, @OfficeId, @Factor)
-		FROM finance.account_masters
-		WHERE finance.account_masters.account_master_id = 15300;
+        SELECT 'Balance Sheet'
       </Query>
       <Parameters>
-        <Parameter Name="@PreviousPeriod" Type="System.DateTime" />
-        <Parameter Name="@CurrentPeriod" Type="System.DateTime" />
+        <Parameter Name="@Date" Type="System.DateTime" />
         <Parameter Name="@UserId" FieldLabel="User Id" Type="int"  DefaultValue="{Meta.UserId}" />
         <Parameter Name="@Factor" Type="int" DefaultValue="100" />
+        <Parameter Name="@Compact" Type="bool" />
         <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="int"  DefaultValue="{Meta.OfficeId}" />
        
       </Parameters>

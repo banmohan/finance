@@ -16,7 +16,7 @@ namespace MixERP.Finance.DTO
         public string Office { get; set; }
         public string Status { get; set; }
         public string VerifiedBy { get; set; }
-        public DateTimeOffset VerifiedOn { get; set; }
+        public DateTimeOffset? VerifiedOn { get; set; }
         public string Reason { get; set; }
         public DateTimeOffset TransactionTs { get; set; }
     }

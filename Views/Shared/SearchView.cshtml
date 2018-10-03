@@ -334,6 +334,9 @@
 
         ajax.success(function (response) {
             displayTable(response, model);
+            if (model.onDataChange) {
+                model.onDataChange(response);
+            }
             setTotals();
         });
 

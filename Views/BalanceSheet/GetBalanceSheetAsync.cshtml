@@ -1,0 +1,173 @@
+﻿@model MixERP.Finance.Models.BalanceSheet
+@using System;
+@using System.Collections.Generic;
+@using System.Linq;
+@using System.Globalization;
+
+@{
+    Layout = null;
+
+    var meta = Model.Meta;
+    var data = Model.Data;
+    var crTotal = Model.Data.Where(x => !x.NormallyDebit).Sum(x => (x.Credit - x.Debit));
+    var drTotal = Model.Data.Where(x => x.NormallyDebit).Sum(x => (x.Debit - x.Credit));
+
+    var pl = drTotal - crTotal;
+    if (drTotal > crTotal)
+    { crTotal = drTotal; }
+    else
+    {
+        drTotal = crTotal;
+    }
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <link rel=stylesheet href=/scripts/semantic-ui/components/reset.min.css>
+    <link rel=stylesheet href=/scripts/semantic-ui/semantic.min.css>
+    <link rel="stylesheet" type="text/css" href="/Areas/MixERP.Finance/styles/source.css" />
+    <title>Balance Sheet</title>
+    <style>
+        td.right.aligned, th.right.aligned {
+            padding-right: 10px !important;
+        }
+        tr.hidden {
+            display: none;
+        }
+
+        @@media print {
+            i.angle.down.icon, i.angle.right.icon {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div style='text-align:center'>
+        <p>
+            <img src="{LogoPath}" alt="Logo" style="max-width: 300px" />
+        </p>
+        <h1>@meta.OfficeName</h1>
+        <p>
+            @meta.Street, @meta.City, @meta.State, @meta.Country.
+            @I18N.Phone : @meta.Phone. @I18N.Fax : @meta.Fax.
+            <br />
+            Email : @meta.Email
+            Url : <a href="@meta.Url" target="_blank">@meta.Url</a>
+        </p>
+
+        @I18N.User : @meta.Name
+        <br />
+        Office Code : @meta.OfficeCode
+        <br />
+        <br />
+        <div class="report title">Balance Sheet<br><small>(as of @Model.Date)</small></div>
+    </div>
+    <div class="body">
+        <div class="gridviews">
+            <div class="ui two column grid">
+                <div class="column">
+                    <table style="white-space:nowrap">
+                        <thead>
+                            <tr>
+                                <th>LIABILITIES</th>
+                                <th>AMOUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var master in Model.Masters.Where(x => !x.IsDr))
+                            {
+                                var items = Model.Data.Where(x => x.AccountMasterId == master.MasterId);
+                                var total = items.Sum(x => (x.Credit - x.Debit));
+                                <tr onclick="toggleItems(@master.MasterId);">
+                                    <th master-id="@master.MasterId"><i class="violet angle down icon"></i>@master.AccountName</th>
+                                    <th class="right aligned">@total.ToString("N", new CultureInfo("en-US"))</th>
+                                </tr>
+                                foreach (var item in items)
+                                {
+                                    <tr master-id="@item.AccountMasterId">
+                                        <td>@item.AccountName</td>
+                                        <td class="right aligned">@((item.Credit - item.Debit).ToString("N", new CultureInfo("en-US")))</td>
+                                    </tr>
+                                }
+                            }
+                            @if (pl > 0)
+                            {
+                                <tr>
+                                    <td>PROFIT &amp; LOSS A/C</td>
+                                    <td class="right aligned">@pl.ToString("N", new CultureInfo("en-US"))</td>
+                                </tr>
+                            }
+                            <tr>
+                                <th>Total</th>
+                                <th class="right aligned">@crTotal.ToString("N", new CultureInfo("en-US"))</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="column">
+                    <table style="white-space:nowrap">
+                        <thead>
+                            <tr>
+                                <th>ASSETS</th>
+                                <th>AMOUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var master in Model.Masters.Where(x => x.IsDr))
+                            {
+                                var items = Model.Data.Where(x => x.AccountMasterId == master.MasterId);
+                                var total = items.Sum(x => (x.Debit - x.Credit));
+                                <tr onclick="toggleItems(@master.MasterId);">
+                                    <th master-id="@master.MasterId"><i class="violet angle down icon"></i>@master.AccountName</th>
+                                    <th class="right aligned">@total.ToString("N", new CultureInfo("en-US"))</th>
+                                </tr>
+                                foreach (var item in items)
+                                {
+                                    <tr master-id="@item.AccountMasterId">
+                                        <td>@item.AccountName</td>
+                                        <td class="right aligned">@((item.Debit - item.Credit).ToString("N", new CultureInfo("en-US")))</td>
+                                    </tr>
+                                }
+                            }
+                            @if (pl < 0)
+                            {
+                                <tr>
+                                    <td>PROFIT &amp; LOSS A/C</td>
+                                    <td class="right aligned">@((pl * -1).ToString("N", new CultureInfo("en-US")))</td>
+                                </tr>
+                            }
+                            <tr>
+                                <th>Total</th>
+                                <th class="right aligned">@drTotal.ToString("N", new CultureInfo("en-US"))</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src=/assets/js/backend.js></script>
+    <script>
+        function toggleItems(masterId) {
+            if (!masterId) return;
+
+            const i = $(`th[master-id=${masterId}] i`);
+            if (i.hasClass("down")) {
+                i.removeClass("down icon");
+                i.addClass("right icon");
+
+                $(`tr[master-id=${masterId}]`).addClass("hidden")
+            } else {
+                i.removeClass("right icon");
+                i.addClass("down icon");
+
+                $(`tr[master-id=${masterId}]`).removeClass("hidden")
+            }
+        }
+    </script>
+</body>
+</html>

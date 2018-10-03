@@ -162,6 +162,7 @@
     <Compile Include="AreaRegistration.cs" />
     <Compile Include="Cache\Dates.cs" />
     <Compile Include="Controllers\Backend\HomeController.cs" />
+    <Compile Include="Controllers\Backend\Reports\BalanceSheetController.cs" />
     <Compile Include="Controllers\Backend\Reports\CashFlowController.cs" />
     <Compile Include="Controllers\Backend\Reports\PlAccountController.cs" />
     <Compile Include="Controllers\Backend\Services\AccountController.cs" />
@@ -193,6 +194,7 @@
     <Compile Include="DAL\ProfitLoss\IProfitLoss.cs" />
     <Compile Include="DAL\RefreshMaterializedViews.cs" />
     <Compile Include="I18N.cs" />
+    <Compile Include="Models\BalanceSheet.cs" />
     <Compile Include="Models\JournalEntries.cs" />
     <Compile Include="PartialViewModels\Document.cs" />
     <Compile Include="QueryModels\CashFlowStatementQueryModel.cs" />
@@ -291,6 +293,7 @@
     <Content Include="Views\Shared\Documents.cshtml" />
     <Content Include="Views\Shared\SearchView.cshtml" />
     <Content Include="Views\Tasks\Console\Index.cshtml" />
+    <Content Include="Views\BalanceSheet\GetBalanceSheetAsync.cshtml" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

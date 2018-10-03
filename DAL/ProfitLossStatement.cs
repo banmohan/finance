@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Frapid.Configuration.Db;
+using Frapid.DataAccess;
 using Frapid.Mapper.Database;
 using MixERP.Finance.DAL.ProfitLoss;
 using MixERP.Finance.QueryModels;
