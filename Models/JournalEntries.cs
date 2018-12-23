@@ -29,16 +29,16 @@ namespace MixERP.Finance.Models
                     throw new InvalidOperationException(I18N.InvalidData);
                 }
 
-                if (item.Credit > 0)
-                {
-                    if (await Accounts.IsCashAccountAsync(tenant, item.AccountNumber).ConfigureAwait(true))
-                    {
-                        if (await CashRepositories.GetBalanceAsync(tenant, item.CashRepositoryCode, item.CurrencyCode).ConfigureAwait(true) < item.Credit)
-                        {
-                            throw new InvalidOperationException(I18N.InsufficientBalanceInCashRepository);
-                        }
-                    }
-                }
+                //if (item.Credit > 0)
+                //{
+                //    if (await Accounts.IsCashAccountAsync(tenant, item.AccountNumber).ConfigureAwait(true))
+                //    {
+                //        if (await CashRepositories.GetBalanceAsync(tenant, item.CashRepositoryCode, item.CurrencyCode).ConfigureAwait(true) < item.Credit)
+                //        {
+                //            throw new InvalidOperationException(I18N.InsufficientBalanceInCashRepository);
+                //        }
+                //    }
+                //}
             }
 
             decimal drTotal = (from detail in model.Details select detail.LocalCurrencyDebit).Sum();

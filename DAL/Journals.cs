@@ -32,14 +32,14 @@ namespace MixERP.Finance.DAL
 
             if (DbProvider.GetDbType(DbProvider.GetProviderName(tenant)) == DatabaseType.SqlServer)
             {
-                sql = "SELECT * FROM finance.get_journal_view(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14);";
+                sql = "SELECT * FROM finance.get_journal_view(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15);";
             }
 
             var awaiter = await
                 Factory.GetAsync<JournalView>(tenant, sql, query.UserId, query.OfficeId, query.From, query.To,
                     query.TranId, query.TranCode.Or(""), query.Book.Or(""), query.ReferenceNumber.Or(""), query.Amount,
                     query.StatementReference.Or(""), query.PostedBy.Or(""), query.Office.Or(""), query.Status.Or(""),
-                    query.VerifiedBy.Or(""), query.Reason.Or("")).ConfigureAwait(false);
+                    query.VerifiedBy.Or(""), query.Reason.Or(""), query.AccountId).ConfigureAwait(false);
 
             return awaiter.OrderBy(x => x.TransactionMasterId).ToList();
         }

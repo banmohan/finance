@@ -19,5 +19,6 @@ namespace MixERP.Finance.QueryModels
         public string Status { get; set; }
         public string VerifiedBy { get; set; }
         public string Reason { get; set; }
+        public int AccountId { get; set; }
     }
 }

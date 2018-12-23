@@ -81,6 +81,9 @@
             <div class="field">
                 <input placeholder="@I18N.Reason" id="ReasonInputText" title="@I18N.Reason" type="text">
             </div>
+            <div class="field">
+                <select id="AccountIdSelect" ></select>
+            </div>
             <div class="field hidden">
                 <input placeholder="@I18N.UserId" id="UserIdInputText" title="@I18N.UserId" type="text">
             </div>
@@ -96,7 +99,7 @@
     </div>
 
     <div class="fluid width overflown section">
-        <table id="JournalView" class="ui nowrap table segment">
+        <table id="JournalView" class="ui table segment">
             <thead>
             <tr>
                 <th>@I18N.Actions</th>
@@ -281,8 +284,22 @@
         }
 
         setTimeout(function() {
-            processQuery();
+            const ajax = window.getAjaxRequest('/dashboard/finance/chart-of-accounts/list', 'GET')
+            ajax.success(function (res) {
+                const el = $("#AccountIdSelect")
+                el.append($("<option value='' />").append("Account"))
+
+                $.each(res, (ind, item) => {
+                    el.append($(`<option value='${item.AccountId}' />`).append(item.AccountName))
+                })
+
+                el.addClass("ui search dropdown")
+                el.dropdown()
+
+                processQuery();
+            })
         }, 1000);
+
     };
 
     function showJournalAdvice(tranId) {
